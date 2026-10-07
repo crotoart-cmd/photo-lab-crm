@@ -67,15 +67,15 @@ const connectDatabase = async () => {
   }
 
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nuocleo-crm';
-  await mongoose.connect(uri);
-  console.log('✅ MongoDB connected:', uri);
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
+  const host = String(uri).replace(/\/\/.*@/, '//***@').split('?')[0];
+  console.log('✅ MongoDB connected:', host);
   return null;
 };
 
 const PORT = process.env.PORT || 5000;
 
-connectDatabase()
-  .then(async () => {
+const afterDatabaseReady = async () => {
     const { ensureOwner } = require('./services/ensureOwner');
     const { ensureSampleCustomers } = require('./services/ensureSampleCustomers');
     const { ensureSampleRepairTickets } = require('./services/ensureSampleRepairTickets');
@@ -146,17 +146,24 @@ connectDatabase()
         });
       }
     }
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 API URL: http://localhost:${PORT}/api`);
-      if (fs.existsSync(path.join(webDist, 'index.html'))) {
-        console.log(`🌐 Web UI: ${webDist}`);
-      }
-      console.log('✅ Retail: /api/retail (film/pin/máy, smart-intake, smart-sale)');
+};
+
+const startDatabase = () => {
+  connectDatabase()
+    .then(afterDatabaseReady)
+    .catch((err) => {
+      console.error('❌ MongoDB connection error:', err.message);
+      console.error('   Gợi ý: Atlas → Network Access → Allow Access from Anywhere (0.0.0.0/0)');
+      setTimeout(startDatabase, 15000);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message);
-    console.error('   Gợi ý: đặt USE_MEMORY_DB=true trong backend/.env để chạy thử không cần cài MongoDB');
-    process.exit(1);
-  });
+};
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 API URL: http://localhost:${PORT}/api`);
+  if (fs.existsSync(path.join(webDist, 'index.html'))) {
+    console.log(`🌐 Web UI: ${webDist}`);
+  }
+  console.log('✅ Retail: /api/retail (film/pin/máy, smart-intake, smart-sale)');
+  startDatabase();
+});
