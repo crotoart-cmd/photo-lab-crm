@@ -36,7 +36,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Hostinger / production: phục vụ React build cùng origin với /api
-const webDist = path.join(__dirname, '..', 'frontend', 'dist');
+const webDistCandidates = [
+  path.join(__dirname, 'public'),
+  path.join(__dirname, '..', 'frontend', 'dist'),
+];
+const webDist = webDistCandidates.find((dir) => fs.existsSync(path.join(dir, 'index.html'))) || webDistCandidates[0];
 if (fs.existsSync(path.join(webDist, 'index.html'))) {
   app.use(express.static(webDist));
   app.get('*', (req, res, next) => {
