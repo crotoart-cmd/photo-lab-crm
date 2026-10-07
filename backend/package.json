@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "build:web": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
+    "build:web": "npm --prefix ../frontend install --include=dev && npm --prefix ../frontend run build",
     "dev": "nodemon server.js",
     "seed": "node scripts/seed.js",
     "test:email": "node scripts/test-email.js",
