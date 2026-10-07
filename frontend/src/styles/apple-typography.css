@@ -1,0 +1,317 @@
+/**
+ * Apple Dynamic Type — thang chữ chuẩn HIG (default / Large)
+ * https://developer.apple.com/design/human-interface-guidelines/typography
+ */
+
+:root {
+  --type-large-title-size: 2.125rem; /* 34pt */
+  --type-title1-size: 1.75rem; /* 28pt */
+  --type-title2-size: 1.375rem; /* 22pt */
+  --type-title3-size: 1.25rem; /* 20pt */
+  --type-headline-size: 1.0625rem; /* 17pt semibold */
+  --type-body-size: 1.0625rem; /* 17pt */
+  --type-callout-size: 1rem; /* 16pt — input tối thiểu tránh zoom iOS */
+  --type-subhead-size: 0.9375rem; /* 15pt */
+  --type-footnote-size: 0.8125rem; /* 13pt */
+  --type-caption1-size: 0.75rem; /* 12pt */
+  --type-caption2-size: 0.6875rem; /* 11pt */
+
+  --type-headline-weight: 600;
+  --type-body-weight: 400;
+  --type-label-weight: 500;
+
+  /* Semantic aliases — dùng trong component */
+  --font-page-title: var(--type-title2-size);
+  --font-nav-title: var(--type-headline-size);
+  --font-section-title: var(--type-footnote-size);
+  --font-label: var(--type-subhead-size);
+  --font-input: var(--type-callout-size);
+  --font-body: var(--type-body-size);
+  --font-secondary: var(--type-subhead-size);
+  --font-tertiary: var(--type-footnote-size);
+  --font-caption: var(--type-caption1-size);
+  --font-tab: var(--type-caption2-size);
+  --font-mono-code: var(--type-caption1-size);
+}
+
+/* Ẩn nút tăng/giảm trên mọi ô number — toàn app, mọi viewport */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none;
+  margin: 0;
+  display: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Utility classes */
+.type-large-title {
+  font-size: var(--type-large-title-size);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.type-title1 {
+  font-size: var(--type-title1-size);
+  font-weight: 400;
+  line-height: 1.21;
+  letter-spacing: -0.02em;
+}
+
+.type-title2 {
+  font-size: var(--type-title2-size);
+  font-weight: 400;
+  line-height: 1.27;
+  letter-spacing: -0.02em;
+}
+
+.type-title3 {
+  font-size: var(--type-title3-size);
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.type-headline {
+  font-size: var(--type-headline-size);
+  font-weight: var(--type-headline-weight);
+  line-height: 1.29;
+}
+
+.type-body {
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: 1.29;
+}
+
+.type-callout {
+  font-size: var(--type-callout-size);
+  font-weight: 400;
+  line-height: 1.31;
+}
+
+.type-subhead {
+  font-size: var(--type-subhead-size);
+  font-weight: 400;
+  line-height: 1.33;
+}
+
+.type-footnote {
+  font-size: var(--type-footnote-size);
+  font-weight: 400;
+  line-height: 1.38;
+}
+
+.type-caption1 {
+  font-size: var(--type-caption1-size);
+  font-weight: 400;
+  line-height: 1.33;
+}
+
+.type-caption2 {
+  font-size: var(--type-caption2-size);
+  font-weight: 400;
+  line-height: 1.18;
+}
+
+/* Legacy form tokens */
+.form-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: var(--font-label);
+  font-weight: var(--type-label-weight);
+  line-height: 1.33;
+  color: var(--color-label-secondary);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  font-size: var(--font-input);
+  line-height: 1.31;
+  color: var(--color-label);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.form-input[type='number']::-webkit-inner-spin-button,
+.form-input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none;
+  display: none;
+  margin: 0;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-label-tertiary);
+  font-size: var(--font-input);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.form-select {
+  min-height: 2.75rem;
+}
+
+/* ── Mobile app baseline ── */
+@media (max-width: 767px) {
+  html.mobile-app body {
+    font-size: var(--font-body);
+    line-height: 1.29;
+  }
+
+  html.mobile-app .text-field__label {
+    font-size: var(--font-label);
+    font-weight: var(--type-label-weight);
+    color: var(--color-label-secondary);
+  }
+
+  html.mobile-app .text-field__input,
+  html.mobile-app .text-field__input::placeholder,
+  html.mobile-app .text-field__helper {
+    font-size: var(--font-input);
+  }
+
+  html.mobile-app .search-field-input,
+  html.mobile-app .search-field-input::placeholder {
+    font-size: var(--font-input);
+  }
+
+  html.mobile-app input,
+  html.mobile-app select,
+  html.mobile-app textarea {
+    font-size: var(--font-input);
+  }
+
+  html.mobile-app input::placeholder,
+  html.mobile-app textarea::placeholder {
+    font-size: var(--font-input);
+  }
+
+  html.mobile-app .sub-nav-bar__title-text {
+    font-size: var(--font-nav-title);
+    font-weight: var(--type-headline-weight);
+  }
+
+  html.mobile-app .sub-nav-bar__title-sub {
+    font-size: var(--font-caption);
+  }
+
+  html.mobile-app .tab-bar-item {
+    font-size: var(--font-tab);
+  }
+
+  html.mobile-app .intake-form-sheet-title {
+    font-size: var(--font-nav-title);
+    font-weight: var(--type-headline-weight);
+  }
+
+  html.mobile-app .retail-manual-section-title {
+    font-size: var(--font-section-title);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-label-secondary);
+  }
+
+  /* Nhập kho — tiêu đề section giống Dashboard (không uppercase) */
+  html.mobile-app .retail-intake-mobile .retail-manual-section-title {
+    margin: 0 0 0.625rem;
+    font-size: var(--type-subhead-size);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: var(--color-label);
+  }
+
+  html.mobile-app .retail-intake-mobile .retail-group-btn-title {
+    font-size: var(--type-subhead-size);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  html.mobile-app .retail-intake-mobile .retail-group-btn-desc {
+    font-size: var(--type-caption1-size);
+    color: var(--color-label-secondary);
+  }
+
+  html.mobile-app .product-scan-search__note,
+  html.mobile-app .intake-form-meta,
+  html.mobile-app .price-fields-row__floor-hint {
+    font-size: var(--font-tertiary);
+  }
+
+  html.mobile-app .intake-stock-row-name {
+    font-size: var(--font-body);
+    font-weight: 600;
+  }
+
+  html.mobile-app .intake-stock-row-meta,
+  html.mobile-app .intake-stock-row-code {
+    font-size: var(--font-tertiary);
+  }
+
+  html.mobile-app .retail-group-btn-title {
+    font-size: var(--font-secondary);
+    font-weight: 600;
+  }
+
+  html.mobile-app .retail-group-btn-desc {
+    font-size: var(--font-caption);
+  }
+
+  html.mobile-app .intake-form-note,
+  html.mobile-app .intake-uncertain-hint {
+    font-size: var(--font-tertiary);
+  }
+
+  html.mobile-app .intake-form-ai-cluster {
+    font-size: var(--font-tertiary);
+  }
+
+  html.mobile-app .retail-intake-error {
+    font-size: var(--font-tertiary);
+  }
+
+  html.mobile-app .retail-intake-loading {
+    font-size: var(--font-secondary);
+  }
+
+  html.mobile-app .retail-intake-save-btn,
+  html.mobile-app .retail-sale-mode-tab {
+    font-size: var(--font-secondary);
+  }
+
+  html.mobile-app .retail-pos-quick-stat {
+    font-size: var(--font-secondary);
+  }
+
+  html.mobile-app .retail-pos-quick-stat-value {
+    font-size: var(--font-nav-title);
+  }
+}

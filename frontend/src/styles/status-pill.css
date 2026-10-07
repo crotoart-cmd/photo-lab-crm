@@ -1,0 +1,135 @@
+/**
+ * StatusPill — Figma semantic status chips
+ */
+
+.status-pill {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 100px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.status-pill--icon-only {
+  width: 24px;
+  padding: 4px;
+  justify-content: center;
+}
+
+.status-pill--success {
+  background: #f4fff6;
+}
+
+.status-pill--processing {
+  background: #fffaf0;
+}
+
+.status-pill--failed {
+  background: #fff7f7;
+}
+
+.status-pill--active {
+  background: #f5fcff;
+}
+
+.status-pill--disable {
+  background: #f5f7fa;
+}
+
+.status-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.status-pill-icon .material-symbols-outlined {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.status-pill--icon-only .status-pill-icon .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.status-pill-icon--success {
+  color: #34a853;
+}
+
+.status-pill-icon--processing {
+  color: #f59e0b;
+}
+
+.status-pill-icon--processing .material-symbols-outlined {
+  animation: status-pill-spin 0.9s linear infinite;
+}
+
+@keyframes status-pill-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-pill-icon--failed {
+  color: #ff3b30;
+}
+
+.status-pill-icon--active {
+  color: #007aff;
+}
+
+.status-pill-icon--disable {
+  color: #8e8e93;
+}
+
+.status-pill-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.status-pill-label--success {
+  color: #1e7e34;
+}
+
+.status-pill-label--processing {
+  color: #b45309;
+}
+
+.status-pill-label--failed {
+  color: #dc2626;
+}
+
+.status-pill-label--active {
+  color: #007aff;
+}
+
+.status-pill-label--disable {
+  color: #6b7280;
+}
+
+/* Toast — pill icon thay vòng tròn đặc */
+.toast-message .status-pill--icon-only {
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+}
+
+.toast-message .status-pill--icon-only .status-pill-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.toast-message .status-pill--icon-only .status-pill-icon .material-symbols-outlined {
+  font-size: 16px;
+}

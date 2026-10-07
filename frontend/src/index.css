@@ -1,0 +1,70 @@
+@import './styles/fonts-local.css';
+@import './styles/material-design.css';
+@import './styles/web-shell.css';
+@import './styles/buttons.css';
+@import './styles/text-field.css';
+@import './styles/apple-design.css';
+@import './styles/apple-typography.css';
+@import './styles/apple-menu.css';
+@import './styles/mobile-shell.css';
+@import './styles/ios-iphone.css';
+@import './styles/mobile-app-force.css';
+
+@import './styles/retail-ios.css';
+@import './styles/toast-ios.css';
+@import './styles/status-pill.css';
+@import './styles/search-field.css';
+@import './styles/icon-32.css';
+@import './styles/sub-nav-bar.css';
+@import './styles/tab-bar.css';
+@import './styles/dashboard-segment.css';
+@import './styles/dashboard-widgets.css';
+@import './styles/customers-ios.css';
+@import './styles/intake-form-actions.css';
+@import './styles/camera-lifecycle.css';
+@import './styles/lab-ios.css';
+@import './styles/intake-checklist-ios.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ẩn nút lên/xuống trên input number (sau Tailwind) */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none;
+  margin: 0;
+  display: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-family: var(--font-sans, system-ui, sans-serif);
+    background-color: var(--ios-surface-bg, var(--color-bg-secondary, var(--color-bg)));
+    color: var(--color-label);
+    font-size: var(--font-body, 1rem);
+    line-height: 1.29;
+  }
+
+  html.mobile-app body {
+    font-family: var(--font-sans);
+    font-size: var(--font-body);
+    line-height: 1.29;
+    background-color: var(--ios-surface-bg, var(--color-bg-secondary));
+    color: var(--color-label);
+  }
+}
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}

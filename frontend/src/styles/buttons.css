@@ -1,0 +1,276 @@
+/**
+ * Pill buttons — Figma btn_ system
+ * Sizes: 36 · 40 · 48  |  Levels: lv.1–lv.5  |  radius: 100px
+ */
+
+:root {
+  --btn-blue: #0070ff;
+  --btn-blue-press: rgba(0, 112, 255, 0.7);
+  --btn-disabled-bg: #f1f4f8;
+  --btn-disabled-border: #dadfe7;
+  --btn-neutral-bg: #f5f7fa;
+}
+
+/* ── Base pill ── */
+.btn-pill {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease,
+    transform 0.12s ease;
+}
+
+.btn-pill:disabled {
+  cursor: not-allowed;
+}
+
+.btn-pill--block {
+  width: 100%;
+}
+
+.btn-pill .material-symbols-outlined {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Sizes ── */
+.btn-pill--36 {
+  min-height: 36px;
+  height: 36px;
+  padding: 6px;
+  font-size: var(--type-footnote-size);
+}
+
+.btn-pill--40 {
+  min-height: 40px;
+  height: 40px;
+  padding: 8px;
+  font-size: var(--type-subhead-size);
+}
+
+.btn-pill--48 {
+  min-height: 48px;
+  height: 48px;
+  padding: 12px;
+  font-size: var(--type-subhead-size);
+}
+
+.btn-pill--pad-none.btn-pill--36 {
+  padding: 6px 0;
+}
+
+.btn-pill--pad-none.btn-pill--40 {
+  padding: 8px 0;
+}
+
+.btn-pill--pad-none.btn-pill--48 {
+  padding: 12px 0;
+}
+
+.btn-pill--icon-only.btn-pill--36 {
+  width: 36px;
+  min-width: 36px;
+  padding: 6px;
+}
+
+.btn-pill--icon-only.btn-pill--40 {
+  width: 40px;
+  min-width: 40px;
+  padding: 8px;
+}
+
+.btn-pill--icon-only.btn-pill--48 {
+  width: 48px;
+  min-width: 48px;
+  padding: 12px;
+}
+
+/* ── Level 1 — Primary filled ── */
+.btn-pill--lv1 {
+  background: var(--btn-blue);
+  border-color: var(--btn-blue);
+  color: #ffffff;
+}
+
+.btn-pill--lv1:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-pill--lv1:active:not(:disabled) {
+  background: var(--btn-blue-press);
+  border-color: var(--btn-blue-press);
+}
+
+.btn-pill--lv1:disabled {
+  background: var(--btn-disabled-bg);
+  border-color: var(--btn-disabled-bg);
+  color: #bdc4cc;
+  filter: none;
+}
+
+/* ── Level 2 — Outline blue ── */
+.btn-pill--lv2 {
+  background: #ffffff;
+  border-color: var(--btn-blue);
+  color: var(--btn-blue);
+}
+
+.btn-pill--lv2:active:not(:disabled) {
+  background: rgba(0, 112, 255, 0.06);
+}
+
+.btn-pill--lv2:disabled {
+  background: #ffffff;
+  border-color: var(--btn-disabled-border);
+  color: #bdc4cc;
+}
+
+/* ── Level 3 — Text blue ── */
+.btn-pill--lv3 {
+  background: transparent;
+  border-color: transparent;
+  color: var(--btn-blue);
+}
+
+.btn-pill--lv3:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+.btn-pill--lv3:disabled {
+  background: #ffffff;
+  color: #bdc4cc;
+}
+
+/* ── Level 4 — Neutral fill ── */
+.btn-pill--lv4 {
+  background: var(--btn-neutral-bg);
+  border-color: var(--btn-neutral-bg);
+  color: var(--color-label, #1c1c1e);
+}
+
+.btn-pill--lv4:active:not(:disabled) {
+  background: #eef1f5;
+  border-color: #eef1f5;
+}
+
+.btn-pill--lv4:disabled {
+  background: var(--btn-disabled-bg);
+  border-color: var(--btn-disabled-bg);
+  color: #bdc4cc;
+}
+
+/* ── Level 5 — Neutral text ── */
+.btn-pill--lv5 {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-label, #1c1c1e);
+}
+
+.btn-pill--lv5:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+.btn-pill--lv5:disabled {
+  color: #bdc4cc;
+}
+
+/* ── Actionsample_ (rectangular — separate from pill system) ── */
+.action-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 16px 32px;
+  background: #ffffff;
+  border: 1px solid #bdc4cc;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-label, #1c1c1e);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: #f5f7fa;
+  border-color: #a8b0bb;
+}
+
+.action-btn:active:not(:disabled) {
+  background: #eef1f5;
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-btn--block {
+  width: 100%;
+}
+
+.action-btn--compact {
+  min-height: 40px;
+  padding: 10px 20px;
+  font-size: 0.9375rem;
+}
+
+.action-btn .material-symbols-outlined {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.action-btn--brand {
+  border-color: var(--btn-blue);
+  background: rgba(0, 112, 255, 0.08);
+  color: var(--btn-blue);
+}
+
+.action-btn--brand:hover:not(:disabled) {
+  background: rgba(0, 112, 255, 0.12);
+  border-color: var(--btn-blue);
+}
+
+/* ── Refresh (Làm mới) — xoay ngay khi bấm ── */
+.refresh-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
+.refresh-btn__icon {
+  display: inline-flex;
+  transform-origin: center center;
+}
+
+.refresh-btn__icon--spin {
+  animation: refresh-btn-spin 0.65s linear infinite;
+}
+
+@keyframes refresh-btn-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

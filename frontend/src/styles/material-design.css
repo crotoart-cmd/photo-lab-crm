@@ -1,0 +1,336 @@
+/**
+ * Material Design 3 — https://m3.material.io/
+ * Navigation drawer, color roles, typography (Roboto), shape & elevation.
+ */
+
+:root {
+  --md-ref-typeface-brand: 'Roboto', system-ui, sans-serif;
+  --md-ref-typeface-plain: 'Roboto', system-ui, sans-serif;
+
+  /* Nước Lèo — primary từ brand lab, container theo M3 */
+  --md-sys-color-primary: #2f5883;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d4e4f7;
+  --md-sys-color-on-primary-container: #0f2d4a;
+
+  --md-sys-color-secondary: #4f6272;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #d8e3f0;
+  --md-sys-color-on-secondary-container: #0b1c28;
+
+  --md-sys-color-tertiary: #2e6b4f;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #b8f0d0;
+  --md-sys-color-on-tertiary-container: #0a3320;
+
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+
+  --md-sys-color-surface: #f8f9fc;
+  --md-sys-color-on-surface: #1a1c1e;
+  --md-sys-color-on-surface-variant: #42474e;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f2f4f8;
+  --md-sys-color-surface-container: #eceef2;
+  --md-sys-color-surface-container-high: #e6e8ec;
+  --md-sys-color-surface-container-highest: #e0e2e6;
+  --md-sys-color-outline: #73777f;
+  --md-sys-color-outline-variant: #c2c7cf;
+
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  --md-sys-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --md-sys-elevation-2: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --md-sys-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  --md-nav-drawer-width: 280px;
+
+  /* Alias cho component cũ */
+  --font-sans: var(--md-ref-typeface-plain);
+  --color-bg: var(--md-sys-color-surface);
+  --color-bg-elevated: var(--md-sys-color-surface-container-lowest);
+  --color-bg-secondary: var(--md-sys-color-surface-container-low);
+  --color-label: var(--md-sys-color-on-surface);
+  --color-label-secondary: var(--md-sys-color-on-surface-variant);
+  --color-label-tertiary: #6b7280;
+  --color-separator: var(--md-sys-color-outline-variant);
+  --color-blue: var(--md-sys-color-primary);
+  --color-blue-pressed: #234262;
+  --color-green: var(--md-sys-color-tertiary);
+  --color-red: var(--md-sys-color-error);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+@layer base {
+  html {
+    font-family: var(--md-ref-typeface-plain);
+  }
+  body {
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+  }
+}
+
+@layer components {
+  .md-nav-drawer {
+    width: var(--md-nav-drawer-width);
+    background: var(--md-sys-color-surface-container-low);
+    border-right: 1px solid var(--md-sys-color-outline-variant);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .md-nav-drawer-header {
+    padding: 20px 16px 12px;
+  }
+
+  .md-nav-drawer-title {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .md-nav-drawer-subtitle {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 2px;
+  }
+
+  .md-nav-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+  }
+
+  .md-nav-section {
+    margin-bottom: 16px;
+  }
+
+  .md-nav-section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-variant);
+    padding: 8px 12px 4px;
+  }
+
+  .md-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 2px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    color: var(--md-sys-color-on-surface-variant);
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .md-nav-item .material-symbols-outlined {
+    font-size: 22px;
+    opacity: 0.85;
+  }
+
+  .md-nav-item:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .md-nav-item--active {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+  }
+
+  .md-nav-item--active .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    opacity: 1;
+  }
+
+  .md-nav-item--accent.md-nav-item--active {
+    background: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+  }
+
+  .md-nav-footer {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    background: var(--md-sys-color-surface-container);
+  }
+
+  .md-card {
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-1);
+  }
+
+  .md-card-filled {
+    background: var(--md-sys-color-surface-container-low);
+    border: none;
+    border-radius: var(--md-sys-shape-corner-large);
+  }
+
+  .md-page-title {
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 36px;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .md-page-subtitle {
+    font-size: 14px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 4px;
+  }
+
+  .md-btn-filled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-1);
+    cursor: pointer;
+    transition: box-shadow 0.2s, background 0.15s;
+  }
+  .md-btn-filled:hover:not(:disabled) {
+    box-shadow: var(--md-sys-elevation-2);
+    filter: brightness(1.05);
+  }
+  .md-btn-filled:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+
+  .md-btn-tonal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    cursor: pointer;
+  }
+
+  .md-btn-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--md-sys-color-primary);
+    cursor: pointer;
+  }
+  .md-btn-text:hover {
+    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+  }
+
+  .md-alert-error {
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+  }
+
+  .md-alert-success {
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+  }
+
+  /* Alias Apple → MD (migration) */
+  .apple-glass,
+  .md-surface-drawer {
+    background: var(--md-sys-color-surface-container-low);
+    border-right: 1px solid var(--md-sys-color-outline-variant);
+  }
+  .apple-card,
+  .md-card {
+    /* merged above */
+  }
+  .apple-page-title,
+  .md-page-title {
+    /* merged */
+  }
+  .apple-page-subtitle,
+  .md-page-subtitle {
+    /* merged */
+  }
+  .apple-btn-primary,
+  .md-btn-filled {
+    /* merged */
+  }
+  .apple-btn-secondary,
+  .md-btn-tonal {
+    /* merged */
+  }
+  .apple-btn-ghost,
+  .md-btn-text {
+    /* merged */
+  }
+  .apple-alert-error,
+  .md-alert-error {
+    /* merged */
+  }
+  .apple-alert-success,
+  .md-alert-success {
+    /* merged */
+  }
+  .apple-card-grouped {
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: var(--md-sys-shape-corner-medium);
+    border: 1px solid var(--md-sys-color-outline-variant);
+  }
+}

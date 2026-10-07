@@ -1,0 +1,37 @@
+/* iPhone / Capacitor shell */
+html.capacitor-app,
+html.mobile-app {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.capacitor-app,
+body.mobile-app {
+  overscroll-behavior: none;
+}
+
+@media (max-width: 767px) {
+  html.mobile-app body.capacitor-app,
+  html.mobile-app body.mobile-app {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* Safe area: ios-iphone.css (header, tab bar, main, modal) */
+html.ios-native body.capacitor-app,
+html.ios-native body.mobile-app {
+  padding-top: 0;
+}
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) .mobile-app-main {
+    padding-bottom: 0;
+  }
+}
+
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}

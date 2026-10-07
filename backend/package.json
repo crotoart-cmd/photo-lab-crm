@@ -1,11 +1,21 @@
 {
-  "name": "photo-lab-crm-backend",
+  "name": "crm-backend",
   "version": "1.0.0",
-  "description": "Photo Lab CRM Backend - API Server",
+  "description": "CRM — API (hdtlabx.com)",
   "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.js",
+    "build:web": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
     "dev": "nodemon server.js",
+    "seed": "node scripts/seed.js",
+    "test:email": "node scripts/test-email.js",
+    "test:invoice": "node scripts/send-invoice-demo.js",
+    "test:send-mail": "node test_send_mail.js",
+    "preview:receipt": "node scripts/preview-receipt-email.js",
+    "test:drive": "node scripts/test-drive.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -18,15 +28,17 @@
   "author": "Copilot",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.0.0",
-    "dotenv": "^16.0.3",
-    "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "nodemailer": "^6.9.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
     "express-validator": "^7.0.0",
-    "multer": "^1.4.5-lts.1"
+    "googleapis": "^173.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongodb-memory-server": "^10.1.4",
+    "mongoose": "^7.0.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

@@ -1,0 +1,324 @@
+/**
+ * TextField — Figma text field
+ * Container: column · gap 8px · width 327px (full width in app)
+ */
+
+.text-field {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  gap: 8px;
+  width: 100%;
+}
+
+.text-field__label {
+  margin: 0;
+  font-size: var(--font-label, 0.9375rem);
+  font-weight: var(--type-label-weight, 500);
+  line-height: 1.33;
+  color: var(--color-label-secondary, #3c3c43);
+}
+
+.text-field__label-required {
+  color: #ff3b30;
+  margin-left: 2px;
+}
+
+.text-field__control {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #dadfe7;
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.text-field:focus-within .text-field__control {
+  border-color: var(--btn-blue, #0070ff);
+  box-shadow: 0 0 0 3px rgba(0, 112, 255, 0.12);
+}
+
+.text-field--error .text-field__control {
+  border-color: #ff3b30;
+  box-shadow: none;
+}
+
+.text-field--error:focus-within .text-field__control {
+  border-color: #ff3b30;
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.12);
+}
+
+.text-field--disabled .text-field__control {
+  background: #ffffff;
+  border-color: #dadfe7;
+  box-shadow: none;
+}
+
+.text-field--readonly .text-field__control {
+  background: #ffffff;
+  border-color: #dadfe7;
+  box-shadow: none;
+}
+
+.text-field--readonly:has(.text-field__input:not(:placeholder-shown)) .text-field__control {
+  background: #f5f7fa;
+}
+
+.text-field--disabled:focus-within .text-field__control,
+.text-field--readonly:focus-within .text-field__control {
+  border-color: #dadfe7;
+  box-shadow: none;
+}
+
+.text-field__input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  margin: 0;
+  font-size: var(--font-input, 1rem);
+  line-height: 1.31;
+  color: var(--color-label, #1c1c1e);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.text-field__input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.text-field__input[type='number']::-webkit-inner-spin-button,
+.text-field__input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  appearance: none;
+  display: none;
+  margin: 0;
+}
+
+.text-field__input::placeholder {
+  color: var(--color-label-tertiary, #aeaeb2);
+  font-size: var(--font-input, 1rem);
+}
+
+.text-field__input:disabled,
+.text-field__input:read-only {
+  cursor: not-allowed;
+}
+
+.text-field__input:disabled:not(:placeholder-shown),
+.text-field__input:read-only:not(:placeholder-shown) {
+  color: var(--color-label, #1c1c1e);
+}
+
+.text-field__input.font-mono {
+  font-family: var(--font-mono, ui-monospace, Menlo, Monaco, monospace);
+  font-size: var(--font-input, 1rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Chuẩn chữ mờ (placeholder): luôn dùng font UI sans + đồng cỡ, kể cả ô mono.
+   Giá trị gõ vào của ô mã/serial vẫn giữ monospace. */
+.text-field__input.font-mono::placeholder,
+.form-input.font-mono::placeholder,
+.form-textarea.font-mono::placeholder {
+  font-family: var(--font-sans);
+  font-size: var(--font-input, 1rem);
+  letter-spacing: normal;
+  font-variant-numeric: normal;
+}
+
+.text-field--readonly .text-field__input {
+  cursor: default;
+}
+
+.text-field__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #9aa5b1;
+  pointer-events: none;
+}
+
+.text-field__icon .material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.text-field__icon--custom svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.text-field__icon--action {
+  pointer-events: auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.text-field__icon--action:active {
+  opacity: 0.7;
+}
+
+.text-field__icon--action.text-field__icon--custom {
+  width: 24px;
+  height: 24px;
+}
+
+.text-field__icon--action.text-field__icon--custom svg,
+.text-field__icon--action.text-field__icon--custom .icon-rotate__svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.text-field__icon--loading .material-symbols-outlined {
+  animation: text-field-spin 0.8s linear infinite;
+  color: var(--btn-blue, #0070ff);
+}
+
+.text-field__icon--loading .icon-32__svg {
+  animation: text-field-spin 0.85s linear infinite;
+  color: var(--btn-blue, #0070ff);
+}
+
+.text-field__icon--custom .icon-32__svg {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes text-field-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-field__helper {
+  margin: 0;
+  font-size: var(--font-tertiary, 0.8125rem);
+  line-height: 1.38;
+  color: var(--color-label-secondary, #8e8e93);
+}
+
+.text-field__helper--error {
+  color: #ff3b30;
+}
+
+.text-field--disabled .text-field__label,
+.text-field--disabled .text-field__helper {
+  color: #bdc4cc;
+}
+
+/* ── Text size 25px (large input / textarea) ── */
+.text-field--text-25 .text-field__control {
+  min-height: 56px;
+  padding: 0 16px;
+  align-items: center;
+}
+
+.text-field--text-25.text-field--multiline .text-field__control {
+  align-items: flex-start;
+  min-height: 80px;
+  padding: 12px 16px;
+}
+
+.text-field--text-25 .text-field__input {
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  padding: 12px 0;
+}
+
+.text-field--text-25.text-field--multiline .text-field__input {
+  min-height: 56px;
+  padding: 0;
+  resize: vertical;
+}
+
+/* ── Multiline (normal 16px) ── */
+.text-field--multiline:not(.text-field--text-25) .text-field__control {
+  align-items: flex-start;
+  min-height: 80px;
+  padding: 12px;
+}
+
+.text-field--multiline:not(.text-field--text-25) .text-field__input {
+  min-height: 56px;
+  padding: 0;
+  resize: vertical;
+}
+
+/* ── Footer: helper + fee + char count ── */
+.text-field__footer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.text-field__footer-spacer {
+  flex: 1;
+}
+
+.text-field__footer-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.text-field__helper {
+  flex: 1;
+  min-width: 0;
+}
+
+.text-field__fee {
+  font-size: var(--font-caption);
+  line-height: 1.35;
+  font-weight: 600;
+  color: #323f4b;
+  white-space: nowrap;
+}
+
+.text-field--error .text-field__fee {
+  color: #9aa5b1;
+}
+
+.text-field__count {
+  font-size: var(--font-caption);
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  color: #9aa5b1;
+  white-space: nowrap;
+}
+
+.text-field--error .text-field__count {
+  color: #ff3b30;
+}
+
+/* Legacy alias — inputClass maps here */
+.text-field-input {
+  /* applied via TextField component */
+}

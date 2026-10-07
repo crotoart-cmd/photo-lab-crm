@@ -1,0 +1,564 @@
+/**
+ * iOS shell — tối ưu iPhone 14 Pro Max (430×932, Dynamic Island, home indicator)
+ */
+
+:root {
+  --ios-tab-bar-content-h: 3.375rem; /* 54px shell Figma */
+  /* Apple HIG — tối thiểu iPhone (Dynamic Island / home indicator) */
+  --ios-safe-top-min: 34px;
+  --ios-safe-bottom-min: 34px;
+  /* Apple HIG — env() với viewport-fit=cover (index.html) */
+  --ios-safe-top: env(safe-area-inset-top, 0px);
+  --ios-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ios-safe-left: env(safe-area-inset-left, 0px);
+  --ios-safe-right: env(safe-area-inset-right, 0px);
+  --ios-safe-top-used: max(var(--ios-safe-top), var(--ios-safe-top-min));
+  --ios-safe-bottom-used: max(var(--ios-safe-bottom), var(--ios-safe-bottom-min));
+  --ios-tab-bar-h: calc(var(--ios-tab-bar-content-h) + max(0.25rem, calc(var(--ios-safe-bottom-used) - 7px)));
+  --ios-tab-bar-gap: 16px;
+  --ios-header-bar-h: 3rem; /* SubNavBar 48px */
+  --ios-pad-inline: max(1rem, var(--ios-safe-left));
+  --ios-pad-inline-end: max(1rem, var(--ios-safe-right));
+  --ios-content-max: 430px;
+  --ios-chrome-bg: #ffffff;
+  --ios-surface-bg: #f2f2f7;
+  --ios-chrome-offset: calc(env(safe-area-inset-top, 0px) + var(--ios-header-bar-h));
+  --ios-tab-bar-offset: var(--ios-tab-bar-h);
+}
+
+/* ── Native / preview shell ── */
+html.ios-device,
+html.mobile-app {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 767px) {
+  html.mobile-app {
+    background-color: var(--ios-surface-bg);
+  }
+}
+
+html.mobile-app body,
+html.ios-device body {
+  background-color: var(--ios-surface-bg);
+}
+
+@media (max-width: 767px) {
+  html.mobile-app,
+  html.mobile-app body,
+  html.mobile-app #root {
+    height: 100%;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  html.mobile-app body {
+    background-color: var(--ios-surface-bg);
+  }
+}
+
+html.ios-native body,
+html.iphone-14-pro-max body,
+html.ios-device body {
+  padding-top: 0;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+html.ios-native #root,
+html.iphone-14-pro-max #root,
+html.ios-device #root {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* ── App layout ── */
+@media (max-width: 767px) {
+  .ios-app-layout {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    background: var(--ios-surface-bg);
+  }
+
+  html.mobile-app .ios-app-shell {
+    background: var(--ios-surface-bg);
+  }
+
+  html.mobile-app .ios-mobile-frame {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Header cố định — trắng liền mạch tới status bar (edge-to-edge) */
+  html.mobile-app .ios-mobile-chrome {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 50;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding-top: max(0px, calc(var(--ios-safe-top) - 10px));
+    background: var(--ios-chrome-bg);
+    border-bottom: 0.5px solid var(--color-separator);
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-app-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-left: var(--ios-pad-inline);
+    padding-right: var(--ios-pad-inline-end);
+    padding-top: calc(var(--ios-chrome-offset) + 1rem);
+    padding-bottom: calc(var(--ios-tab-bar-offset, var(--ios-tab-bar-h)) + var(--ios-tab-bar-gap));
+    background: var(--ios-surface-bg);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scroll-padding-top: calc(var(--ios-chrome-offset) + 1rem);
+    scroll-padding-bottom: calc(var(--retail-checkout-offset, 0px) + 0.5rem);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html.retail-checkout-active .mobile-app-main {
+    padding-bottom: calc(
+      var(--ios-tab-bar-offset, var(--ios-tab-bar-h)) + var(--ios-tab-bar-gap) +
+        var(--retail-checkout-offset, 4.5rem)
+    );
+  }
+
+  .mobile-app-main::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* ── Header (Dynamic Island) ── */
+.ios-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(var(--ios-header-bar-h) + var(--ios-safe-top-used));
+  padding-top: var(--ios-safe-top-used);
+  padding-left: var(--ios-pad-inline);
+  padding-right: var(--ios-pad-inline-end);
+  padding-bottom: 0.5rem;
+  background: var(--ios-chrome-bg);
+  border-bottom: 0.5px solid var(--color-separator);
+}
+
+@media (min-width: 768px) {
+  .ios-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    min-height: auto;
+    padding-top: 0;
+  }
+}
+
+.ios-header-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-fill-secondary);
+  border: none;
+  color: var(--color-label);
+  flex-shrink: 0;
+}
+
+.ios-header-logo-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-header-logo-btn:active {
+  opacity: 0.75;
+  transform: scale(0.97);
+}
+
+.ios-header-trailing {
+  flex-shrink: 0;
+  font-size: var(--type-headline-size);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-label);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-header-trailing:active {
+  opacity: 0.7;
+}
+
+.ios-header-trailing-active {
+  color: var(--color-blue);
+}
+
+.ios-header-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.ios-header-title h1 {
+  font-size: var(--type-headline-size);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ios-header-title p {
+  font-size: var(--type-caption1-size);
+  color: var(--color-label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Tab bar: see tab-bar.css ── */
+
+/* ── Drawer menu (trượt từ trái) ── */
+.ios-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  animation: ios-drawer-fade-in 0.22s ease-out;
+}
+
+@keyframes ios-drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ios-drawer-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.ios-drawer-scrim {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+}
+
+.ios-drawer-panel {
+  width: min(300px, 88vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-lg);
+  padding-bottom: var(--ios-safe-bottom-used);
+  padding-left: var(--ios-safe-left);
+  animation: ios-drawer-slide-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ios-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: max(1rem, var(--ios-safe-top-used));
+  padding-left: var(--ios-pad-inline);
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid var(--color-separator);
+}
+
+/* ── Page content ── */
+.ios-page {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  html.iphone-14-pro-max .ios-page-card,
+  html.iphone-viewport .ios-page-card,
+  .ios-page-card {
+    border-radius: var(--radius-xl);
+    border: 0.5px solid var(--color-separator);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-sm);
+    padding: 1rem;
+  }
+}
+
+/* ── Modal sheet (iPhone) ── */
+@media (max-width: 767px) {
+  .ios-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .ios-modal-sheet {
+    width: 100%;
+    max-width: 100%;
+    height: min(84dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 6px));
+    max-height: min(84dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 6px));
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    margin: 0;
+  }
+
+  .ios-modal-footer {
+    border-top: 0.5px solid var(--color-separator);
+    background: var(--color-bg-elevated);
+    padding: 0.625rem 1rem max(0.625rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ios-modal-body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+.ios-modal-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ios-modal-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (min-width: 768px) {
+  .ios-modal-sheet {
+    max-height: min(90vh, 720px);
+    border-radius: var(--radius-xl);
+  }
+
+  .ios-modal-footer {
+    border-top: 0.5px solid var(--color-separator);
+    background: var(--color-bg-elevated);
+    padding: 0.75rem 1.5rem 1rem;
+  }
+}
+
+/* Form compact trong modal */
+.ios-modal-sheet--compact .text-field {
+  gap: 4px;
+}
+
+.ios-modal-sheet--compact .text-field__label {
+  font-size: var(--type-footnote-size);
+}
+
+.ios-modal-sheet--compact .text-field__control {
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+
+.ios-modal-sheet--compact .text-field__input {
+  font-size: var(--font-input);
+  padding: 6px 0;
+}
+
+.ios-modal-sheet--compact .text-field--text-25 .text-field__control,
+.ios-modal-sheet--compact .text-field--text-25.text-field--multiline .text-field__control {
+  min-height: 72px;
+  padding: 8px 10px;
+  align-items: flex-start;
+}
+
+.ios-modal-sheet--compact .text-field--text-25 .text-field__input,
+.ios-modal-sheet--compact .text-field--multiline .text-field__input {
+  font-size: var(--font-input);
+  line-height: 1.35;
+  min-height: 44px;
+  padding: 0;
+}
+
+.ios-modal-sheet--compact .text-field__footer {
+  display: none;
+}
+
+.ios-modal-sheet--compact .customer-form-grid {
+  gap: 0.625rem;
+}
+
+.ios-modal-sheet--compact .customer-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+/* ── Typography mobile — giữ rem root 16px để token HIG chính xác ── */
+@media (max-width: 767px) {
+  html.mobile-app .apple-page-title {
+    font-size: var(--type-title3-size);
+    line-height: 1.2;
+  }
+
+  html.mobile-app .apple-page-subtitle {
+    font-size: var(--type-subhead-size);
+  }
+
+  html.mobile-app .apple-table th,
+  html.mobile-app .apple-table td {
+    font-size: var(--type-subhead-size);
+  }
+}
+
+/* ── Login (full screen iOS) ── */
+.ios-login-screen {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: max(1.5rem, var(--ios-safe-top-used));
+  padding-right: var(--ios-pad-inline-end);
+  padding-bottom: max(1.5rem, var(--ios-safe-bottom-used));
+  padding-left: var(--ios-pad-inline);
+  background: var(--color-bg);
+}
+
+.ios-login-card {
+  width: 100%;
+  max-width: var(--ios-content-max);
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-elevated);
+  border: 0.5px solid var(--color-separator);
+  box-shadow: var(--shadow-md);
+}
+
+/* 16px inputs — tránh zoom tự động trên iOS Safari */
+html.ios-device input,
+html.ios-device select,
+html.ios-device textarea {
+  font-size: var(--font-input);
+}
+
+/* ── Stat grid 2 cột trên Pro Max ── */
+@media (max-width: 767px) {
+  html.iphone-14-pro-max .ios-stat-grid,
+  html.iphone-viewport .ios-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* ── Quick actions horizontal ── */
+.ios-quick-actions {
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+
+.ios-quick-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.ios-quick-action {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 5.5rem;
+  padding: 0.875rem 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  border: 0.5px solid var(--color-separator);
+  text-decoration: none;
+  color: var(--color-label);
+  font-size: var(--type-caption2-size);
+  font-weight: 500;
+  text-align: center;
+}
+
+.ios-quick-action .material-symbols-outlined {
+  font-size: 1.5rem;
+  color: var(--color-blue);
+}
+
+/* Dev preview frame (optional ?ios=iphone14promax on desktop) */
+html[style*='--ios-preview'] {
+  /* iframe không có notch thật → env(safe-area) = 0. Mô phỏng inset iPhone 14 Pro Max. */
+  --ios-safe-top: 59px;
+  --ios-safe-bottom: 34px;
+}
+
+html[style*='--ios-preview'] .ios-mobile-chrome {
+  padding-top: max(0px, calc(var(--ios-safe-top) - 10px));
+  background: var(--ios-chrome-bg);
+}
+
+html[style*='--ios-preview'] body::before {
+  content: '';
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Trong khung giả lập iphone.html — island do khung vẽ, ẩn island app */
+html.ios-preview-embedded body::before {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) .ios-header,
+  html:not(.mobile-app) .tab-bar--fixed {
+    display: none;
+  }
+}
+
+
+/* ── Modal / overlay — safe area (desktop) ── */
+@media (min-width: 768px) {
+  .ios-modal-backdrop {
+    padding: 1.5rem;
+  }
+}

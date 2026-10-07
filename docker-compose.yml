@@ -1,0 +1,42 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: lab-start-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: lab-start-api
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/lab-start-crm
+      JWT_SECRET: change_me_in_production
+      JWT_EXPIRE: 7d
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@labstartcrm.com}
+      FRONTEND_URL: http://localhost:3000
+      NODE_ENV: production
+    depends_on:
+      - mongodb
+
+  frontend:
+    build: ./frontend
+    container_name: lab-start-web
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

@@ -1,0 +1,129 @@
+/**
+ * Apple HIG — đồng bộ Tailwind / legacy size về Dynamic Type tokens.
+ * Import sau @tailwind utilities để override class cũ.
+ */
+
+/* Monospace codes — dùng thay font-mono + text-xs/text-[10px] */
+.type-mono-code,
+.font-mono.type-mono-code {
+  font-family: var(--font-mono);
+  font-size: var(--font-mono-code);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+html.mobile-app .font-mono.text-xs,
+html.mobile-app .font-mono.text-sm,
+html.mobile-app .font-mono.text-\[10px\],
+html.mobile-app .font-mono.text-\[11px\],
+html.mobile-app .font-mono.text-\[12px\] {
+  font-family: var(--font-mono);
+  font-size: var(--font-mono-code) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer utilities {
+  /* Tailwind default scale → Apple (mobile app) */
+  html.mobile-app .text-xs {
+    font-size: var(--type-caption1-size) !important;
+    line-height: 1.33;
+  }
+
+  html.mobile-app .text-sm {
+    font-size: var(--type-subhead-size) !important;
+    line-height: 1.33;
+  }
+
+  html.mobile-app .text-base {
+    font-size: var(--type-callout-size) !important;
+    line-height: 1.31;
+  }
+
+  html.mobile-app .text-lg {
+    font-size: var(--type-title3-size) !important;
+    line-height: 1.25;
+  }
+
+  html.mobile-app .text-xl {
+    font-size: var(--type-title3-size) !important;
+    line-height: 1.25;
+  }
+
+  html.mobile-app .text-2xl {
+    font-size: var(--type-title2-size) !important;
+    line-height: 1.27;
+  }
+
+  /* Arbitrary px — map về bậc HIG gần nhất */
+  html.mobile-app .text-\[10px\],
+  html.mobile-app .text-\[11px\] {
+    font-size: var(--type-caption2-size) !important;
+    line-height: 1.18;
+  }
+
+  html.mobile-app .text-\[12px\] {
+    font-size: var(--type-caption1-size) !important;
+    line-height: 1.33;
+  }
+
+  html.mobile-app .text-\[13px\] {
+    font-size: var(--type-footnote-size) !important;
+    line-height: 1.38;
+  }
+
+  html.mobile-app .text-\[14px\] {
+    font-size: var(--type-subhead-size) !important;
+    line-height: 1.33;
+  }
+
+  html.mobile-app .text-\[15px\] {
+    font-size: var(--type-subhead-size) !important;
+    line-height: 1.33;
+  }
+
+  html.mobile-app .text-\[16px\] {
+    font-size: var(--type-callout-size) !important;
+    line-height: 1.31;
+  }
+
+  html.mobile-app .text-\[17px\] {
+    font-size: var(--type-body-size) !important;
+    line-height: 1.29;
+  }
+
+  html.mobile-app .text-\[24px\] {
+    font-size: var(--type-title2-size) !important;
+    line-height: 1.27;
+  }
+}
+
+/* Desktop — vẫn chuẩn hóa arbitrary phổ biến (không !important để tránh phá layout admin) */
+.text-\[10px\],
+.text-\[11px\] {
+  font-size: var(--type-caption2-size);
+}
+
+.text-\[13px\] {
+  font-size: var(--type-footnote-size);
+}
+
+.text-\[14px\] {
+  font-size: var(--type-subhead-size);
+}
+
+.text-\[15px\] {
+  font-size: var(--type-subhead-size);
+}
+
+.text-\[17px\] {
+  font-size: var(--type-body-size);
+}
+
+/* Không cho phép micro-text dưới Caption 2 trong app mobile */
+html.mobile-app .dashboard-metric-card__axis,
+html.mobile-app .dashboard-donut-legend,
+html.mobile-app .retail-mobile-camera-row-meta,
+html.mobile-app .retail-stock-prices,
+html.mobile-app .intake-stock-row-meta {
+  font-size: max(var(--type-caption2-size), 0.6875rem);
+}

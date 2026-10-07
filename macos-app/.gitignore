@@ -1,0 +1,6 @@
+node_modules/
+.tools/
+staging/
+release/
+*.dmg
+*.blockmap

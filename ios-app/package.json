@@ -1,0 +1,36 @@
+{
+  "name": "nuoc-leo-crm-ios",
+  "version": "1.0.0",
+  "description": "HDTLabx — bản iOS/Android (Capacitor)",
+  "private": true,
+  "scripts": {
+    "generate:brand": "python3 scripts/generate-brand-assets.py",
+    "build:web": "npm run generate:brand && node scripts/build-frontend.js",
+    "sync": "npm run build:web && npx cap sync ios",
+    "sync:android": "npm run build:web && npx cap sync android",
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android",
+    "add:ios": "npx cap add ios",
+    "add:android": "npx cap add android",
+    "setup": "npm install && npm run add:ios && npm run sync",
+    "setup:android": "npm install && node scripts/ensure-android-sdk.js && npm run add:android && npm run sync:android",
+    "install:y700": "bash scripts/install-android.sh"
+  },
+  "dependencies": {
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/ios": "^6.2.0",
+    "@capacitor/status-bar": "^6.0.2",
+    "capacitor-device-smtp": "file:./plugins/capacitor-device-smtp"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  },
+  "capacitor": {
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}

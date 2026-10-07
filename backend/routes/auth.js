@@ -2,60 +2,75 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
+const { OWNER_EMAIL, isOwnerRole } = require('../config/users');
+const { authWithUser } = require('../middleware/authz');
 
 const router = express.Router();
 
-// Middleware to verify token
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
-    req.userRole = decoded.role;
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Invalid token' });
-  }
-};
-
-// Register
-router.post('/register', [
-  body('name').notEmpty(),
-  body('email').isEmail(),
-  body('password').isLength({ min: 6 }),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { name, email, password, role } = req.body;
-
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    user = new User({ name, email, password, role: role || 'staff' });
-    await user.save();
-
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
-    );
-
-    res.json({ message: 'User registered successfully', token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+const publicUser = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  role: isOwnerRole(user.role) ? 'owner' : 'staff',
+  phone: user.phone || '',
+  status: user.status,
 });
+
+const { verifyToken } = require('../middleware/verifyToken');
+
+/** Đăng ký công khai đã tắt — tạo nhân viên qua POST /api/users (chủ hệ thống). */
+router.post('/register', (_req, res) => {
+  res.status(403).json({
+    message: 'Không cho đăng ký công khai. Chủ hệ thống tạo tài khoản nhân viên trong mục Hồ sơ.',
+  });
+});
+
+router.get('/me', ...authWithUser, async (req, res) => {
+  res.json({ user: publicUser(req.user) });
+});
+
+router.patch(
+  '/profile',
+  ...authWithUser,
+  [
+    body('name').optional().notEmpty().withMessage('Tên không được trống'),
+    body('email').optional().isEmail(),
+    body('password').optional().isLength({ min: 6 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, email, password } = req.body;
+      const user = await User.findById(req.userId);
+      if (!user) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
+
+      const owner = isOwnerRole(user.role);
+
+      if (name) user.name = name.trim();
+      if (password) user.password = password;
+
+      if (email && email.toLowerCase() !== user.email) {
+        if (!owner) {
+          return res.status(403).json({ message: 'Chỉ chủ hệ thống được đổi email đăng nhập' });
+        }
+        const taken = await User.findOne({ email: email.toLowerCase() });
+        if (taken && String(taken._id) !== String(user._id)) {
+          return res.status(400).json({ message: 'Email đã được dùng' });
+        }
+        user.email = email.toLowerCase();
+      }
+
+      await user.save();
+      res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user) });
+    } catch (error) {
+      res.status(500).json({ message: 'Lỗi cập nhật hồ sơ', error: error.message });
+    }
+  }
+);
 
 // Login
 router.post('/login', [
@@ -68,29 +83,46 @@ router.post('/login', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const { password } = req.body;
+    let user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      const { OWNER_EMAIL, OWNER_PASSWORD, OWNER_NAME } = require('../config/users');
+      if (email === OWNER_EMAIL) {
+        const { ensureOwner } = require('../services/ensureOwner');
+        user = await ensureOwner();
+      } else {
+        return res.status(400).json({ message: 'Không tìm thấy tài khoản với email này' });
+      }
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
     }
 
     const isPasswordValid = await user.matchPassword(password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Invalid password' });
+      return res.status(400).json({ message: 'Mật khẩu không đúng' });
     }
 
+    const role = isOwnerRole(user.role) ? 'owner' : 'staff';
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id, role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE }
     );
 
-    res.json({ message: 'Login successful', token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({
+      message: 'Login successful',
+      token,
+      user: publicUser(user),
+      isOwner: role === 'owner',
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 module.exports = router;
-module.exports.verifyToken = verifyToken;
+module.exports.verifyToken = verifyToken; // tương thích routes cũ

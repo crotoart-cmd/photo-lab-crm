@@ -1,0 +1,388 @@
+/**
+ * Dashboard segmented tabs — một viền ngoài, tab active không có border riêng
+ * (giống apple-segmented: rounded-xl shell + rounded-lg pill)
+ */
+
+.dashboard-segment-group {
+  box-sizing: border-box;
+  padding: 4px;
+  border-radius: 12px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-secondary);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.dashboard-segment-group--row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.dashboard-segment-group--scroll {
+  display: block;
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .dashboard-segment-group--scroll .dashboard-segment-group__track {
+    width: 100%;
+    overflow-x: visible;
+  }
+
+  .dashboard-segment-group--scroll .dashboard-segment-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding: 0.5rem 0.375rem;
+    font-size: 0.75rem;
+  }
+
+  .dashboard-segment-group--scroll .dashboard-segment-btn .material-symbols-outlined {
+    font-size: 1.125rem;
+  }
+
+  .dashboard-segment-group--row {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-segment-group--row:has(.dashboard-segment-btn--period) {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .dashboard-segment-group--row .dashboard-segment-btn--period {
+    flex: 1 1 0;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+.dashboard-segment-group__track {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.dashboard-segment-group__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Segmented control tái sử dụng — cuộn ngang, không ép co / wrap chữ */
+.apple-segmented-control {
+  width: 100%;
+}
+
+.apple-segmented-control__track .dashboard-segment-btn {
+  flex: 0 0 auto;
+}
+
+.dashboard-segment-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-label-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (min-width: 768px) {
+  .dashboard-segment-btn {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.875rem;
+  }
+}
+
+.dashboard-segment-btn:hover {
+  color: var(--color-label);
+}
+
+.dashboard-segment-btn--active {
+  background: var(--color-bg-elevated, #ffffff);
+  color: var(--color-label);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-segment-btn--period {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.dashboard-segment-btn--period-active {
+  background: var(--color-blue, #007aff);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.dashboard-segment-btn--period-active:hover {
+  color: #ffffff;
+}
+
+/* ── Khối phân tích theo kỳ (picker thuộc card cha, không lơ lửng) ── */
+.dashboard-period-block {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: visible;
+}
+
+.dashboard-period-block__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid var(--color-separator);
+}
+
+@media (max-width: 767px) {
+  .dashboard-period-block__head {
+    flex-wrap: wrap;
+  }
+
+  .period-range-select {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.dashboard-period-block__intro {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-period-block__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-label);
+}
+
+.dashboard-period-block__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--color-label-tertiary);
+  line-height: 1.35;
+}
+
+.dashboard-period-block__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.dashboard-period-block__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-label);
+}
+
+.dashboard-period-block__section + .dashboard-period-block__section {
+  padding-top: 1rem;
+  border-top: 0.5px solid var(--color-separator);
+}
+
+.dashboard-repair-ops--compact {
+  margin-top: 0.25rem;
+}
+
+.dashboard-repair-ops__cards--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-sales-rhythm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 0.5px solid var(--color-separator);
+}
+
+/* Split 70/30 — chart | tóm tắt (desktop; mobile xếp dọc) */
+.dashboard-sales-rhythm--split {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-sales-rhythm__chart-col {
+  min-width: 0;
+}
+
+.dashboard-sales-rhythm__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dashboard-sales-rhythm__aside-label {
+  display: none;
+}
+
+.dashboard-sales-rhythm__stats {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.dashboard-sales-rhythm__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 0.5px solid var(--color-separator);
+}
+
+.dashboard-sales-rhythm__stat:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.dashboard-sales-rhythm__stat dt {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-label-secondary);
+}
+
+.dashboard-sales-rhythm__stat dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.dashboard-sales-rhythm__stat dd strong {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-sales-rhythm__stat dd span {
+  font-size: 0.75rem;
+  color: var(--color-label-tertiary);
+}
+
+.dashboard-sales-rhythm__aside-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.dashboard-sales-rhythm__aside-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--color-label-secondary);
+}
+
+@media (min-width: 768px) {
+  .dashboard-sales-rhythm--split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(11.5rem, 0.55fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .dashboard-sales-rhythm__aside {
+    min-height: 100%;
+  }
+
+  .dashboard-period-block .dashboard-sales-rhythm__chart.dashboard-orders--empty {
+    display: flex;
+    align-items: center;
+    min-height: 8rem;
+  }
+}
+
+/* ── Period range — trigger trong card phân tích ── */
+.period-range-select {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 12.5rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-period-block__head .period-range-select {
+    max-width: 11.5rem;
+  }
+}
+
+/* ── Period filter (legacy segmented — giữ cho tương thích) ── */
+.dashboard-period-picker {
+  display: inline-flex;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.125rem;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(120, 120, 128, 0.12);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.dashboard-period-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.dashboard-period-picker__btn {
+  padding: 0.3125rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-label-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dashboard-period-picker__btn--active {
+  background: var(--color-bg-elevated);
+  color: var(--color-blue);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Mobile menu — đồng bộ offline ── */
+.mobile-sync-menu-panel {
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-fill-secondary);
+}

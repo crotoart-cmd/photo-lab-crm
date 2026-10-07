@@ -1,0 +1,197 @@
+/**
+ * Vận hành lab — shell & master-detail (Phiếu film, Sửa máy khách, Thuốc tráng)
+ */
+
+.lab-page {
+  padding-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) .lab-page {
+    padding: 2rem;
+  }
+}
+
+.lab-master-detail {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .lab-master-detail {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+.lab-list-panel {
+  border-radius: var(--radius-xl, 1rem);
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.lab-list-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 0.5px solid var(--color-separator);
+  background: var(--color-bg-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-label-secondary);
+}
+
+.lab-list-panel__body {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lab-list-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lab-list-row:hover {
+  background: var(--color-fill-secondary);
+}
+
+.lab-list-row--selected {
+  background: rgba(0, 122, 255, 0.08);
+  box-shadow: inset 3px 0 0 var(--color-blue);
+}
+
+.lab-list-row__main {
+  flex: 1;
+  min-width: 0;
+  padding: 0.875rem 1rem;
+}
+
+.lab-list-row__check {
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  border-right: 0.5px solid var(--color-separator);
+  flex-shrink: 0;
+}
+
+.lab-detail-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  padding: 2rem;
+  border-radius: var(--radius-xl, 1rem);
+  border: 1px dashed var(--color-separator);
+  background: var(--color-bg-secondary);
+  color: var(--color-label-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.lab-mobile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .lab-mobile-back {
+    display: none;
+  }
+}
+
+.lab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--radius-xl, 1rem);
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  font-size: 0.875rem;
+  color: var(--color-label-secondary);
+}
+
+.lab-alert {
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-xl, 1rem);
+  border: 0.5px solid rgba(255, 59, 48, 0.35);
+  background: rgba(255, 59, 48, 0.06);
+}
+
+.lab-alert__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-red);
+}
+
+.lab-alert__text {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-label-secondary);
+  line-height: 1.4;
+}
+
+.lab-tool-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-xl, 1rem);
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+}
+
+.lab-stock-card--low {
+  border-color: rgba(255, 59, 48, 0.35);
+  background: rgba(255, 59, 48, 0.04);
+}
+
+.lab-log-section {
+  margin-top: 1.5rem;
+  border-radius: var(--radius-xl, 1rem);
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.lab-log-section__head {
+  padding: 0.875rem 1rem;
+  border-bottom: 0.5px solid var(--color-separator);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-label);
+}
+
+.lab-link-muted {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-blue);
+  text-decoration: none;
+}
+
+.lab-link-muted:hover {
+  text-decoration: underline;
+}

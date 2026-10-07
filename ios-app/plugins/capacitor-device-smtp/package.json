@@ -1,0 +1,25 @@
+{
+  "name": "capacitor-device-smtp",
+  "version": "1.0.0",
+  "description": "Gửi email SMTP từ iPhone — Gmail App Password trong Keychain",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "types": "src/index.d.ts",
+  "files": [
+    "src/",
+    "ios/",
+    "android/",
+    "CapacitorDeviceSmtp.podspec"
+  ],
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  }
+}

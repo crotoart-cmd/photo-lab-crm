@@ -1,4 +1,6 @@
-# Photo Lab CRM System 📷
+# HDTLabx 📷
+
+Web: [https://hdtlabx.com](https://hdtlabx.com)
 
 Hệ thống quản lý phòng lab tráng film ảnh chuyên nghiệp với các tính năng:
 - ✅ Quản lý khách hàng
@@ -75,7 +77,7 @@ npm start
 ## Cấu Trúc Dự Án
 
 ```
-photo-lab-crm/
+nuoc-leo-crm/   (web: https://hdtlabx.com)
 ├── backend/
 │   ├── models/
 │   ├── routes/

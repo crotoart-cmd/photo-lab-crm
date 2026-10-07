@@ -1,0 +1,224 @@
+/**
+ * Customer list cards — mobile (Apple grouped style)
+ */
+
+.customer-mobile-card {
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.customer-mobile-card__body {
+  padding: 14px 16px 12px;
+}
+
+.customer-mobile-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  overflow: visible;
+}
+
+.customer-mobile-card__avatar {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-fill-secondary);
+  color: var(--color-label);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  overflow: visible;
+}
+
+.customer-mobile-card__ltv {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  line-height: 0;
+  z-index: 2;
+}
+
+.customer-mobile-card__new-badge {
+  position: absolute;
+  top: -8px;
+  left: -10px;
+  line-height: 0;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+}
+
+.customer-mobile-card__ltv span {
+  display: inline-flex;
+  height: 1.125rem;
+  min-width: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  border: 2px solid var(--color-bg-elevated);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.customer-mobile-card__main {
+  padding-top: 1px;
+}
+
+.customer-mobile-card__name {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--color-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-mobile-card__meta {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--color-label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-mobile-card__code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-blue);
+  text-decoration: none;
+}
+
+.customer-mobile-card__dot {
+  margin: 0 0.25rem;
+  color: var(--color-label-tertiary);
+}
+
+.customer-mobile-card__phone {
+  font-variant-numeric: tabular-nums;
+}
+
+.customer-mobile-card__email {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--color-label-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-mobile-card__profile {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 44px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-blue);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.customer-mobile-card__profile .material-symbols-outlined,
+.customer-mobile-card__profile-icon {
+  display: block;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: var(--color-blue);
+}
+
+.customer-mobile-card__profile:active {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.customer-mobile-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.customer-mobile-card__more-tags,
+.customer-mobile-card__visit {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-label-tertiary);
+}
+
+.customer-mobile-card__more-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #0070ff;
+}
+
+.customer-tag-new {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.customer-mobile-card__visit {
+  margin-left: auto;
+}
+
+.customer-mobile-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 0.5px solid var(--color-separator);
+}
+
+.customer-mobile-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 12px;
+  border: none;
+  background: transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-blue);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.customer-mobile-card__action:first-child {
+  border-right: 0.5px solid var(--color-separator);
+}
+
+.customer-mobile-card__action:active {
+  background: var(--color-fill-secondary);
+}
+
+.customer-mobile-card__action--danger {
+  color: var(--color-red);
+}
+
+.customer-mobile-card__action--danger .icon-32 {
+  color: var(--color-red);
+}

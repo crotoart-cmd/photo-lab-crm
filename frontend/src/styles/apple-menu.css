@@ -1,0 +1,417 @@
+/**
+ * Apple HIG — menu / dropdown / picker panel
+ * UIMenu-style: blur, rounded 13px, checkmark selection
+ */
+
+.apple-menu-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.apple-menu-trigger:hover {
+  border-color: rgba(60, 60, 67, 0.29);
+}
+
+.apple-menu-trigger__icon {
+  font-size: 1.125rem;
+  color: var(--color-label-secondary);
+  flex-shrink: 0;
+}
+
+.apple-menu-trigger__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-input);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--color-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  text-align: left;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 1.25rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 1.25rem),
+    transparent 100%
+  );
+}
+
+.apple-menu-trigger__chevron {
+  font-size: 1.25rem;
+  color: var(--color-label-tertiary);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.apple-menu-trigger__chevron--open {
+  transform: rotate(180deg);
+}
+
+.apple-menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 26rem);
+  padding: 0.375rem 0;
+  border-radius: 13px;
+  border: 0.5px solid rgba(60, 60, 67, 0.18);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.apple-menu__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.apple-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: var(--type-body-size);
+  font-weight: 400;
+  line-height: 1.29;
+  color: var(--color-label);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.apple-menu__item:hover {
+  background: rgba(120, 120, 128, 0.08);
+}
+
+.apple-menu__item:active {
+  background: rgba(120, 120, 128, 0.16);
+}
+
+.apple-menu__item--selected {
+  font-weight: 500;
+}
+
+.apple-menu__item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apple-menu__check {
+  font-size: 1.125rem;
+  color: var(--color-blue);
+  flex-shrink: 0;
+}
+
+.apple-menu__separator {
+  height: 0;
+  margin: 0.3125rem 0;
+  border: none;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+}
+
+.apple-menu__section-label {
+  margin: 0;
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-label-tertiary);
+}
+
+.apple-menu__footer {
+  flex-shrink: 0;
+  padding: 0.625rem 1rem 0.75rem;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.apple-menu__dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.apple-menu__date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-label-secondary);
+}
+
+.apple-menu__date-field input[type='date'] {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.5625rem 0.75rem;
+  border-radius: 10px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-fill-secondary);
+  font-size: 1rem;
+  line-height: 1.25;
+  color: var(--color-label);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.apple-menu__date-field input[type='date']:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+}
+
+.apple-menu__action {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.apple-menu__action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Combobox / search results — cùng visual với menu */
+.apple-menu--anchored {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  margin-top: 0.375rem;
+  width: auto;
+  max-height: min(50vh, 16rem);
+}
+
+.apple-menu__empty {
+  padding: 0.75rem 1rem;
+  font-size: var(--type-subhead-size);
+  color: var(--color-label-secondary);
+}
+
+.apple-menu__hint {
+  padding: 0.5rem 1rem;
+  font-size: var(--type-caption2-size);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-blue);
+  background: rgba(0, 122, 255, 0.06);
+  border-bottom: 0.5px solid rgba(0, 122, 255, 0.12);
+}
+
+.apple-menu__item-meta {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-label-secondary);
+  white-space: normal;
+}
+
+.apple-menu__item--highlight {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+/* Native <select> — iOS picker row style */
+.apple-picker,
+.form-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 2.25rem 0.625rem 0.875rem;
+  border-radius: 10px;
+  border: 0.5px solid var(--color-separator);
+  background-color: var(--color-bg-elevated);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%238E8E93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  background-size: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.31;
+  color: var(--color-label);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.apple-picker:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+}
+
+.apple-picker--compact {
+  width: auto;
+  min-height: 2.25rem;
+  padding: 0.4375rem 2rem 0.4375rem 0.75rem;
+  font-size: var(--type-footnote-size);
+}
+
+/* ── AppleSelect (menu thay <select>) ── */
+.apple-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.apple-select__trigger {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.apple-select__trigger--disabled {
+  cursor: not-allowed;
+}
+
+.apple-select__trigger--disabled .apple-menu-trigger__label {
+  color: var(--color-label-tertiary);
+}
+
+.apple-select__placeholder {
+  color: var(--color-label-tertiary);
+  font-weight: 500;
+}
+
+/* ── SearchableSelect (combobox gõ lọc) ── */
+.searchable-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.searchable-select__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchable-select__field--disabled .searchable-select__input {
+  cursor: not-allowed;
+  background: var(--color-bg-elevated, #fff);
+  color: var(--color-label-tertiary);
+}
+
+.searchable-select__field--disabled .searchable-select__input::placeholder {
+  color: var(--color-label-tertiary);
+}
+
+.searchable-select__input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.4375rem 2rem 0.4375rem 0.75rem;
+  font-size: var(--font-input, 1rem);
+  font-weight: 400;
+  line-height: 1.31;
+  color: var(--color-label);
+  background: var(--color-bg-elevated, #fff);
+  border: 1px solid var(--color-separator);
+  border-radius: 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchable-select__input::placeholder {
+  color: var(--color-label-tertiary);
+  font-size: var(--font-input, 1rem);
+  font-weight: 400;
+}
+
+.searchable-select__input:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-blue) 25%, transparent);
+}
+
+.searchable-select__input:disabled {
+  cursor: not-allowed;
+}
+
+.searchable-select__chevron {
+  position: absolute;
+  right: 0.5rem;
+  pointer-events: none;
+  font-size: 1.25rem;
+  color: var(--color-label-tertiary);
+  transition: transform 0.15s ease;
+}
+
+.searchable-select__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Combobox dropdown — khớp cỡ chữ với ô nhập (16px) */
+.apple-menu--combobox .apple-menu__item {
+  font-size: var(--font-input, 1rem);
+  font-weight: 400;
+  line-height: 1.31;
+  padding: 0.625rem 0.75rem;
+}
+
+.form-field-min {
+  min-width: 0;
+}
+
+/* Danh sách nhúng (không portal) — Bán thủ công */
+.apple-menu--embedded {
+  position: relative;
+  width: 100%;
+  margin-top: 0;
+  max-height: min(40vh, 17.5rem);
+}
+
+.apple-menu--embedded .apple-menu__scroll {
+  max-height: min(40vh, 17.5rem);
+}

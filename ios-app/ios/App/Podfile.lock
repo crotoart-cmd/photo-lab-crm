@@ -1,0 +1,47 @@
+PODS:
+  - Capacitor (6.2.1):
+    - CapacitorCordova
+  - CapacitorApp (6.0.3):
+    - Capacitor
+  - CapacitorCordova (6.2.1)
+  - CapacitorDeviceSmtp (1.0.0):
+    - Capacitor
+    - CocoaAsyncSocket (~> 7.6)
+  - CapacitorStatusBar (6.0.3):
+    - Capacitor
+  - CocoaAsyncSocket (7.6.5)
+
+DEPENDENCIES:
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - CapacitorDeviceSmtp (from `../../plugins/capacitor-device-smtp`)
+  - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+
+SPEC REPOS:
+  trunk:
+    - CocoaAsyncSocket
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorDeviceSmtp:
+    :path: "../../plugins/capacitor-device-smtp"
+  CapacitorStatusBar:
+    :path: "../../node_modules/@capacitor/status-bar"
+
+SPEC CHECKSUMS:
+  Capacitor: 1e0d0e7330dea9f983b50da737d8918abcf273f8
+  CapacitorApp: 22c94146dfaae1159ab7059cbd51e76d9f2d45ec
+  CapacitorCordova: 8d93e14982f440181be7304aa9559ca631d77fff
+  CapacitorDeviceSmtp: 0dc721447df2f108743849085a9fa516552fe1cd
+  CapacitorStatusBar: 38665f1a18c55677098367a29f6b42126b72dc65
+  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
+
+PODFILE CHECKSUM: d23e4648aef4093dad1a02a2a20eefc6dc1d0d4d
+
+COCOAPODS: 1.8.4

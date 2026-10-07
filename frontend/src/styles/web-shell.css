@@ -1,0 +1,66 @@
+/**
+ * Web desktop — kế thừa shell & surface iOS từ mobile
+ * Chỉ áp khi KHÔNG phải native app (iPhone / Y700 luôn mobile shell).
+ */
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) {
+    background-color: var(--ios-surface-bg, #f2f2f7);
+    /* Slot rail — sheet/content căn theo chỗ giữ, không theo panel hover bung */
+    --md-nav-drawer-width: 72px;
+  }
+
+  html:not(.mobile-app) body {
+    background-color: var(--ios-surface-bg, #f2f2f7);
+    color: var(--color-label);
+    font-family: var(--font-sans);
+    font-size: var(--font-body, 17px);
+    line-height: 1.29;
+  }
+
+  html:not(.mobile-app) .ios-app-layout {
+    background-color: var(--ios-surface-bg, #f2f2f7);
+  }
+
+  html:not(.mobile-app) .ios-mobile-frame {
+    background-color: var(--ios-surface-bg, #f2f2f7);
+  }
+
+  html:not(.mobile-app) .mobile-app-main,
+  html:not(.mobile-app) .desktop-main-pad {
+    background-color: var(--ios-surface-bg, #f2f2f7);
+    padding: 1.5rem;
+    padding-bottom: 1.5rem;
+    overflow: visible;
+  }
+
+  @media (min-width: 1024px) {
+    html:not(.mobile-app) .desktop-main-pad {
+      padding: 2rem;
+    }
+  }
+
+  /* POS / retail: bottom sheet căn theo sidebar */
+  html:not(.mobile-app) .retail-sheet {
+    left: var(--md-nav-drawer-width, 72px);
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  html:not(.mobile-app) .retail-page:has(.retail-sheet) {
+    padding-bottom: calc(var(--retail-checkout-offset, 4.5rem) + 1rem);
+  }
+
+  /* POS rộng hơn trên desktop — layout 2 cột Nhập/Bán tự bung */
+  html:not(.mobile-app) .retail-pos-mobile {
+    min-height: auto;
+    max-width: min(1120px, 100%);
+  }
+
+  html:not(.mobile-app) .retail-mobile-camera-scroll {
+    max-height: min(28rem, 52vh);
+  }
+}
+

@@ -1,0 +1,222 @@
+/**
+ * SubNavBar — Figma lv.02 navigation bar
+ * 48px · padding 0 16px · gap 16px (12px with text action)
+ */
+
+.sub-nav-bar {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 var(--ios-pad-inline-end, 16px) 0 var(--ios-pad-inline, 16px);
+  gap: 16px;
+  width: 100%;
+  height: 48px;
+  flex: none;
+  background: var(--ios-chrome-bg, #ffffff);
+}
+
+.sub-nav-bar--text-action {
+  gap: 12px;
+}
+
+.sub-nav-bar--centered {
+  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.sub-nav-bar__side {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.sub-nav-bar--centered .sub-nav-bar__side--start {
+  justify-self: start;
+}
+
+.sub-nav-bar--centered .sub-nav-bar__side--end {
+  justify-self: end;
+}
+
+.sub-nav-bar:not(.sub-nav-bar--centered) .sub-nav-bar__side--start:empty {
+  display: none;
+}
+
+.sub-nav-bar:not(.sub-nav-bar--centered) .sub-nav-bar__side--end:empty {
+  display: none;
+}
+
+.sub-nav-bar__title {
+  min-width: 0;
+  flex: 1;
+}
+
+.sub-nav-bar--centered .sub-nav-bar__title {
+  flex: none;
+  justify-self: center;
+  text-align: center;
+}
+
+.sub-nav-bar__title-text {
+  margin: 0;
+  font-size: var(--font-nav-title, 1.0625rem);
+  font-weight: var(--type-headline-weight, 600);
+  line-height: 1.29;
+  letter-spacing: -0.01em;
+  color: var(--color-label, #1c1c1e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-nav-bar__title-sub {
+  margin: 0;
+  font-size: var(--font-caption, 0.75rem);
+  line-height: 1.33;
+  color: var(--color-label-secondary, #8e8e93);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-nav-bar__leading {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sub-nav-bar-back,
+.sub-nav-bar-filter,
+.sub-nav-bar-action {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  padding: 3px 6px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-label, #1c1c1e);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.sub-nav-bar-back:active,
+.sub-nav-bar-filter:active,
+.sub-nav-bar-action:active {
+  background: var(--color-fill-secondary, #f2f2f7);
+}
+
+.sub-nav-bar-back .material-symbols-outlined,
+.sub-nav-bar-filter .material-symbols-outlined,
+.sub-nav-bar-action .material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.sub-nav-bar-filter.is-active,
+.sub-nav-bar-filter-btn.is-active,
+.sub-nav-bar-action.is-active {
+  color: var(--color-blue, #007aff);
+}
+
+.sub-nav-bar-action__svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.sub-nav-bar-action.is-active .sub-nav-bar-action__svg {
+  color: #0070ff;
+}
+
+.sub-nav-bar-filter.is-active {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.sub-nav-bar-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #dadfe7;
+  border-radius: 100px;
+  background: #ffffff;
+  color: var(--color-label-secondary, #8e8e93);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.sub-nav-bar-filter-btn.is-active {
+  border-color: var(--color-blue, #007aff);
+  background: rgba(0, 122, 255, 0.08);
+  color: var(--color-blue, #007aff);
+}
+
+.sub-nav-bar-filter-btn .icon-32--filter {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-right: 2px;
+}
+
+.sub-nav-bar-text {
+  flex-shrink: 0;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-blue, #007aff);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.sub-nav-bar-text:active {
+  opacity: 0.7;
+}
+
+.sub-nav-bar-text--muted {
+  color: var(--color-label, #1c1c1e);
+}
+
+.sub-nav-bar-text.is-active {
+  color: var(--color-blue, #007aff);
+}
+
+/* Sticky page toolbar inside scroll area */
+.sub-nav-bar--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-left: calc(-1 * var(--ios-pad-inline, 1rem));
+  margin-right: calc(-1 * var(--ios-pad-inline-end, 1rem));
+  width: calc(100% + var(--ios-pad-inline, 1rem) + var(--ios-pad-inline-end, 1rem));
+  border-bottom: 0.5px solid var(--color-separator, rgba(60, 60, 67, 0.14));
+}
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) .sub-nav-bar--mobile-only {
+    display: none;
+  }
+}
+

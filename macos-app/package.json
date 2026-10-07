@@ -1,0 +1,54 @@
+{
+  "name": "nuoc-leo-crm-macos",
+  "version": "1.0.0",
+  "description": "HDTLabx — bản cài đặt macOS (tách khỏi dev server)",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build:frontend": "node scripts/build-frontend.js",
+    "stage": "node scripts/stage.js",
+    "pack": "npm run build:frontend && npm run stage && electron-builder --mac dmg",
+    "pack:dir": "npm run build:frontend && npm run stage && electron-builder --mac dir"
+  },
+  "build": {
+    "appId": "com.nuocleo.crm",
+    "productName": "HDTLabx",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "staging/backend",
+        "to": "backend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "staging/frontend",
+        "to": "frontend",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": ["dmg"],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "HDTLabx"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}

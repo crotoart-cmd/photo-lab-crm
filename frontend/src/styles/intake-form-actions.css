@@ -1,0 +1,27 @@
+/**
+ * Footer phiếu nhập — cặp nút Apple (secondary + primary)
+ */
+.intake-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  margin-top: auto;
+  border-top: 0.5px solid var(--color-separator);
+}
+
+.intake-form-actions--single {
+  justify-content: flex-end;
+}
+
+.intake-form-actions--dual > .apple-btn-secondary,
+.intake-form-actions--dual > .apple-btn-primary {
+  flex: 1;
+  min-width: 0;
+}
+
+.intake-form-actions .apple-btn-primary,
+.intake-form-actions .apple-btn-secondary {
+  min-height: 44px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}

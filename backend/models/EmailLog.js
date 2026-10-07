@@ -4,17 +4,28 @@ const emailLogSchema = new mongoose.Schema({
   filmId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Film',
-    required: true,
+  },
+  repairTicketId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer_Repair_Ticket',
   },
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer',
-    required: true,
   },
   recipientEmail: String,
   emailType: {
     type: String,
-    enum: ['confirmation', 'completion', 'delivery'],
+    enum: [
+      'confirmation',
+      'completion',
+      'delivery',
+      'sale_receipt',
+      'sale_warranty',
+      'repair_intake',
+      'repair_quote',
+      'repair_ready',
+    ],
   },
   subject: String,
   body: String,

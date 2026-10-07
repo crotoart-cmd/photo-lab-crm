@@ -1,0 +1,481 @@
+/**
+ * Nền tảng UI theo Apple Human Interface Guidelines
+ * Tham chiếu: https://developer.apple.com/design/resources/
+ * - SF Pro (system font stack trên web)
+ * - Màu semantic (label, fill, separator, systemBlue…)
+ * - Bo góc & glass (Liquid Glass / vibrancy gần đúng trên web)
+ */
+
+:root {
+  /* Typography — SF Pro via -apple-system */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI',
+    system-ui, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, Menlo, Monaco, monospace;
+
+  /* Backgrounds */
+  --color-bg: #f5f5f7;
+  --color-bg-elevated: #ffffff;
+  --color-bg-secondary: #f2f2f7;
+  --color-bg-tertiary: #ffffff;
+
+  /* Labels */
+  --color-label: #1d1d1f;
+  --color-label-secondary: rgba(60, 60, 67, 0.6);
+  --color-label-tertiary: rgba(60, 60, 67, 0.3);
+
+  /* Fills & separators */
+  --color-fill: rgba(120, 120, 128, 0.2);
+  --color-fill-secondary: rgba(120, 120, 128, 0.16);
+  --color-separator: rgba(60, 60, 67, 0.12);
+  --color-separator-opaque: #d1d1d6;
+
+  /* System colors */
+  --color-blue: #007aff;
+  --color-blue-pressed: #0051d5;
+  --color-green: #34c759;
+  --color-red: #ff3b30;
+  --color-orange: #ff9500;
+  --color-indigo: #5856d6;
+  --color-teal: #5ac8fa;
+  --color-purple: #af52de;
+  --color-pink: #ff2d55;
+  --color-yellow: #ffcc00;
+  --color-mint: #00c7be;
+
+  /* Chart — Apple system palette */
+  --chart-track: #e5e5ea;
+  --chart-primary: var(--color-blue);
+  --chart-gradient-end: rgba(0, 122, 255, 0.5);
+
+  /* Radius — iOS/macOS continuous corners */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Shadow — nhẹ như macOS */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+  /* Glass / Liquid Glass approximation */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-blur: 20px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-label);
+  }
+
+  ::selection {
+    background: rgba(0, 122, 255, 0.25);
+  }
+}
+
+@layer components {
+  .apple-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 0.5px solid var(--glass-border);
+  }
+
+  .apple-card {
+    @apply rounded-2xl border;
+    background: var(--color-bg-elevated);
+    border-color: var(--color-separator);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .apple-card-grouped {
+    @apply rounded-2xl;
+    background: var(--color-bg-secondary);
+    border: 0.5px solid var(--color-separator);
+  }
+
+  .apple-page-title {
+    font-size: var(--type-title2-size);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-label);
+  }
+
+  .apple-page-subtitle {
+    font-size: var(--type-subhead-size);
+    margin-top: 0.25rem;
+    color: var(--color-label-secondary);
+  }
+
+  @media (min-width: 768px) {
+    .apple-page-title {
+      font-size: var(--type-title1-size);
+    }
+  }
+
+  .apple-btn-primary {
+    @apply btn-pill btn-pill--lv1 btn-pill--40;
+  }
+
+  .apple-btn-secondary {
+    @apply btn-pill btn-pill--lv2 btn-pill--40;
+  }
+
+  .apple-btn-ghost {
+    @apply btn-pill btn-pill--lv3 btn-pill--40;
+  }
+
+  .apple-alert-error {
+    @apply rounded-xl px-3 py-2.5;
+    font-size: var(--type-footnote-size);
+    background: rgba(255, 59, 48, 0.1);
+    color: #d70015;
+    border: 0.5px solid rgba(255, 59, 48, 0.2);
+  }
+
+  .apple-alert-success {
+    @apply rounded-xl px-3 py-2.5;
+    font-size: var(--type-footnote-size);
+    background: rgba(52, 199, 89, 0.12);
+    color: #248a3d;
+    border: 0.5px solid rgba(52, 199, 89, 0.25);
+  }
+
+  .apple-alert-info {
+    @apply rounded-xl px-3 py-2.5;
+    font-size: var(--type-footnote-size);
+    background: rgba(0, 122, 255, 0.08);
+    color: #0040dd;
+    border: 0.5px solid rgba(0, 122, 255, 0.2);
+  }
+
+  /* HIG Loading — indeterminate activity indicator */
+  .apple-spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2.5px solid var(--color-fill);
+    border-top-color: var(--color-blue);
+    animation: apple-spin 0.85s linear infinite;
+  }
+
+  @keyframes apple-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .apple-spinner {
+      animation-duration: 1.4s;
+    }
+  }
+
+  .apple-nav-item {
+    @apply px-3 py-2 rounded-xl font-medium text-left w-full;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    text-decoration: none;
+    font-size: var(--type-subhead-size);
+    color: var(--color-label);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .apple-nav-item:hover {
+    background: var(--color-fill-secondary);
+  }
+  .apple-nav-item-active {
+    background: var(--color-blue);
+    color: #fff;
+  }
+  .apple-nav-item-active:hover {
+    background: var(--color-blue-pressed);
+  }
+
+  .apple-nav-section-label {
+    font-size: var(--type-caption2-size);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-label-secondary);
+    padding: 8px 12px 4px;
+    margin: 0;
+  }
+
+  .apple-nav-item .material-symbols-outlined {
+    font-size: 22px;
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+
+  .apple-nav-item-active .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    opacity: 1;
+  }
+
+  .apple-nav-item__svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .apple-nav-item__svg svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .apple-nav-item-active .apple-nav-item__svg {
+    opacity: 1;
+  }
+
+  /* Desktop: slot chỉ giữ chỗ ngang; panel fixed theo viewport */
+  .apple-nav-rail-slot {
+    --apple-nav-rail-width: 72px;
+    --apple-nav-expanded-width: 280px;
+    width: var(--apple-nav-rail-width);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 40;
+    /* Không stretch theo chiều cao content — tránh footer chạy xuống đáy trang */
+    align-self: flex-start;
+    height: 100vh;
+    height: 100dvh;
+    pointer-events: none;
+  }
+
+  .apple-nav-drawer {
+    width: var(--apple-nav-rail-width);
+    background: var(--color-bg-elevated);
+    border-right: 0.5px solid var(--color-separator);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    pointer-events: auto;
+    transition:
+      width 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+      box-shadow 0.22s ease;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-drawer,
+  .apple-nav-rail-slot:focus-within .apple-nav-drawer {
+    width: var(--apple-nav-expanded-width);
+    box-shadow: 8px 0 28px rgba(0, 0, 0, 0.08);
+  }
+
+  .apple-nav-drawer-header {
+    padding: 16px 12px 10px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: padding 0.22s ease, justify-content 0.22s ease;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-drawer-header,
+  .apple-nav-rail-slot:focus-within .apple-nav-drawer-header {
+    justify-content: flex-start;
+    padding: 20px 16px 12px;
+  }
+
+  .apple-nav-brand {
+    align-items: center;
+    width: 100%;
+  }
+
+  .apple-nav-brand img {
+    margin-inline: auto;
+  }
+
+  .apple-nav-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px;
+  }
+
+  .apple-nav-section {
+    margin-bottom: 8px;
+    width: 100%;
+  }
+
+  /* Rail thu gọn: chỉ áp trong sidebar desktop, không đè drawer mobile */
+  .apple-nav-rail-slot .apple-nav-section-label {
+    white-space: nowrap;
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease, max-height 0.22s ease, padding 0.22s ease;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-section-label,
+  .apple-nav-rail-slot:focus-within .apple-nav-section-label {
+    max-height: 2rem;
+    opacity: 1;
+    padding: 8px 12px 4px;
+    pointer-events: auto;
+  }
+
+  .apple-nav-footer {
+    padding: 12px 8px 16px;
+    border-top: 0.5px solid var(--color-separator);
+    background: var(--color-bg-secondary);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-footer,
+  .apple-nav-rail-slot:focus-within .apple-nav-footer {
+    align-items: stretch;
+    padding: 12px 16px 16px;
+  }
+
+  .apple-nav-footer-meta {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    transition: opacity 0.15s ease, max-height 0.22s ease;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-footer-meta,
+  .apple-nav-rail-slot:focus-within .apple-nav-footer-meta {
+    max-height: 4rem;
+    opacity: 1;
+  }
+
+  .apple-nav-rail-slot .apple-nav-logout {
+    justify-content: center !important;
+    margin-top: 0 !important;
+    gap: 0 !important;
+    width: 44px;
+    padding-inline: 0 !important;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-logout,
+  .apple-nav-rail-slot:focus-within .apple-nav-logout {
+    justify-content: flex-start !important;
+    margin-top: 0.75rem !important;
+    gap: 12px !important;
+    width: 100%;
+    padding-inline: 0.75rem !important;
+  }
+
+  .apple-nav-rail-slot .apple-nav-logout-label,
+  .apple-nav-rail-slot .apple-nav-item__label {
+    display: none;
+    white-space: nowrap;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-logout-label,
+  .apple-nav-rail-slot:hover .apple-nav-item__label,
+  .apple-nav-rail-slot:focus-within .apple-nav-logout-label,
+  .apple-nav-rail-slot:focus-within .apple-nav-item__label {
+    display: inline;
+  }
+
+  /* Thu nhỏ: ô icon vuông căn giữa rail — chỉ desktop sidebar */
+  .apple-nav-rail-slot .apple-nav-item {
+    justify-content: center;
+    gap: 0;
+    width: 44px;
+    min-height: 44px;
+    margin-inline: auto;
+    padding: 10px !important;
+    text-align: center;
+  }
+
+  .apple-nav-rail-slot:hover .apple-nav-item,
+  .apple-nav-rail-slot:focus-within .apple-nav-item {
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    margin-inline: 0;
+    padding: 8px 12px !important;
+    text-align: left;
+  }
+
+  .apple-btn-tonal {
+    @apply inline-flex items-center justify-center gap-2 font-medium px-4 py-2.5 rounded-xl transition;
+    font-size: var(--type-subhead-size);
+    background: var(--color-fill-secondary);
+    color: var(--color-label);
+  }
+  .apple-btn-tonal:hover:not(:disabled) {
+    background: var(--color-fill);
+  }
+  .apple-btn-tonal:disabled {
+    opacity: 0.45;
+  }
+
+  .apple-btn-destructive {
+    @apply inline-flex items-center justify-center gap-2 font-medium px-3 py-2 rounded-xl transition;
+    font-size: var(--type-subhead-size);
+    color: var(--color-red);
+  }
+  .apple-btn-destructive:hover:not(:disabled) {
+    background: rgba(255, 59, 48, 0.08);
+  }
+
+  .apple-card-filled {
+    @apply rounded-2xl p-3;
+    background: var(--color-bg-secondary);
+    border: 0.5px solid var(--color-separator);
+  }
+
+  .apple-segmented {
+    @apply inline-flex p-1 rounded-xl gap-0.5;
+    background: var(--color-fill-secondary);
+  }
+
+  .apple-segment {
+    @apply px-4 py-2 rounded-[10px] font-medium transition;
+    font-size: var(--type-subhead-size);
+    color: var(--color-label-secondary);
+  }
+
+  .apple-segment-active {
+    background: var(--color-bg-elevated);
+    color: var(--color-label);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .apple-table {
+    @apply w-full;
+    font-size: var(--type-subhead-size);
+  }
+  .apple-table th {
+    @apply text-left font-semibold pb-2;
+    font-size: var(--type-caption1-size);
+    color: var(--color-label-secondary);
+  }
+  .apple-table td {
+    @apply py-3 border-t;
+    border-color: var(--color-separator);
+    color: var(--color-label);
+  }
+}

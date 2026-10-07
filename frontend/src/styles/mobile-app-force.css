@@ -1,0 +1,323 @@
+/**
+ * Native app (iPhone + Y700/Android): luôn shell mobile iOS.
+ * Không phụ thuộc viewport — tablet ngang vẫn tab bar + header, không sidebar desktop.
+ */
+
+/* ── Semantic visibility ── */
+.desktop-shell-only {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  html:not(.mobile-app) .desktop-shell-only {
+    display: block !important;
+  }
+
+  html:not(.mobile-app) .desktop-shell-only.desktop-shell-flex {
+    display: flex !important;
+  }
+
+  html:not(.mobile-app) .mobile-shell-only {
+    display: none !important;
+  }
+
+  html:not(.mobile-app) .ios-mobile-chrome.desktop-chrome-contents {
+    display: contents;
+  }
+}
+
+/* ── Force mobile chrome on native at any width ── */
+html.mobile-app {
+  background-color: var(--ios-surface-bg, #f2f2f7);
+}
+
+/* Gutter responsive: iPhone 16px · Y700 dọc 24px · Y700 ngang 32px. */
+html.mobile-app.android-tablet {
+  --ios-pad-inline: max(1.5rem, var(--ios-safe-left));
+  --ios-pad-inline-end: max(1.5rem, var(--ios-safe-right));
+}
+
+@media (min-width: 768px) {
+  html.mobile-app.android-tablet {
+    --ios-pad-inline: max(2rem, var(--ios-safe-left));
+    --ios-pad-inline-end: max(2rem, var(--ios-safe-right));
+  }
+}
+
+html.mobile-app,
+html.mobile-app body,
+html.mobile-app #root {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+html.mobile-app body.capacitor-app,
+html.mobile-app body.mobile-app {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+html.mobile-app .ios-app-layout {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: var(--ios-surface-bg, #f2f2f7);
+}
+
+html.mobile-app .ios-app-shell {
+  background: var(--ios-surface-bg, #f2f2f7);
+}
+
+html.mobile-app .ios-mobile-frame {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html.mobile-app .ios-mobile-chrome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 50;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: block;
+  padding-top: max(0px, calc(var(--ios-safe-top) - 10px));
+  background: var(--ios-chrome-bg, #ffffff);
+  border-bottom: 0.5px solid var(--color-separator);
+}
+
+html.mobile-app .mobile-app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-left: var(--ios-pad-inline) !important;
+  padding-right: var(--ios-pad-inline-end) !important;
+  padding-top: calc(var(--ios-chrome-offset) + 1rem) !important;
+  padding-bottom: calc(
+    var(--ios-tab-bar-offset, var(--ios-tab-bar-h)) + var(--ios-tab-bar-gap)
+  ) !important;
+  background: var(--ios-surface-bg, #f2f2f7);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  scroll-padding-top: calc(var(--ios-chrome-offset) + 1rem);
+  scroll-padding-bottom: calc(var(--retail-checkout-offset, 0px) + 0.5rem);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.mobile-app.retail-checkout-active .mobile-app-main {
+  padding-bottom: calc(
+    var(--ios-tab-bar-offset, var(--ios-tab-bar-h)) + var(--ios-tab-bar-gap) +
+      var(--retail-checkout-offset, 4.5rem)
+  ) !important;
+}
+
+html.mobile-app .mobile-app-main::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Tab bar + header luôn hiện; sidebar desktop luôn ẩn */
+html.mobile-app .tab-bar.tab-bar--fixed,
+html.mobile-app .tab-bar.mobile-shell-only {
+  display: flex !important;
+}
+
+html.mobile-app .ios-header,
+html.mobile-app .sub-nav-bar.mobile-shell-only,
+html.mobile-app .mobile-shell-only {
+  display: flex !important;
+}
+
+html.mobile-app .ios-drawer-backdrop.mobile-shell-only {
+  display: flex !important;
+}
+
+/* Drawer menu: hàng icon + nhãn đầy đủ (không dùng style rail thu gọn) */
+html.mobile-app .ios-drawer-panel .apple-nav-item {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-height: 44px;
+  margin-inline: 0 !important;
+  padding: 10px 12px !important;
+  text-align: left !important;
+}
+
+html.mobile-app .ios-drawer-panel .apple-nav-section-label {
+  max-height: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+  padding: 8px 12px 4px !important;
+}
+
+html.mobile-app .ios-drawer-panel .apple-nav-item__label {
+  display: inline !important;
+}
+
+html.mobile-app .apple-nav-rail-slot,
+html.mobile-app .desktop-shell-only {
+  display: none !important;
+}
+
+/* Đừng ẩn chart/widget “mobile-only” trên tablet native */
+html.mobile-app .dashboard-pie--mobile-only {
+  display: block;
+}
+
+html.mobile-app .sub-nav-bar--mobile-only {
+  display: flex;
+}
+
+/* Modal sheet kiểu iPhone */
+html.mobile-app .ios-modal-backdrop {
+  padding: 0;
+  align-items: flex-end;
+}
+
+/* Retail POS: giữ layout mobile, không áp web-shell desktop */
+html.mobile-app .retail-sheet {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
+html.mobile-app .retail-pos-mobile {
+  max-width: none !important;
+  min-height: unset;
+}
+
+/* Dashboard: giữ layout mobile, không card desktop */
+html.mobile-app .dashboard-page {
+  max-width: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+/* Retail POS shell — cùng padding iPhone trên mọi viewport native */
+html.mobile-app .retail-pos-shell {
+  padding: 1rem !important;
+  border-radius: var(--radius-lg);
+  margin-left: -0.25rem;
+  margin-right: -0.25rem;
+}
+
+html.mobile-app .retail-pos-shell .retail-pos-title-long {
+  display: none;
+}
+
+html.mobile-app .retail-pos-shell .retail-pos-title-short {
+  display: inline;
+}
+
+/* Dashboard: luôn stack kiểu iPhone — không densify 2 cột desktop */
+html.mobile-app .dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+}
+
+html.mobile-app .dashboard-store-desk {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  grid-template-columns: none !important;
+  grid-template-areas: none !important;
+}
+
+html.mobile-app .dashboard-store-desk__charts,
+html.mobile-app .dashboard-store-desk__recent,
+html.mobile-app .dashboard-store-desk__period,
+html.mobile-app .dashboard-store-desk__repair {
+  grid-area: auto !important;
+  height: auto !important;
+  align-self: stretch !important;
+  margin-top: 0 !important;
+}
+
+html.mobile-app .store-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+html.mobile-app .store-overview__top {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  gap: 0.75rem !important;
+}
+
+/* Giữ 2 donut cạnh nhau như iPhone (không bung desk desktop) */
+html.mobile-app .store-overview__charts,
+html.mobile-app .dashboard-store-desk .store-overview__charts {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.75rem !important;
+  height: auto !important;
+}
+
+html.mobile-app .store-overview__donut .dashboard-pie__body {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+html.mobile-app .store-overview__donut .dashboard-donut__ring-wrap {
+  width: auto !important;
+  max-width: 100% !important;
+  margin-inline: auto !important;
+}
+
+html.mobile-app .store-overview__donut .dashboard-pie__header {
+  text-align: center !important;
+}
+
+html.mobile-app .store-overview__donut .dashboard-pie__subtitle {
+  display: revert !important;
+}
+
+html.mobile-app .dashboard-store-desk .dashboard-repair-ops__cards--compact {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+html.mobile-app .dashboard-panel-charts {
+  grid-template-columns: 1fr !important;
+}
+
+html.mobile-app .dashboard-orders {
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Page root dùng đúng gutter của shell, không tự tạo gutter thứ hai. */
+html.mobile-app .profile-page,
+html.mobile-app .lab-page {
+  width: 100%;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+html.mobile-app .lab-page {
+  padding: 0 0 1rem !important;
+}
+

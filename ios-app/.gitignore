@@ -1,0 +1,9 @@
+node_modules/
+www/
+ios/App/public/
+ios/App/Pods/
+ios/App/.derivedData-nuocleo/
+.DS_Store
+xcuserdata/
+*.ipa
+*.dSYM.zip

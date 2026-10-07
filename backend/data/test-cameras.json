@@ -1,0 +1,122 @@
+[
+  {
+    "camera_code": "CAM-AE1-01",
+    "serial_number": "TEST-AE1-24001",
+    "barcode": "TEST-AE1-24001",
+    "model_name": "Canon AE-1 Program",
+    "brand": "Canon",
+    "camera_type": "SLR",
+    "condition_note": "Test — body đẹp, shutter OK",
+    "cost": 1200000,
+    "price": 2800000,
+    "floor_price": 2200000
+  },
+  {
+    "camera_code": "CAM-FM2-01",
+    "serial_number": "TEST-FM2-78234",
+    "barcode": "TEST-FM2-78234",
+    "model_name": "Nikon FM2",
+    "brand": "Nikon",
+    "camera_type": "SLR",
+    "condition_note": "Test — meter hoạt động",
+    "cost": 2500000,
+    "price": 5200000,
+    "floor_price": 4200000
+  },
+  {
+    "camera_code": "CAM-OM1-01",
+    "serial_number": "TEST-OM1-55102",
+    "barcode": "TEST-OM1-55102",
+    "model_name": "Olympus OM-1",
+    "brand": "Olympus",
+    "camera_type": "SLR",
+    "condition_note": "Test — kèm 50/1.8",
+    "cost": 1800000,
+    "price": 3900000,
+    "floor_price": 3100000
+  },
+  {
+    "camera_code": "CAM-X700-01",
+    "serial_number": "TEST-X700-90331",
+    "barcode": "TEST-X700-90331",
+    "model_name": "Minolta X-700",
+    "brand": "Minolta",
+    "camera_type": "SLR",
+    "condition_note": "Test — MD 50mm f/1.7",
+    "cost": 900000,
+    "price": 2100000,
+    "floor_price": 1700000
+  },
+  {
+    "camera_code": "CAM-K1000-01",
+    "serial_number": "TEST-K1K-44120",
+    "barcode": "TEST-K1K-44120",
+    "model_name": "Pentax K1000",
+    "brand": "Pentax",
+    "camera_type": "SLR",
+    "condition_note": "Test — học sinh / entry",
+    "cost": 700000,
+    "price": 1650000,
+    "floor_price": 1300000
+  },
+  {
+    "camera_code": "CAM-QL17-01",
+    "serial_number": "TEST-QL17-66201",
+    "barcode": "TEST-QL17-66201",
+    "model_name": "Canon Canonet QL17 GIII",
+    "brand": "Canon",
+    "camera_type": "Rangefinder",
+    "condition_note": "Test — rangefinder sáng",
+    "cost": 2200000,
+    "price": 4800000,
+    "floor_price": 3800000
+  },
+  {
+    "camera_code": "CAM-ELEC35-01",
+    "serial_number": "TEST-YE35-11890",
+    "barcode": "TEST-YE35-11890",
+    "model_name": "Yashica Electro 35 GSN",
+    "brand": "Yashica",
+    "camera_type": "Rangefinder",
+    "condition_note": "Test — pad mới",
+    "cost": 1100000,
+    "price": 2450000,
+    "floor_price": 1950000
+  },
+  {
+    "camera_code": "CAM-F3-01",
+    "serial_number": "TEST-F3-33017",
+    "barcode": "TEST-F3-33017",
+    "model_name": "Nikon F3",
+    "brand": "Nikon",
+    "camera_type": "SLR",
+    "condition_note": "Test — pro body",
+    "cost": 3200000,
+    "price": 6900000,
+    "floor_price": 5500000
+  },
+  {
+    "camera_code": "CAM-T2-01",
+    "serial_number": "TEST-T2-99004",
+    "barcode": "TEST-T2-99004",
+    "model_name": "Contax T2",
+    "brand": "Contax",
+    "camera_type": "PnS",
+    "condition_note": "Test — PnS premium",
+    "cost": 4500000,
+    "price": 9800000,
+    "floor_price": 7800000
+  },
+  {
+    "camera_code": "CAM-M6-01",
+    "serial_number": "TEST-M6-77012",
+    "barcode": "TEST-M6-77012",
+    "model_name": "Leica M6 TTL",
+    "brand": "Leica",
+    "camera_type": "Rangefinder",
+    "condition_note": "Test — hiếm, full set",
+    "cost": 28000000,
+    "price": 52000000,
+    "floor_price": 45000000
+  }
+]

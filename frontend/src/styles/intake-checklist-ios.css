@@ -1,0 +1,185 @@
+/**
+ * Phiếu tiếp nhận — inset grouped form (Apple HIG)
+ */
+
+.intake-checklist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ios-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.ios-form-section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.ios-form-section__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-label-secondary);
+  letter-spacing: 0.02em;
+}
+
+.ios-form-section__caption {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-label-tertiary);
+  flex-shrink: 0;
+}
+
+.ios-form-group {
+  border-radius: 12px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.ios-form-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+}
+
+.ios-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .ios-form-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ios-form-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ios-form-grid > * {
+  min-width: 0;
+}
+
+.ios-form-footnote {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-label-tertiary);
+}
+
+.ios-form-banner {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.ios-form-banner--success {
+  background: rgba(52, 199, 89, 0.12);
+  color: #248a3d;
+}
+
+.ios-form-banner--error {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--color-red);
+}
+
+.ios-form-callout {
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 0.5px solid rgba(255, 149, 0, 0.35);
+  background: rgba(255, 149, 0, 0.08);
+}
+
+.ios-form-callout .form-field-min + .form-field-min {
+  margin-top: 0.5rem;
+}
+
+.ios-form-disclosure {
+  border-radius: 12px;
+  border: 0.5px solid var(--color-separator);
+  background: var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.ios-form-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.8125rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-label);
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.ios-form-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ios-form-disclosure__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0 1rem 1rem;
+  border-top: 0.5px solid var(--color-separator);
+}
+
+.ios-form-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--color-label);
+  cursor: pointer;
+}
+
+.ios-form-check-row input[type='checkbox'] {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  accent-color: var(--color-blue);
+}
+
+.intake-checklist-form .apple-segmented-control {
+  margin-bottom: 0.125rem;
+}
+
+.intake-checklist-form .form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-label-secondary);
+}
+
+.intake-checklist-form .form-field-min + .form-field-min {
+  margin-top: 0;
+}
+
+.intake-checklist-form__submit {
+  margin-top: 0.25rem;
+}
+
+.intake-checklist-form__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 0.5px solid var(--color-separator);
+}
