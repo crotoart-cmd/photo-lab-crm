@@ -13,6 +13,13 @@ function hostnameNow() {
 export function isCrmHost() {
   if (isNativeApp() || isMobileDataEnabled()) return true;
   const h = hostnameNow();
+  if (typeof window !== 'undefined' && (h === 'localhost' || h === '127.0.0.1')) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('site') === 'public') {
+      sessionStorage.setItem('hdt_preview_public', '1');
+    }
+    if (sessionStorage.getItem('hdt_preview_public') === '1') return false;
+  }
   if (!h || h === 'localhost' || h === '127.0.0.1') return true;
   if (h === 'admin.hdtlabx.com') return true;
   if (h === 'hdtlabx.com' || h === 'www.hdtlabx.com') return false;

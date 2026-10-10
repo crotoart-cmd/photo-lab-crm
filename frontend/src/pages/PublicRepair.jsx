@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PublicRepairIntakeForm from '../components/public/PublicRepairIntakeForm';
 
 const STEPS = [
   { n: '01', t: 'Mang máy, lab tiếp nhận' },
@@ -34,9 +35,14 @@ export default function PublicRepair() {
         <p className="ps-lede">
           Kiểm tra, báo giá, bạn đồng ý rồi mới làm. Khách chỉ thấy phần của mình trên link phiếu.
         </p>
-        <Link to="/film" className="ps-cta ps-cta--on-dark">
-          Tráng film
-        </Link>
+        <div className="ps-hero-actions">
+          <a href="#gui-don" className="ps-cta ps-cta--on-dark">
+            Gửi phiếu sửa
+          </a>
+          <Link to="/film" className="ps-cta ps-cta--on-dark">
+            Tráng film
+          </Link>
+        </div>
       </section>
 
       <div className="ps-body">
@@ -67,6 +73,7 @@ export default function PublicRepair() {
             ))}
           </div>
         </section>
+        <PublicRepairIntakeForm />
       </div>
     </div>
   );

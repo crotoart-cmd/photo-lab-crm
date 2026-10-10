@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PublicFilmIntakeForm from '../components/public/PublicFilmIntakeForm';
 
 export default function PublicFilm() {
   return (
@@ -10,9 +11,14 @@ export default function PublicFilm() {
           Film được tráng trên máy bán tự động Jobo ATL-3000 và Jobo CPA-2. Một mẻ tối đa 12 cuộn, xử lý nhẹ để giữ
           chi tiết.
         </p>
-        <Link to="/toc-do" className="ps-cta ps-cta--on-dark">
-          Xem tốc độ
-        </Link>
+        <div className="ps-hero-actions">
+          <a href="#gui-don" className="ps-cta ps-cta--on-dark">
+            Gửi đơn tráng
+          </a>
+          <Link to="/toc-do" className="ps-cta ps-cta--on-dark">
+            Xem tốc độ
+          </Link>
+        </div>
       </section>
 
       <div className="ps-body">
@@ -29,6 +35,7 @@ export default function PublicFilm() {
             C-41 tráng trên Noritsu V-30. Máy được bảo dưỡng đều — chất lượng và tốc độ đi cùng nhau.
           </p>
         </section>
+        <PublicFilmIntakeForm />
       </div>
     </div>
   );

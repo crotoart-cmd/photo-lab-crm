@@ -122,7 +122,7 @@ async function createTicket(payload, userId) {
     condition_at_intake: payload.condition_at_intake || '',
     status: 'tiep_nhan',
     received_at: new Date(),
-    createdBy: userId,
+    createdBy: userId || undefined,
   });
 
   pushRepairStatusHistory(ticket, 'tiep_nhan', 'Tiếp nhận máy khách', userId);

@@ -28,6 +28,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/email', require('./routes/email'));
 app.use('/api/backup', require('./routes/backup'));
 app.use('/api/delivery', require('./routes/deliveryPublic'));
+app.use('/api/public', require('./routes/publicIntake'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');

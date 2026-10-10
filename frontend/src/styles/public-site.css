@@ -595,3 +595,108 @@ html.public-web body {
   font-weight: 700;
   letter-spacing: 0.14em;
 }
+
+.ps-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ps-form-lead {
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 40rem;
+}
+
+.ps-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.ps-form h3 {
+  margin: 12px 0 0;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ps-muted);
+}
+
+.ps-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 700px) {
+  .ps-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ps-field input,
+.ps-field select,
+.ps-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 0;
+  border: 1px solid var(--ps-line);
+  background: #141414;
+  color: var(--ps-paper);
+  font: inherit;
+  font-weight: 500;
+}
+
+.ps-field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.ps-field input:focus,
+.ps-field select:focus,
+.ps-field textarea:focus {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 0;
+}
+
+.ps-form > .ps-cta {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+.ps-form-banner {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.ps-form-banner--error {
+  color: #ff8a80;
+}
+
+.ps-form-banner--ok {
+  color: #b8e0c8;
+}
+
+.ps-hp {
+  position: absolute;
+  left: -9999px;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}

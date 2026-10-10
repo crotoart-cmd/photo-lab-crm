@@ -23,7 +23,7 @@ function pushRepairStatusHistory(ticket, status, note, userId) {
     status,
     note: note || '',
     at: new Date(),
-    by: userId,
+    ...(userId ? { by: userId } : {}),
   });
 }
 
