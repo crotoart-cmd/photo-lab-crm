@@ -19,6 +19,9 @@ import PublicContact from './pages/PublicContact';
 import PublicSpeed from './pages/PublicSpeed';
 import PublicPrint from './pages/PublicPrint';
 import PublicScan from './pages/PublicScan';
+import PublicAccessories from './pages/PublicAccessories';
+import PublicBlog from './pages/PublicBlog';
+import PublicFaq from './pages/PublicFaq';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
 
@@ -56,7 +59,10 @@ export default function App() {
           <Route path="/in-analog" element={<PublicPrint />} />
           <Route path="/scan" element={<PublicScan />} />
           <Route path="/sua-may" element={<PublicRepair />} />
+          <Route path="/phu-kien" element={<PublicAccessories />} />
+          <Route path="/blog" element={<PublicBlog />} />
           <Route path="/lien-he" element={<PublicContact />} />
+          <Route path="/faq" element={<PublicFaq />} />
         </Route>
         <Route path="/delivery/:slug" element={<DeliveryGallery />} />
         <Route path="/repair/confirm/:token" element={<RepairConfirm />} />

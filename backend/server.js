@@ -42,7 +42,10 @@ app.use((req, res, next) => {
     req.path.startsWith('/in-analog') ||
     req.path.startsWith('/scan') ||
     req.path.startsWith('/sua-may') ||
+    req.path.startsWith('/phu-kien') ||
+    req.path.startsWith('/blog') ||
     req.path.startsWith('/lien-he') ||
+    req.path.startsWith('/faq') ||
     req.path.startsWith('/delivery') ||
     req.path.startsWith('/repair/confirm')
   ) {

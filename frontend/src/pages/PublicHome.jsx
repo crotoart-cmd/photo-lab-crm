@@ -5,8 +5,9 @@ import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import { SERVICE_TILES } from '../data/publicLabServices';
 
-const FEATURED = SERVICE_TILES.slice(0, 3);
-const REST = SERVICE_TILES.slice(3);
+const DEV_SCAN_IDS = new Set(['trang', 'toc-do', 'scan', 'in-analog']);
+const FEATURED = SERVICE_TILES.filter((tile) => DEV_SCAN_IDS.has(tile.id));
+const REST = SERVICE_TILES.filter((tile) => !DEV_SCAN_IDS.has(tile.id));
 const PLATE_COUNT = 2;
 
 function PagerArrow({ back }) {
@@ -74,12 +75,12 @@ function FeaturedWork({ tile, peekTone }) {
       <div className="ps-work-copy">
         {tile.enabled ? (
           <Link to={tile.to}>
-            <p className="ps-label">{t('work.service')}</p>
+            <p className="ps-label">{t('nav.devScan')}</p>
             <h3>{title}</h3>
           </Link>
         ) : (
           <div>
-            <p className="ps-label">{t('work.service')}</p>
+            <p className="ps-label">{t('nav.devScan')}</p>
             <h3>{title}</h3>
           </div>
         )}

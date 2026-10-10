@@ -3,6 +3,16 @@ html.public-web,
 html.public-web body {
   background: #fff;
   color: #282828;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.public-web::-webkit-scrollbar,
+html.public-web body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .public-site {
@@ -323,16 +333,94 @@ html.public-web body {
 .ps-nav a {
   font-size: 10px;
   font-weight: 400;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ps-ink);
   padding: 8px 0;
   opacity: 0.5;
   transition: opacity var(--ps-hover);
+  white-space: nowrap;
 }
 
 .ps-nav a.is-active {
   opacity: 1;
+}
+
+.ps-nav-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ps-nav-group-btn {
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ps-ink);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity var(--ps-hover);
+  white-space: nowrap;
+}
+
+.ps-nav-group.is-on .ps-nav-group-btn,
+.ps-nav-group.is-open .ps-nav-group-btn {
+  opacity: 1;
+}
+
+.ps-nav-drop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  min-width: 168px;
+  padding: 8px;
+  background: var(--ps-bg);
+  border: 1px solid var(--ps-line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ps-nav-drop a {
+  padding: 10px 12px;
+  background: var(--ps-grey);
+  opacity: 1;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ps-nav-drop a.is-active {
+  background: var(--ps-ink);
+  color: #fff;
+  opacity: 1;
+}
+
+.ps-nav-cluster .ps-label {
+  margin: 0 0 4px;
+}
+
+@media (min-width: 1024px) {
+  .ps-nav {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    flex-wrap: nowrap;
+    grid-column: 2 / span 5;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1280px) {
+  .ps-nav {
+    gap: 44px;
+  }
 }
 
 .ps-cta {
@@ -369,9 +457,7 @@ html.public-web body {
 }
 
 .ps-header > .ps-lang {
-  display: flex;
-  grid-column: 3;
-  justify-self: end;
+  display: none;
   position: relative;
   z-index: 45;
 }
@@ -402,15 +488,13 @@ html.public-web body {
 }
 
 @media (min-width: 1024px) {
-  .ps-nav {
-    display: contents;
-  }
   .ps-nav a.ps-nav-extra {
     display: none;
   }
   .ps-header > .ps-lang {
-    grid-column: auto;
-    justify-self: start;
+    display: flex;
+    grid-column: 7;
+    justify-self: end;
   }
   .ps-burger {
     display: none;
@@ -458,6 +542,18 @@ html.public-web body {
   letter-spacing: -0.02em;
   color: var(--ps-ink);
   padding: 10px 0;
+}
+
+.ps-drawer .ps-nav-cluster {
+  display: flex;
+  flex-direction: column;
+}
+
+.ps-drawer .ps-nav-cluster .ps-label {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.5;
 }
 
 .ps-drawer .ps-lang {
@@ -771,8 +867,19 @@ html.public-web body {
 }
 
 @media (hover: hover) {
-  .ps-nav a:hover {
+  .ps-nav a:hover,
+  .ps-nav-group-btn:hover {
     opacity: 0.75;
+  }
+
+  .ps-nav-group.is-on .ps-nav-group-btn:hover,
+  .ps-nav-group.is-open .ps-nav-group-btn:hover {
+    opacity: 1;
+  }
+
+  .ps-nav-drop a:hover:not(.is-active) {
+    background: var(--ps-accent);
+    color: var(--ps-ink);
   }
 
   .ps-cta:hover,
@@ -1267,6 +1374,11 @@ html.public-web body {
   letter-spacing: 0;
   text-transform: uppercase;
   color: var(--ps-ink);
+}
+
+.ps-foot-sub {
+  margin-top: 4px;
+  opacity: 0.5;
 }
 
 .ps-foot-note,

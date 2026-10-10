@@ -1,16 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BRAND_NAME, LOGO_SRC } from '../../config/brand';
 import PsGridFrame from './PsGridFrame';
 import { PsLangSwitch, PublicLocaleProvider, usePublicLocale } from './PublicLocale';
 
-const NAV = [
+const DEV_SCAN_NAV = [
   { to: '/film', key: 'nav.film' },
   { to: '/toc-do', key: 'nav.speed' },
-  { to: '/in-analog', key: 'nav.print' },
   { to: '/scan', key: 'nav.scan' },
+  { to: '/in-analog', key: 'nav.print' },
+];
+
+const NAV = [
+  { type: 'group', key: 'nav.devScan', children: DEV_SCAN_NAV },
   { to: '/sua-may', key: 'nav.repair' },
-  { to: '/lien-he', key: 'nav.contact', extra: true },
+  { to: '/phu-kien', key: 'nav.acc' },
+  { to: '/blog', key: 'nav.blog' },
+  { to: '/lien-he', key: 'nav.contact' },
+  { to: '/faq', key: 'nav.faq' },
 ];
 
 function PsBrand({ onClick }) {
@@ -21,20 +28,90 @@ function PsBrand({ onClick }) {
   );
 }
 
-function NavItems({ onPick, className }) {
+function NavGroup({ item, onPick, drawer }) {
+  const { t } = usePublicLocale();
+  const { pathname } = useLocation();
+  const wrapRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const childOn = item.children.some((child) => pathname === child.to || pathname.startsWith(`${child.to}/`));
+
+  useEffect(() => {
+    if (drawer || !open) return undefined;
+    const onDoc = (e) => {
+      if (!wrapRef.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [drawer, open]);
+
+  const links = item.children.map((child) => (
+    <NavLink
+      key={child.to}
+      to={child.to}
+      className={({ isActive }) => (isActive ? 'is-active' : '')}
+      onClick={() => {
+        setOpen(false);
+        onPick?.();
+      }}
+    >
+      {t(child.key)}
+    </NavLink>
+  ));
+
+  if (drawer) {
+    return (
+      <div className="ps-nav-cluster">
+        <p className="ps-label">{t(item.key)}</p>
+        {links}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`ps-nav-group${childOn ? ' is-on' : ''}${open ? ' is-open' : ''}`} ref={wrapRef}>
+      <button
+        type="button"
+        className="ps-nav-group-btn"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {t(item.key)}
+      </button>
+      {open ? (
+        <div className="ps-nav-drop" role="menu">
+          {links}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function NavItems({ onPick, className, drawer }) {
   const { t } = usePublicLocale();
   return (
     <nav className={className} aria-label="Menu">
-      {NAV.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={({ isActive }) => [isActive ? 'is-active' : '', item.extra ? 'ps-nav-extra' : ''].filter(Boolean).join(' ')}
-          onClick={onPick}
-        >
-          {t(item.key)}
-        </NavLink>
-      ))}
+      {NAV.map((item) =>
+        item.type === 'group' ? (
+          <NavGroup key={item.key} item={item} onPick={onPick} drawer={drawer} />
+        ) : (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) => [isActive ? 'is-active' : '', item.extra ? 'ps-nav-extra' : ''].filter(Boolean).join(' ')}
+            onClick={onPick}
+          >
+            {t(item.key)}
+          </NavLink>
+        ),
+      )}
     </nav>
   );
 }
@@ -102,7 +179,7 @@ function PublicShellInner() {
               {t('menu.close')}
             </button>
           </div>
-          <NavItems className="" onPick={close} />
+          <NavItems className="" onPick={close} drawer />
           <PsLangSwitch />
         </div>
       ) : null}
@@ -156,7 +233,16 @@ function PublicShellInner() {
               <Link to="/scan">{t('nav.scan')}</Link>
             </li>
             <li>
+              <Link to="/phu-kien">{t('nav.acc')}</Link>
+            </li>
+            <li>
+              <Link to="/blog">{t('nav.blog')}</Link>
+            </li>
+            <li>
               <Link to="/lien-he">{t('nav.contact')}</Link>
+            </li>
+            <li>
+              <Link to="/faq">{t('nav.faq')}</Link>
             </li>
           </ul>
           <p className="ps-foot-copy">© {BRAND_NAME} 2026</p>
@@ -164,6 +250,7 @@ function PublicShellInner() {
 
         <div className="ps-foot-col ps-foot-services">
           <p className="ps-foot-label">{t('foot.services')}</p>
+          <p className="ps-foot-label ps-foot-sub">{t('nav.devScan')}</p>
           <ul>
             <li>
               <Link to="/film">{t('nav.film')}</Link>
@@ -172,10 +259,10 @@ function PublicShellInner() {
               <Link to="/toc-do">{t('nav.speed')}</Link>
             </li>
             <li>
-              <Link to="/in-analog">{t('nav.print')}</Link>
+              <Link to="/scan">{t('nav.scan')}</Link>
             </li>
             <li>
-              <Link to="/scan">{t('nav.scan')}</Link>
+              <Link to="/in-analog">{t('nav.print')}</Link>
             </li>
             <li>
               <Link to="/sua-may">{t('nav.repair')}</Link>
@@ -200,6 +287,9 @@ function PublicShellInner() {
         <div className="ps-foot-col ps-foot-more">
           <p className="ps-foot-label">{t('foot.help')}</p>
           <ul>
+            <li>
+              <Link to="/faq">{t('nav.faq')}</Link>
+            </li>
             <li>
               <Link to="/toc-do">{t('foot.turnaround')}</Link>
             </li>

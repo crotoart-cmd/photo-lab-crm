@@ -1,4 +1,5 @@
 import { FORM_COPY } from './publicI18nForm';
+import { EXTRA_COPY } from './publicI18nExtra';
 
 export const PUBLIC_LANGS = [
   { id: 'en', code: 'EN', html: 'en', native: 'English' },
@@ -33,6 +34,7 @@ const vi = {
   'nav.speed': 'Tốc độ',
   'nav.print': 'In analog',
   'nav.scan': 'Scan',
+  'nav.devScan': 'Tráng & scan',
   'nav.repair': 'Sửa máy',
   'nav.contact': 'Liên hệ',
   'menu.open': 'Mở menu',
@@ -198,6 +200,7 @@ const en = {
   'nav.speed': 'Turnaround',
   'nav.print': 'Analog print',
   'nav.scan': 'Scan',
+  'nav.devScan': 'Develop & scan',
   'nav.repair': 'Repair',
   'nav.contact': 'Contact',
   'menu.open': 'Open menu',
@@ -360,6 +363,7 @@ const de = {
   'nav.speed': 'Laufzeit',
   'nav.print': 'Analogabzug',
   'nav.scan': 'Scan',
+  'nav.devScan': 'Entwicklung & Scan',
   'nav.repair': 'Reparatur',
   'nav.contact': 'Kontakt',
   'menu.open': 'Menü öffnen',
@@ -526,6 +530,7 @@ const es = {
   'nav.speed': 'Plazos',
   'nav.print': 'Copia analógica',
   'nav.scan': 'Escaneo',
+  'nav.devScan': 'Revelado y escaneo',
   'nav.repair': 'Reparación',
   'nav.contact': 'Contacto',
   'menu.open': 'Abrir menú',
@@ -685,10 +690,10 @@ const es = {
 };
 
 export const PUBLIC_COPY = {
-  en: { ...en, ...FORM_COPY.en },
-  vi: { ...vi, ...FORM_COPY.vi },
-  de: { ...de, ...FORM_COPY.de },
-  es: { ...es, ...FORM_COPY.es },
+  en: { ...en, ...FORM_COPY.en, ...EXTRA_COPY.en },
+  vi: { ...vi, ...FORM_COPY.vi, ...EXTRA_COPY.vi },
+  de: { ...de, ...FORM_COPY.de, ...EXTRA_COPY.de },
+  es: { ...es, ...FORM_COPY.es, ...EXTRA_COPY.es },
 };
 
 export function publicT(lang, key) {
