@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { BRAND_NAME } from '../../config/brand';
+import { BRAND_NAME, LOGO_SRC } from '../../config/brand';
 import PsGridFrame from './PsGridFrame';
 import { PsLangSwitch, PublicLocaleProvider, usePublicLocale } from './PublicLocale';
 
@@ -12,6 +12,14 @@ const NAV = [
   { to: '/sua-may', key: 'nav.repair' },
   { to: '/lien-he', key: 'nav.contact', extra: true },
 ];
+
+function PsBrand({ onClick }) {
+  return (
+    <Link to="/" className="ps-brand" onClick={onClick} aria-label={BRAND_NAME}>
+      <img src={LOGO_SRC} alt={BRAND_NAME} width={300} height={50} />
+    </Link>
+  );
+}
 
 function NavItems({ onPick, className }) {
   const { t } = usePublicLocale();
@@ -74,9 +82,7 @@ function PublicShellInner() {
     <div className="public-site">
       <header className={`ps-header-bar${headerOn ? ' is-on' : ''}`}>
         <div className="ps-header ps-grid">
-          <Link to="/" className="ps-brand" onClick={close}>
-            {BRAND_NAME}
-          </Link>
+          <PsBrand onClick={close} />
           <NavItems className="ps-nav" />
           <PsLangSwitch />
           <button type="button" className="ps-burger" aria-label={t('menu.open')} onClick={() => setMenuOpen(true)}>
@@ -91,9 +97,7 @@ function PublicShellInner() {
       {menuOpen ? (
         <div className="ps-drawer" role="dialog" aria-label="Menu">
           <div className="ps-drawer-top">
-            <Link to="/" className="ps-brand" onClick={close}>
-              {BRAND_NAME}
-            </Link>
+            <PsBrand onClick={close} />
             <button type="button" className="ps-drawer-close" onClick={close}>
               {t('menu.close')}
             </button>
@@ -109,9 +113,7 @@ function PublicShellInner() {
       <footer className="ps-footer ps-grid">
         <PsGridFrame tone="footer" />
         <div className="ps-foot-col ps-foot-brand">
-          <Link to="/" className="ps-brand" onClick={close}>
-            {BRAND_NAME}
-          </Link>
+          <PsBrand onClick={close} />
           <p className="ps-foot-label">{t('foot.news')}</p>
           <form
             className="ps-foot-news"

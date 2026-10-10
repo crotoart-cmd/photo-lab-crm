@@ -3,12 +3,12 @@ const path = require('path');
 const { BRAND_NAME, BRAND_TAGLINE, LOGO_CID } = require('../config/brand');
 
 const ASSETS_DIR = path.join(__dirname, '../assets');
-const LOGO_PATH = path.join(ASSETS_DIR, 'nuoc-leo-logo.png');
-const LOGO_EMAIL_PATH = path.join(ASSETS_DIR, 'nuoc-leo-logo-email.png');
+const LOGO_PATH = path.join(ASSETS_DIR, 'hdt-labx-logo.png');
+const LOGO_EMAIL_PATH = path.join(ASSETS_DIR, 'hdt-labx-logo.png');
 
 let logoBase64Cache = null;
 
-/** Logo email — nền trắng khớp header (ưu tiên nuoc-leo-logo.png) */
+/** Logo email — lockup HDT Labx */
 function resolveEmailLogoPath() {
   const candidates = [
     process.env.EMAIL_LOGO_PATH,

@@ -11,7 +11,7 @@ function getFrontendUrl() {
 module.exports = {
   BRAND_NAME: process.env.BRAND_NAME || 'HDTLabx',
   STORE_NAME: process.env.STORE_NAME || process.env.BRAND_NAME || 'HDTLabx',
-  BRAND_TAGLINE: process.env.BRAND_TAGLINE || 'Preserve Memories, Live Every Second',
+  BRAND_TAGLINE: process.env.BRAND_TAGLINE || 'Heritage · Detail · Technology',
   LOGO_CID: 'nuocleo-logo',
   PRODUCTION_SITE_URL,
   PRODUCTION_ADMIN_URL,

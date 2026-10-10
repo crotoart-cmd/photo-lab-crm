@@ -290,13 +290,30 @@ html.public-web body {
 
 .ps-brand {
   display: flex;
-  flex-direction: column;
-  line-height: 1.05;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  align-items: center;
+  line-height: 0;
   white-space: nowrap;
+}
+
+.ps-brand img {
+  display: block;
+  height: 22px;
+  width: auto;
+  max-width: min(168px, 52vw);
+  object-fit: contain;
+  background: transparent;
+}
+
+@media (min-width: 1024px) {
+  .ps-brand img {
+    height: 26px;
+    max-width: 220px;
+  }
+
+  .ps-foot-brand .ps-brand img {
+    height: 32px;
+    max-width: 280px;
+  }
 }
 
 .ps-nav {
