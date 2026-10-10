@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import publicApi from '../../api/publicClient';
+import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot } from './PublicIntakeFields';
 
 const empty = {
@@ -16,6 +17,7 @@ const empty = {
 };
 
 export default function PublicRepairIntakeForm() {
+  const { t } = usePublicLocale();
   const [form, setForm] = useState(empty);
   const [website, setWebsite] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,10 +33,10 @@ export default function PublicRepairIntakeForm() {
     setSaving(true);
     try {
       const { data } = await publicApi.post('/public/repair', { ...form, website });
-      setDone(data.message || `Đã nhận phiếu ${data.ticketNumber}`);
+      setDone(data.message || `${t('form.ok.repair')} ${data.ticketNumber || ''}`.trim());
       setForm(empty);
     } catch (err) {
-      setError(err.response?.data?.message || 'Không gửi được phiếu. Thử lại sau.');
+      setError(err.response?.data?.message || t('form.err.repair'));
     } finally {
       setSaving(false);
     }
@@ -42,10 +44,8 @@ export default function PublicRepairIntakeForm() {
 
   return (
     <section id="gui-don" className="ps-section">
-      <h2>Gửi phiếu sửa máy</h2>
-      <p className="ps-form-lead">
-        Cùng mục lab dùng khi tiếp nhận máy. Lab kiểm tra rồi gửi báo giá — bạn xác nhận trên email trước khi sửa.
-      </p>
+      <h2>{t('form.repair.h2')}</h2>
+      <p className="ps-form-lead">{t('form.repair.lead')}</p>
       {error ? <p className="ps-form-banner ps-form-banner--error">{error}</p> : null}
       {done ? <p className="ps-form-banner ps-form-banner--ok">{done}</p> : null}
       <form className="ps-form" onSubmit={handleSubmit}>
@@ -59,15 +59,15 @@ export default function PublicRepairIntakeForm() {
           aria-hidden="true"
         />
 
-        <h3>Khách hàng</h3>
+        <h3>{t('form.customer')}</h3>
         <div className="ps-form-grid">
-          <Field label="Họ" required>
-            <input required placeholder="Nguyễn" value={form.firstName} onChange={set('firstName')} />
+          <Field label={t('form.last')} required>
+            <input required placeholder={t('form.ph.last')} value={form.firstName} onChange={set('firstName')} />
           </Field>
-          <Field label="Tên" required>
-            <input required placeholder="Văn A" value={form.lastName} onChange={set('lastName')} />
+          <Field label={t('form.first')} required>
+            <input required placeholder={t('form.ph.first')} value={form.lastName} onChange={set('lastName')} />
           </Field>
-          <Field label="Email" required>
+          <Field label={t('form.email')} required>
             <input
               required
               type="email"
@@ -76,7 +76,7 @@ export default function PublicRepairIntakeForm() {
               onChange={set('email')}
             />
           </Field>
-          <Field label="Số điện thoại" required>
+          <Field label={t('form.phone')} required>
             <input
               required
               inputMode="tel"
@@ -87,41 +87,41 @@ export default function PublicRepairIntakeForm() {
           </Field>
         </div>
 
-        <h3>Máy</h3>
+        <h3>{t('form.repair.cam')}</h3>
         <div className="ps-form-grid">
-          <Field label="Model máy" required>
-            <input required placeholder="VD: Canon AE-1" value={form.model_name} onChange={set('model_name')} />
+          <Field label={t('form.repair.model')} required>
+            <input required placeholder={t('form.ph.model')} value={form.model_name} onChange={set('model_name')} />
           </Field>
-          <Field label="Hãng">
+          <Field label={t('form.repair.brand')}>
             <input placeholder="Canon" value={form.brand} onChange={set('brand')} />
           </Field>
-          <Field label="Sê-ri">
+          <Field label={t('form.repair.serial')}>
             <input value={form.serial_number} onChange={set('serial_number')} />
           </Field>
         </div>
-        <Field label="Triệu chứng / mô tả lỗi" required>
+        <Field label={t('form.repair.symptom')} required>
           <textarea
             required
             rows={4}
-            placeholder="Máy kẹt film, màn trập..."
+            placeholder={t('form.ph.symptom')}
             value={form.symptom}
             onChange={set('symptom')}
           />
         </Field>
-        <Field label="Tình trạng lúc gửi">
+        <Field label={t('form.repair.condition')}>
           <textarea
             rows={3}
-            placeholder="Vỏ, ống kính, phụ kiện kèm..."
+            placeholder={t('form.ph.condition')}
             value={form.condition_at_intake}
             onChange={set('condition_at_intake')}
           />
         </Field>
-        <Field label="Ghi chú thêm">
+        <Field label={t('form.repair.note')}>
           <textarea rows={2} value={form.intake_note} onChange={set('intake_note')} />
         </Field>
 
         <button type="submit" className="ps-cta ps-cta--on-dark" disabled={saving}>
-          {saving ? 'Đang gửi...' : 'Gửi phiếu sửa'}
+          {saving ? t('form.sending') : t('form.repair.submit')}
         </button>
       </form>
     </section>

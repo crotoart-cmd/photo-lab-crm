@@ -1,71 +1,59 @@
 import { Link } from 'react-router-dom';
+import { usePublicLocale } from '../components/public/PublicLocale';
+import PsPage from '../components/public/PsPage';
 import PublicRepairIntakeForm from '../components/public/PublicRepairIntakeForm';
 
-const STEPS = [
-  { n: '01', t: 'Mang máy, lab tiếp nhận' },
-  { n: '02', t: 'Báo giá — bạn xác nhận trên email' },
-  { n: '03', t: 'Sửa xong, trả máy' },
-];
-
-const FAQS = [
-  {
-    q: 'Có sửa luôn khi gửi máy không?',
-    a: 'Không. Sau khi kiểm tra, lab gửi báo giá. Bạn bấm xác nhận trên link email thì mới bắt đầu sửa.',
-  },
-  {
-    q: 'Máy nào nhận?',
-    a: 'Ưu tiên máy film analog. Máy khác lab xem từng trường hợp khi tiếp nhận.',
-  },
-  {
-    q: 'Từ chối báo giá thì sao?',
-    a: 'Bạn từ chối trên cùng link. Lab không sửa; máy trả theo trạng thái trên phiếu.',
-  },
-  {
-    q: 'Link xác nhận hết hạn?',
-    a: 'Liên hệ lab bằng thông tin trên phiếu. Đừng dùng cửa hàng quản trị.',
-  },
-];
-
 export default function PublicRepair() {
+  const { t } = usePublicLocale();
+  const steps = [
+    { n: '01', t: t('repair.s1') },
+    { n: '02', t: t('repair.s2') },
+    { n: '03', t: t('repair.s3') },
+  ];
+  const faqs = [
+    { q: t('repair.q1'), a: t('repair.a1') },
+    { q: t('repair.q2'), a: t('repair.a2') },
+    { q: t('repair.q3'), a: t('repair.a3') },
+    { q: t('repair.q4'), a: t('repair.a4') },
+  ];
+
   return (
-    <div className="ps-page">
-      <section className="ps-page-hero">
-        <p className="ps-kicker">Dịch vụ</p>
-        <h1>Sửa máy</h1>
-        <p className="ps-lede">
-          Kiểm tra, báo giá, bạn đồng ý rồi mới làm. Khách chỉ thấy phần của mình trên link phiếu.
-        </p>
+    <PsPage>
+      <section className="ps-page-hero ps-grid">
+        <p className="ps-kicker">{t('kicker.service')}</p>
+        <h1>{t('repair.h1')}</h1>
+        <p className="ps-lede">{t('repair.lede')}</p>
         <div className="ps-hero-actions">
-          <a href="#gui-don" className="ps-cta ps-cta--on-dark">
-            Gửi phiếu sửa
+          <a href="#gui-don" className="ps-cta">
+            {t('cta.sendRepair')}
           </a>
-          <Link to="/film" className="ps-cta ps-cta--on-dark">
-            Tráng film
+          <Link to="/film" className="ps-cta">
+            {t('cta.devFilm')}
           </Link>
         </div>
       </section>
 
-      <div className="ps-body">
+      <div className="ps-body ps-grid">
         <ol className="ps-steps">
-          {STEPS.map((s) => (
+          {steps.map((s) => (
             <li key={s.n}>
-              <b>Bước {s.n}</b>
+              <b>
+                {t('repair.step')} {s.n}
+              </b>
               <span>{s.t}</span>
             </li>
           ))}
         </ol>
 
         <section className="ps-section ps-prose">
-          <h2>Báo giá trên email</h2>
-          <p>
-            Khi phiếu chờ xác nhận, bạn nhận link riêng: xem giá, đồng ý hoặc từ chối — không mở kho hay đơn của lab.
-          </p>
+          <h2>{t('repair.quoteH')}</h2>
+          <p>{t('repair.quoteP')}</p>
         </section>
 
         <section className="ps-section">
-          <h2>Câu hỏi</h2>
+          <h2>{t('repair.faqH')}</h2>
           <div className="ps-faq">
-            {FAQS.map((item) => (
+            {faqs.map((item) => (
               <details key={item.q}>
                 <summary>{item.q}</summary>
                 <p>{item.a}</p>
@@ -75,6 +63,6 @@ export default function PublicRepair() {
         </section>
         <PublicRepairIntakeForm />
       </div>
-    </div>
+    </PsPage>
   );
 }

@@ -16,6 +16,7 @@ import {
   WET_MOLD,
   defaultIntakeChecklist,
 } from '../../utils/intakeOptions';
+import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot, SelectOptions } from './PublicIntakeFields';
 
 const PUBLIC_FILM_STUCK = FILM_STUCK.filter((o) => o.value !== 'yes_found_on_inspection');
@@ -31,6 +32,7 @@ const emptyCustomer = {
 };
 
 export default function PublicFilmIntakeForm() {
+  const { t } = usePublicLocale();
   const [customer, setCustomer] = useState(emptyCustomer);
   const [quantity, setQuantity] = useState(1);
   const [checklist, setChecklist] = useState(() => defaultIntakeChecklist());
@@ -68,13 +70,13 @@ export default function PublicFilmIntakeForm() {
         receptionNotes,
         ...checklist,
       });
-      setDone(data.message || `Đã nhận đơn ${data.ticketNumber}`);
+      setDone(data.message || `${t('form.ok.film')} ${data.ticketNumber || ''}`.trim());
       setCustomer(emptyCustomer);
       setQuantity(1);
       setChecklist(defaultIntakeChecklist());
       setReceptionNotes('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Không gửi được đơn. Thử lại sau.');
+      setError(err.response?.data?.message || t('form.err.film'));
     } finally {
       setSaving(false);
     }
@@ -82,10 +84,8 @@ export default function PublicFilmIntakeForm() {
 
   return (
     <section id="gui-don" className="ps-section">
-      <h2>Gửi đơn tráng</h2>
-      <p className="ps-form-lead">
-        Cùng các mục lab dùng khi tiếp nhận — bạn điền phần của mình. Lab xác nhận film khi nhận cuộn.
-      </p>
+      <h2>{t('form.film.h2')}</h2>
+      <p className="ps-form-lead">{t('form.film.lead')}</p>
       {error ? <p className="ps-form-banner ps-form-banner--error">{error}</p> : null}
       {done ? <p className="ps-form-banner ps-form-banner--ok">{done}</p> : null}
       <form className="ps-form" onSubmit={handleSubmit}>
@@ -99,25 +99,25 @@ export default function PublicFilmIntakeForm() {
           aria-hidden="true"
         />
 
-        <h3>Khách hàng</h3>
+        <h3>{t('form.customer')}</h3>
         <div className="ps-form-grid">
-          <Field label="Họ" required>
+          <Field label={t('form.last')} required>
             <input
               required
-              placeholder="Nguyễn"
+              placeholder={t('form.ph.last')}
               value={customer.firstName}
               onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
             />
           </Field>
-          <Field label="Tên" required>
+          <Field label={t('form.first')} required>
             <input
               required
-              placeholder="Văn A"
+              placeholder={t('form.ph.first')}
               value={customer.lastName}
               onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
             />
           </Field>
-          <Field label="Email" required>
+          <Field label={t('form.email')} required>
             <input
               required
               type="email"
@@ -126,7 +126,7 @@ export default function PublicFilmIntakeForm() {
               onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
             />
           </Field>
-          <Field label="Số điện thoại" required>
+          <Field label={t('form.phone')} required>
             <input
               required
               inputMode="tel"
@@ -135,28 +135,28 @@ export default function PublicFilmIntakeForm() {
               onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
             />
           </Field>
-          <Field label="Địa chỉ">
+          <Field label={t('form.address')}>
             <input
-              placeholder="Số nhà, đường..."
+              placeholder={t('form.ph.address')}
               value={customer.address}
               onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
             />
           </Field>
-          <Field label="Thành phố">
+          <Field label={t('form.city')}>
             <input
-              placeholder="Hà Nội"
+              placeholder={t('form.ph.city')}
               value={customer.city}
               onChange={(e) => setCustomer({ ...customer, city: e.target.value })}
             />
           </Field>
-          <Field label="Mã bưu điện">
+          <Field label={t('form.postal')}>
             <input
               placeholder="100000"
               value={customer.postalCode}
               onChange={(e) => setCustomer({ ...customer, postalCode: e.target.value })}
             />
           </Field>
-          <Field label="Số cuộn film giao" required>
+          <Field label={t('form.film.qty')} required>
             <input
               required
               type="number"
@@ -168,39 +168,39 @@ export default function PublicFilmIntakeForm() {
           </Field>
         </div>
 
-        <h3>Loại phim</h3>
+        <h3>{t('form.film.type')}</h3>
         <div className="ps-form-grid">
-          <Field label="Khổ phim" required>
+          <Field label={t('form.film.format')} required>
             <select value={checklist.filmFormat} onChange={(e) => set('filmFormat', e.target.value)}>
-              <SelectOptions options={FILM_FORMATS} />
+              <SelectOptions options={FILM_FORMATS} t={t} group="format" />
             </select>
           </Field>
           {checklist.filmFormat === 'other' ? (
-            <Field label="Ghi chú khổ phim">
+            <Field label={t('form.film.formatNote')}>
               <input
                 value={checklist.filmFormatNote}
                 onChange={(e) => set('filmFormatNote', e.target.value)}
               />
             </Field>
           ) : null}
-          <Field label="Loại phim" required>
+          <Field label={t('form.film.kind')} required>
             <select
               value={checklist.filmTypeDetail}
               onChange={(e) => onFilmTypeDetailChange(e.target.value)}
             >
-              <SelectOptions options={FILM_TYPE_DETAILS} />
+              <SelectOptions options={FILM_TYPE_DETAILS} t={t} group="type" />
             </select>
           </Field>
-          <Field label="Quy trình tráng" required>
+          <Field label={t('form.film.process')} required>
             <select
               value={checklist.processingProcess}
               onChange={(e) => set('processingProcess', e.target.value)}
             >
-              <SelectOptions options={PROCESSING_PROCESSES} />
+              <SelectOptions options={PROCESSING_PROCESSES} t={t} group="process" />
             </select>
           </Field>
           {checklist.processingProcess === 'other' ? (
-            <Field label="Ghi chú quy trình">
+            <Field label={t('form.film.processNote')}>
               <input
                 value={checklist.processingProcessNote}
                 onChange={(e) => set('processingProcessNote', e.target.value)}
@@ -209,36 +209,36 @@ export default function PublicFilmIntakeForm() {
           ) : null}
         </div>
 
-        <h3>Tình trạng vật lý</h3>
+        <h3>{t('form.film.physical')}</h3>
         <div className="ps-form-grid">
-          <Field label="Đầu phim (Leader)" required>
+          <Field label={t('form.film.leader')} required>
             <select value={checklist.leaderStatus} onChange={(e) => set('leaderStatus', e.target.value)}>
-              <SelectOptions options={LEADER_STATUS} />
+              <SelectOptions options={LEADER_STATUS} t={t} group="leader" />
             </select>
           </Field>
-          <Field label="Tình trạng vỏ" required>
+          <Field label={t('form.film.canister')} required>
             <select
               value={checklist.canisterCondition}
               onChange={(e) => set('canisterCondition', e.target.value)}
             >
-              <SelectOptions options={CANISTER_CONDITIONS} />
+              <SelectOptions options={CANISTER_CONDITIONS} t={t} group="canister" />
             </select>
           </Field>
-          <Field label="Phim kẹt / đứt" required>
+          <Field label={t('form.film.stuck')} required>
             <select
               value={checklist.filmStuckBroken}
               onChange={(e) => set('filmStuckBroken', e.target.value)}
             >
-              <SelectOptions options={PUBLIC_FILM_STUCK} />
+              <SelectOptions options={PUBLIC_FILM_STUCK} t={t} group="stuck" />
             </select>
           </Field>
-          <Field label="Phim ướt / mốc" required>
+          <Field label={t('form.film.mold')} required>
             <select value={checklist.wetMold} onChange={(e) => set('wetMold', e.target.value)}>
-              <SelectOptions options={WET_MOLD} />
+              <SelectOptions options={WET_MOLD} t={t} group="mold" />
             </select>
           </Field>
           {checklist.canisterCondition !== 'ok' ? (
-            <Field label="Chi tiết tình trạng vỏ">
+            <Field label={t('form.film.canisterNote')}>
               <input
                 value={checklist.canisterConditionNote}
                 onChange={(e) => set('canisterConditionNote', e.target.value)}
@@ -246,7 +246,7 @@ export default function PublicFilmIntakeForm() {
             </Field>
           ) : null}
           {checklist.filmStuckBroken !== 'no' ? (
-            <Field label="Chi tiết kẹt / đứt">
+            <Field label={t('form.film.stuckNote')}>
               <input
                 value={checklist.filmStuckBrokenNote}
                 onChange={(e) => set('filmStuckBrokenNote', e.target.value)}
@@ -254,65 +254,65 @@ export default function PublicFilmIntakeForm() {
             </Field>
           ) : null}
           {checklist.wetMold !== 'no' ? (
-            <Field label="Chi tiết ẩm / mốc">
+            <Field label={t('form.film.moldNote')}>
               <input value={checklist.wetMoldNote} onChange={(e) => set('wetMoldNote', e.target.value)} />
             </Field>
           ) : null}
         </div>
 
-        <h3>Yêu cầu kỹ thuật</h3>
+        <h3>{t('form.film.tech')}</h3>
         <div className="ps-form-grid">
-          <Field label="ISO (Push/Pull)">
+          <Field label={t('form.film.iso')}>
             <select value={checklist.isoHandling} onChange={(e) => set('isoHandling', e.target.value)}>
-              <SelectOptions options={ISO_HANDLING} />
+              <SelectOptions options={ISO_HANDLING} t={t} group="iso" />
             </select>
           </Field>
-          <Field label="ISO gốc / chụp">
+          <Field label={t('form.film.isoVal')}>
             <input
               type="number"
-              placeholder="VD: 400"
+              placeholder={t('form.ph.iso')}
               value={checklist.isoValue}
               onChange={(e) => set('isoValue', e.target.value)}
             />
           </Field>
           {checklist.isoHandling === 'push' || checklist.isoHandling === 'pull' ? (
-            <Field label="Số stop (+/-)">
+            <Field label={t('form.film.stops')}>
               <input
                 type="number"
-                placeholder="VD: 1"
+                placeholder={t('form.ph.stops')}
                 value={checklist.pushPullStops}
                 onChange={(e) => set('pushPullStops', e.target.value)}
               />
             </Field>
           ) : null}
-          <Field label="Cắt phim">
+          <Field label={t('form.film.cut')}>
             <select value={checklist.cutFilm} onChange={(e) => set('cutFilm', e.target.value)}>
-              <SelectOptions options={CUT_FILM} />
+              <SelectOptions options={CUT_FILM} t={t} group="cut" />
             </select>
           </Field>
-          <Field label="Định dạng file scan">
+          <Field label={t('form.film.scanFmt')}>
             <select
               value={checklist.scanFileFormat}
               onChange={(e) => set('scanFileFormat', e.target.value)}
             >
-              <SelectOptions options={SCAN_FORMATS} />
+              <SelectOptions options={SCAN_FORMATS} t={t} group="scanFmt" />
             </select>
           </Field>
-          <Field label="Độ phân giải scan">
+          <Field label={t('form.film.scanRes')}>
             <select
               value={checklist.scanResolution}
               onChange={(e) => set('scanResolution', e.target.value)}
             >
-              <SelectOptions options={SCAN_RESOLUTIONS} />
+              <SelectOptions options={SCAN_RESOLUTIONS} t={t} group="scanRes" />
             </select>
           </Field>
-          <Field label="Tông màu">
+          <Field label={t('form.film.tone')}>
             <select value={checklist.colorTone} onChange={(e) => set('colorTone', e.target.value)}>
-              <SelectOptions options={COLOR_TONES} />
+              <SelectOptions options={COLOR_TONES} t={t} group="tone" />
             </select>
           </Field>
           {checklist.scanResolution === 'custom' ? (
-            <Field label="Ghi chú độ phân giải">
+            <Field label={t('form.film.scanResNote')}>
               <input
                 value={checklist.scanResolutionNote}
                 onChange={(e) => set('scanResolutionNote', e.target.value)}
@@ -320,32 +320,32 @@ export default function PublicFilmIntakeForm() {
             </Field>
           ) : null}
           {checklist.colorTone === 'custom' ? (
-            <Field label="Ghi chú tông màu">
+            <Field label={t('form.film.toneNote')}>
               <input value={checklist.colorToneNote} onChange={(e) => set('colorToneNote', e.target.value)} />
             </Field>
           ) : null}
         </div>
-        <Field label="Ghi chú kỹ thuật khác">
+        <Field label={t('form.film.techNote')}>
           <textarea
             rows={3}
-            placeholder="Yêu cầu đặc biệt..."
+            placeholder={t('form.ph.tech')}
             value={checklist.technicalNotes}
             onChange={(e) => set('technicalNotes', e.target.value)}
           />
         </Field>
 
-        <h3>Giao nhận</h3>
+        <h3>{t('form.film.handoff')}</h3>
         <div className="ps-form-grid">
-          <Field label="Nhận lại film gốc">
+          <Field label={t('form.film.original')}>
             <select
               value={checklist.originalFilmReturn}
               onChange={(e) => set('originalFilmReturn', e.target.value)}
             >
-              <SelectOptions options={ORIGINAL_RETURN} />
+              <SelectOptions options={ORIGINAL_RETURN} t={t} group="return" />
             </select>
           </Field>
           {checklist.originalFilmReturn === 'ship_home' ? (
-            <Field label="Địa chỉ ship">
+            <Field label={t('form.film.ship')}>
               <input
                 value={checklist.shippingAddress}
                 onChange={(e) => set('shippingAddress', e.target.value)}
@@ -353,17 +353,17 @@ export default function PublicFilmIntakeForm() {
             </Field>
           ) : null}
         </div>
-        <Field label="Ghi chú cho lab">
+        <Field label={t('form.film.labNote')}>
           <textarea
             rows={3}
-            placeholder="Thời gian gửi, số cuộn thêm..."
+            placeholder={t('form.ph.labNotes')}
             value={receptionNotes}
             onChange={(e) => setReceptionNotes(e.target.value)}
           />
         </Field>
 
         <button type="submit" className="ps-cta ps-cta--on-dark" disabled={saving}>
-          {saving ? 'Đang gửi...' : 'Gửi đơn tráng'}
+          {saving ? t('form.sending') : t('form.film.submit')}
         </button>
       </form>
     </section>

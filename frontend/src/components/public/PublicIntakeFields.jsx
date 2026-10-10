@@ -10,10 +10,10 @@ export function Field({ label, required, children }) {
   );
 }
 
-export function SelectOptions({ options }) {
+export function SelectOptions({ options, t, group }) {
   return options.map((o) => (
     <option key={o.value} value={o.value}>
-      {o.label}
+      {t && group ? t(`opt.${group}.${o.value}`) : o.label}
     </option>
   ));
 }
