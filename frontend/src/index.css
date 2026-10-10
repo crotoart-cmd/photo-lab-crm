@@ -24,6 +24,7 @@
 @import './styles/camera-lifecycle.css';
 @import './styles/lab-ios.css';
 @import './styles/intake-checklist-ios.css';
+@import './styles/public-site.css';
 
 @tailwind base;
 @tailwind components;

@@ -34,7 +34,13 @@ const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');
 app.use((req, res, next) => {
   if (!isPublicWebHost(req.hostname)) return next();
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
-  if (req.path === '/' || req.path.startsWith('/delivery') || req.path.startsWith('/repair/confirm')) {
+  if (
+    req.path === '/' ||
+    req.path.startsWith('/film') ||
+    req.path.startsWith('/sua-may') ||
+    req.path.startsWith('/delivery') ||
+    req.path.startsWith('/repair/confirm')
+  ) {
     return next();
   }
   return res.redirect(302, `${getAdminSiteUrl()}${req.originalUrl || req.path}`);

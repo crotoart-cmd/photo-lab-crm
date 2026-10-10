@@ -13,6 +13,9 @@ import DeliveryGallery from './pages/DeliveryGallery';
 import Repairs from './pages/Repairs';
 import RepairConfirm from './pages/RepairConfirm';
 import PublicHome from './pages/PublicHome';
+import PublicFilm from './pages/PublicFilm';
+import PublicRepair from './pages/PublicRepair';
+import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
 
 function AdminRedirect() {
@@ -42,7 +45,11 @@ export default function App() {
   if (!isCrmHost()) {
     return (
       <Routes>
-        <Route path="/" element={<PublicHome />} />
+        <Route element={<PublicShell />}>
+          <Route path="/" element={<PublicHome />} />
+          <Route path="/film" element={<PublicFilm />} />
+          <Route path="/sua-may" element={<PublicRepair />} />
+        </Route>
         <Route path="/delivery/:slug" element={<DeliveryGallery />} />
         <Route path="/repair/confirm/:token" element={<RepairConfirm />} />
         <Route path="*" element={<AdminRedirect />} />
