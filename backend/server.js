@@ -37,6 +37,9 @@ app.use((req, res, next) => {
   if (
     req.path === '/' ||
     req.path.startsWith('/film') ||
+    req.path.startsWith('/toc-do') ||
+    req.path.startsWith('/in-analog') ||
+    req.path.startsWith('/scan') ||
     req.path.startsWith('/sua-may') ||
     req.path.startsWith('/lien-he') ||
     req.path.startsWith('/delivery') ||

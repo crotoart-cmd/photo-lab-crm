@@ -3,7 +3,10 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { BRAND_NAME } from '../../config/brand';
 
 const NAV = [
-  { to: '/film', label: 'Tráng film' },
+  { to: '/film', label: 'Tráng' },
+  { to: '/toc-do', label: 'Tốc độ' },
+  { to: '/in-analog', label: 'In analog' },
+  { to: '/scan', label: 'Scan' },
   { to: '/sua-may', label: 'Sửa máy' },
   { to: '/lien-he', label: 'Liên hệ' },
 ];

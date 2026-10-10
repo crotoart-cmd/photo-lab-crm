@@ -16,6 +16,9 @@ import PublicHome from './pages/PublicHome';
 import PublicFilm from './pages/PublicFilm';
 import PublicRepair from './pages/PublicRepair';
 import PublicContact from './pages/PublicContact';
+import PublicSpeed from './pages/PublicSpeed';
+import PublicPrint from './pages/PublicPrint';
+import PublicScan from './pages/PublicScan';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
 
@@ -49,6 +52,9 @@ export default function App() {
         <Route element={<PublicShell />}>
           <Route path="/" element={<PublicHome />} />
           <Route path="/film" element={<PublicFilm />} />
+          <Route path="/toc-do" element={<PublicSpeed />} />
+          <Route path="/in-analog" element={<PublicPrint />} />
+          <Route path="/scan" element={<PublicScan />} />
           <Route path="/sua-may" element={<PublicRepair />} />
           <Route path="/lien-he" element={<PublicContact />} />
         </Route>
