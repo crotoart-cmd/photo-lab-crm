@@ -30,6 +30,16 @@ app.use('/api/backup', require('./routes/backup'));
 app.use('/api/delivery', require('./routes/deliveryPublic'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');
+app.use((req, res, next) => {
+  if (!isPublicWebHost(req.hostname)) return next();
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+  if (req.path === '/' || req.path.startsWith('/delivery') || req.path.startsWith('/repair/confirm')) {
+    return next();
+  }
+  return res.redirect(302, `${getAdminSiteUrl()}${req.originalUrl || req.path}`);
+});
+
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });

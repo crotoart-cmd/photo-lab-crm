@@ -1,4 +1,5 @@
 const PRODUCTION_SITE_URL = 'https://hdtlabx.com';
+const PRODUCTION_ADMIN_URL = 'https://admin.hdtlabx.com';
 
 function getFrontendUrl() {
   const fromEnv = String(process.env.FRONTEND_URL || '').trim().replace(/\/$/, '');
@@ -13,5 +14,6 @@ module.exports = {
   BRAND_TAGLINE: process.env.BRAND_TAGLINE || 'Preserve Memories, Live Every Second',
   LOGO_CID: 'nuocleo-logo',
   PRODUCTION_SITE_URL,
+  PRODUCTION_ADMIN_URL,
   getFrontendUrl,
 };

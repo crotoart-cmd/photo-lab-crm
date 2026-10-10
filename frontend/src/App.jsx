@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -11,6 +12,19 @@ import Profile from './pages/Profile';
 import DeliveryGallery from './pages/DeliveryGallery';
 import Repairs from './pages/Repairs';
 import RepairConfirm from './pages/RepairConfirm';
+import PublicHome from './pages/PublicHome';
+import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
+
+function AdminRedirect() {
+  useEffect(() => {
+    window.location.replace(adminAbsoluteUrl(`${window.location.pathname}${window.location.search}`));
+  }, []);
+  return (
+    <div className="min-h-screen flex items-center justify-center text-[var(--color-label-secondary)] text-[15px]">
+      Đang chuyển tới trang quản lý…
+    </div>
+  );
+}
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -25,6 +39,17 @@ function PrivateRoute({ children }) {
 }
 
 export default function App() {
+  if (!isCrmHost()) {
+    return (
+      <Routes>
+        <Route path="/" element={<PublicHome />} />
+        <Route path="/delivery/:slug" element={<DeliveryGallery />} />
+        <Route path="/repair/confirm/:token" element={<RepairConfirm />} />
+        <Route path="*" element={<AdminRedirect />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

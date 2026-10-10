@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getApiBaseUrl } from '../config/apiBase';
 import { isMobileDataEnabled } from '../lib/mobileLocalDb';
 import { clearStaleServerAuth, getServerAuthToken } from '../utils/authToken';
+import { adminAbsoluteUrl, isCrmHost } from '../config/siteHosts';
 
 const API_TIMEOUT_MS = isMobileDataEnabled() ? 8000 : 30000;
 
@@ -27,7 +28,7 @@ api.interceptors.response.use(
       if (!isMobileDataEnabled()) {
         localStorage.removeItem('user');
         if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
+          window.location.href = isCrmHost() ? '/login' : adminAbsoluteUrl('/login');
         }
       }
     }
