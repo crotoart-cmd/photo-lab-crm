@@ -1,38 +1,98 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import BrandLogo from '../BrandLogo';
 import { BRAND_NAME } from '../../config/brand';
 
+const NAV = [
+  { to: '/film', label: 'Tráng film' },
+  { to: '/sua-may', label: 'Sửa máy' },
+  { to: '/lien-he', label: 'Liên hệ' },
+];
+
+function NavItems({ onPick, className }) {
+  return (
+    <nav className={className} aria-label="Menu">
+      {NAV.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          className={({ isActive }) => (isActive ? 'is-active' : '')}
+          onClick={onPick}
+        >
+          {item.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
 export default function PublicShell() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
     document.documentElement.classList.add('public-web');
-    return () => document.documentElement.classList.remove('public-web');
+    document.body.classList.add('public-web');
+    return () => {
+      document.documentElement.classList.remove('public-web');
+      document.body.classList.remove('public-web');
+    };
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
+  const close = () => setMenuOpen(false);
 
   return (
     <div className="public-site">
       <header className="ps-header">
-        <Link to="/" className="ps-brand" aria-label={BRAND_NAME}>
-          <BrandLogo size="sm" />
+        <Link to="/" className="ps-brand" onClick={close}>
+          {BRAND_NAME}
         </Link>
-        <nav className="ps-nav" aria-label="Dịch vụ">
-          <NavLink to="/film" className={({ isActive }) => (isActive ? 'is-active' : '')}>
-            Tráng film
-          </NavLink>
-          <NavLink to="/sua-may" className={({ isActive }) => (isActive ? 'is-active' : '')}>
-            Sửa máy
-          </NavLink>
-        </nav>
+        <NavItems className="ps-nav" />
+        <Link to="/film" className="ps-cta">
+          Gửi cuộn
+        </Link>
+        <button type="button" className="ps-burger" aria-label="Mở menu" onClick={() => setMenuOpen(true)}>
+          <span />
+          <span />
+          <span />
+        </button>
       </header>
-      <main className="ps-main">
+
+      {menuOpen ? (
+        <div className="ps-drawer" role="dialog" aria-label="Menu">
+          <div className="ps-drawer-top">
+            <Link to="/" className="ps-brand" onClick={close}>
+              {BRAND_NAME}
+            </Link>
+            <button type="button" className="ps-drawer-close" onClick={close}>
+              Đóng
+            </button>
+          </div>
+          <NavItems className="" onPick={close} />
+          <Link to="/film" className="ps-cta ps-cta--on-dark" onClick={close}>
+            Gửi cuộn
+          </Link>
+        </div>
+      ) : null}
+
+      <div className="ps-main">
         <Outlet />
-      </main>
+      </div>
       <footer className="ps-footer">
-        <p>
-          <strong>{BRAND_NAME}</strong>
-          {' · '}
-          Lab film và sửa máy analog. Ảnh scan và báo giá gửi qua email trên phiếu.
-        </p>
+        <strong>{BRAND_NAME}</strong>
+        <span>Lab film · sửa máy analog</span>
+        <Link to="/lien-he">Liên hệ</Link>
       </footer>
     </div>
   );

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { BRAND_NAME, BRAND_TAGLINE } from '../config/brand';
 
 const FAQS = [
   {
@@ -18,45 +17,50 @@ const FAQS = [
 
 export default function PublicHome() {
   return (
-    <>
-      <section className="ps-hero">
-        <p className="ps-kicker">Hai dịch vụ</p>
-        <h1>{BRAND_NAME}</h1>
-        <p className="ps-lede">{BRAND_TAGLINE}. Tráng film và sửa máy analog — quy trình rõ, báo trước khi làm.</p>
-        <div className="ps-cta-row">
-          <Link to="/film" className="apple-btn-primary">
-            Tráng film
-          </Link>
-          <Link to="/sua-may" className="apple-btn-secondary">
-            Sửa máy
+    <div className="ps-page">
+      <section className="ps-stage">
+        <div className="ps-stage-inner">
+          <h1>Vẫn chụp film. Vẫn gửi lab.</h1>
+          <Link to="/film" className="ps-cta ps-cta--on-dark">
+            Tráng film →
           </Link>
         </div>
       </section>
 
-      <div className="ps-grid ps-grid--2">
-        <Link to="/film" className="ps-card">
-          <h2>Tráng film</h2>
-          <p>Màu, đen trắng và slide. Tiếp nhận cuộn, tráng, scan, gửi link ảnh khi xong.</p>
-          <span className="ps-card-link">Xem quy trình</span>
+      <div className="ps-tiles">
+        <Link to="/film" className="ps-tile ps-tile--film">
+          <div className="ps-tile-top">
+            <h2>Tráng film</h2>
+            <span className="ps-tile-go" aria-hidden>
+              ›
+            </span>
+          </div>
+          <p>Màu, đen trắng, slide. Scan xong gửi link ảnh trên email.</p>
         </Link>
-        <Link to="/sua-may" className="ps-card">
-          <h2>Sửa máy</h2>
-          <p>Máy film analog. Kiểm tra, báo giá, bạn xác nhận, lab sửa rồi trả máy.</p>
-          <span className="ps-card-link">Xem quy trình</span>
+        <Link to="/sua-may" className="ps-tile ps-tile--repair">
+          <div className="ps-tile-top">
+            <h2>Sửa máy</h2>
+            <span className="ps-tile-go" aria-hidden>
+              ›
+            </span>
+          </div>
+          <p>Kiểm tra, báo giá, bạn xác nhận — rồi lab mới sửa.</p>
         </Link>
       </div>
 
-      <section className="ps-section">
-        <h2>Câu hỏi thường gặp</h2>
-        <div className="ps-faq">
-          {FAQS.map((item) => (
-            <details key={item.q}>
-              <summary>{item.q}</summary>
-              <p>{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-    </>
+      <div className="ps-body">
+        <section className="ps-section" id="faq">
+          <h2>Câu hỏi</h2>
+          <div className="ps-faq">
+            {FAQS.map((item) => (
+              <details key={item.q}>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

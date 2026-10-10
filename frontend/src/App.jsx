@@ -15,6 +15,7 @@ import RepairConfirm from './pages/RepairConfirm';
 import PublicHome from './pages/PublicHome';
 import PublicFilm from './pages/PublicFilm';
 import PublicRepair from './pages/PublicRepair';
+import PublicContact from './pages/PublicContact';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/" element={<PublicHome />} />
           <Route path="/film" element={<PublicFilm />} />
           <Route path="/sua-may" element={<PublicRepair />} />
+          <Route path="/lien-he" element={<PublicContact />} />
         </Route>
         <Route path="/delivery/:slug" element={<DeliveryGallery />} />
         <Route path="/repair/confirm/:token" element={<RepairConfirm />} />

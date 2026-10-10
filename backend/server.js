@@ -38,6 +38,7 @@ app.use((req, res, next) => {
     req.path === '/' ||
     req.path.startsWith('/film') ||
     req.path.startsWith('/sua-may') ||
+    req.path.startsWith('/lien-he') ||
     req.path.startsWith('/delivery') ||
     req.path.startsWith('/repair/confirm')
   ) {
