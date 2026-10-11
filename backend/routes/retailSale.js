@@ -10,6 +10,7 @@ const BatteryStock = require('../models/BatteryStock');
 const CameraStock = require('../models/CameraStock');
 const { identifyVision } = require('../services/retailIntakeService');
 const { computeTrueCost, isSaleBlocked } = require('../services/cameraLifecycleService');
+const { reservedFor } = require('../services/shopReservations');
 
 const router = express.Router();
 const num = (v, fallback = 0) => { const n = Number(v); return Number.isFinite(n) ? n : fallback; };
@@ -45,6 +46,7 @@ async function resolveCode(code) {
         floor_price: { $first: '$floor_price' },
         brand_group: { $first: '$brand_group' },
         total_quantity: { $sum: '$quantity' },
+        on_web: { $max: { $cond: ['$showOnWeb', 1, 0] } },
         nearest_expiry: { $first: '$expiry_date' },
       },
     },
@@ -52,6 +54,7 @@ async function resolveCode(code) {
 
   if (batches.length > 0) {
     const f = batches[0];
+    const held = await reservedFor('film', f.sku_code);
     return {
       product_group: 'film',
       code: f.sku_code,
@@ -60,7 +63,9 @@ async function resolveCode(code) {
       cost: num(f.cost),
       list_price: num(f.price),
       floor_price: num(f.floor_price),
-      stock_qty: num(f.total_quantity),
+      stock_qty: Math.max(0, num(f.total_quantity) - held.qty),
+      reserved: held.qty,
+      showOnWeb: num(f.on_web) > 0,
       nearest_expiry: f.nearest_expiry,
       default_qty: 1,
       match_source: 'sku',
@@ -73,6 +78,7 @@ async function resolveCode(code) {
     $or: [{ sku_code: upper }, { barcode: upper }],
   });
   if (bat) {
+    const held = await reservedFor('battery', bat._id);
     return {
       product_group: 'battery',
       code: bat.sku_code,
@@ -82,7 +88,9 @@ async function resolveCode(code) {
       cost: num(bat.cost),
       list_price: num(bat.price),
       floor_price: num(bat.floor_price),
-      stock_qty: num(bat.quantity),
+      stock_qty: Math.max(0, num(bat.quantity) - held.qty),
+      reserved: held.qty,
+      showOnWeb: Boolean(bat.showOnWeb),
       default_qty: 1,
       match_source: 'sku',
     };
@@ -127,6 +135,7 @@ async function resolveCode(code) {
     }
     if (cam.status !== 'San_Hang') return null;
 
+    const held = await reservedFor('camera', cam._id);
     return {
       product_group: 'camera',
       code: cam.camera_code,
@@ -143,10 +152,14 @@ async function resolveCode(code) {
       total_repair_cost: num(cam.total_repair_cost),
       list_price: num(cam.price),
       floor_price: Math.max(num(cam.floor_price), true_cost),
-      stock_qty: 1,
+      stock_qty: held.qty ? 0 : 1,
       default_qty: 1,
       match_source: 'serial',
-      sale_blocked: false,
+      sale_blocked: held.qty > 0,
+      sale_block_reason: held.qty
+        ? `Máy đang giữ cho đơn web ${held.codes.join(', ')} — xác nhận hoặc hủy ở tab Đơn`
+        : undefined,
+      showOnWeb: Boolean(cam.showOnWeb),
     };
   }
 

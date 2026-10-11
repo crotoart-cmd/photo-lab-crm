@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
+import PsPhoto from '../components/public/PsPhoto';
 import PublicRepairIntakeForm from '../components/public/PublicRepairIntakeForm';
+import { LAB_PHOTO } from '../data/publicLabPhotos';
 
 export default function PublicRepair() {
   const { t } = usePublicLocale();
@@ -19,10 +21,11 @@ export default function PublicRepair() {
 
   return (
     <PsPage>
-      <section className="ps-page-hero ps-grid">
+      <section className="ps-page-hero ps-page-hero--photo ps-grid">
         <p className="ps-kicker">{t('kicker.service')}</p>
         <h1>{t('repair.h1')}</h1>
         <p className="ps-lede">{t('repair.lede')}</p>
+        <PsPhoto src={LAB_PHOTO.repair} tone="print" className="ps-page-banner" alt="" />
         <div className="ps-hero-actions">
           <a href="#gui-don" className="ps-cta">
             {t('cta.sendRepair')}

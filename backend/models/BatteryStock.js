@@ -9,6 +9,7 @@ const batteryStockSchema = new mongoose.Schema({
   battery_type: { type: String, required: true },
   brand: String,
   quantity: { type: Number, required: true, default: 0, min: 0 },
+  receivedQty: { type: Number, default: 0, min: 0 },
   cost: { type: Number, default: 0, min: 0 },
   price: { type: Number, default: 0, min: 0 },
   floor_price: { type: Number, default: 0, min: 0 },
@@ -19,6 +20,10 @@ const batteryStockSchema = new mongoose.Schema({
     },
   ],
   notes: String,
+  image: { type: String, default: '' },
+  images: { type: [String], default: [] },
+  showOnWeb: { type: Boolean, default: false, index: true },
+  webDescription: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

@@ -194,13 +194,13 @@
     <div class="toolbar">
       <div class="toolbar__group" id="navGroup">
         <button class="btn" data-path="/dashboard">Dashboard</button>
-        <button class="btn" data-path="/retail?tab=intake">Nhập</button>
-        <button class="btn" data-path="/retail?tab=sale">Bán</button>
+        <button class="btn" data-path="/retail?tab=intake">Kho</button>
+        <button class="btn" data-path="/retail?tab=orders">Đơn</button>
         <button class="btn" data-path="/customers">Khách</button>
       </div>
       <div class="field">
         <label for="pathInput">Đường dẫn</label>
-        <input id="pathInput" type="text" value="/retail?tab=sale" spellcheck="false" />
+        <input id="pathInput" type="text" value="/retail?tab=intake" spellcheck="false" />
       </div>
       <button class="btn" id="goBtn">Đi</button>
       <button class="btn btn--icon" id="reloadBtn" title="Tải lại">↻</button>
@@ -341,7 +341,7 @@
       window.addEventListener('resize', applyScale);
 
       // init
-      const startPath = new URLSearchParams(location.search).get('path') || '/retail?tab=sale';
+      const startPath = new URLSearchParams(location.search).get('path') || '/retail?tab=intake';
       applyDims();
       load(startPath);
     </script>

@@ -110,7 +110,7 @@ function buildLocalCameraOps() {
 
 function buildLocalCustomerRepairOps() {
   const tickets = loadCustomerRepairs();
-  const openStatuses = ['tiep_nhan', 'cho_khach_xac_nhan', 'dang_sua', 'cho_tra'];
+  const openStatuses = ['don_web', 'tiep_nhan', 'cho_khach_xac_nhan', 'dang_sua', 'cho_tra'];
   const open = tickets.filter((t) => openStatuses.includes(t.status));
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const monthReturned = tickets.filter(
@@ -118,6 +118,7 @@ function buildLocalCustomerRepairOps() {
   );
 
   const counts = {
+    don_web: 0,
     tiep_nhan: 0,
     cho_khach_xac_nhan: 0,
     dang_sua: 0,

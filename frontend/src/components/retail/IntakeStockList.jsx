@@ -1,18 +1,27 @@
 import { displayCameraSerial } from '../../utils/cameraStockDisplay';
 import CameraStatusBadge from '../camera/CameraStatusBadge';
 import { computeTrueCost, formatVnd } from '../../constants/cameraLifecycle';
+import { shopKey } from '../../lib/shopCatalog';
+import { WebPill } from './ShopListingSheet';
 
 const formatMoney = (n) => Number(n || 0).toLocaleString('vi-VN') + ' đ';
 
-function StockRowButton({ active, onClick, children, className = '' }) {
+function StockRow({ active, onClick, children }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className={`intake-stock-row w-full text-left ${active ? 'intake-stock-row--active' : ''} ${className}`.trim()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`intake-stock-row w-full text-left ${active ? 'intake-stock-row--active' : ''}`}
     >
       {children}
-    </button>
+    </div>
   );
 }
 
@@ -25,7 +34,12 @@ export default function IntakeStockList({
   onSelectRow,
   onOpenCameraDetail,
   onSeedTestCameras,
+  web,
+  onOpenWeb,
 }) {
+  const pill = (source, id) =>
+    web ? <WebPill card={web.byKey.get(shopKey(source, id))} online={web.online} onOpen={onOpenWeb} /> : null;
+
   if (group === 'film') {
     if (!filmRows.length) {
       return <p className="intake-stock-empty">Chưa có lô film — quét mã hoặc nhập tay phía trên.</p>;
@@ -33,21 +47,20 @@ export default function IntakeStockList({
     return (
       <div className="intake-stock-list">
         {filmRows.map((r) => (
-          <StockRowButton
-            key={r._id}
-            active={activeRowId === r._id}
-            onClick={() => onSelectRow?.(r, 'film')}
-          >
+          <StockRow key={r._id} active={activeRowId === r._id} onClick={() => onSelectRow?.(r, 'film')}>
             <div className="intake-stock-row-head">
               <span className="intake-stock-row-code">{r.sku_code}</span>
-              <span className="intake-stock-row-qty">×{r.quantity}</span>
+              <div className="intake-stock-row-actions">
+                <span className="intake-stock-row-qty">×{r.quantity}</span>
+                {pill('film', r._id)}
+              </div>
             </div>
             <p className="intake-stock-row-name">{r.name}</p>
             <p className="intake-stock-row-meta">
-              HSD {r.expiry_date ? new Date(r.expiry_date).toLocaleDateString('vi-VN') : '—'} · Bán{' '}
-              {formatMoney(r.price)}
+              HSD {r.expiry_date ? new Date(r.expiry_date).toLocaleDateString('vi-VN') : '—'} · còn{' '}
+              {Number(r.quantity || 0)} / nhập {Number(r.receivedQty || r.quantity || 0)}
             </p>
-          </StockRowButton>
+          </StockRow>
         ))}
       </div>
     );
@@ -60,20 +73,19 @@ export default function IntakeStockList({
     return (
       <div className="intake-stock-list">
         {batteryRows.map((r) => (
-          <StockRowButton
-            key={r._id}
-            active={activeRowId === r._id}
-            onClick={() => onSelectRow?.(r, 'battery')}
-          >
+          <StockRow key={r._id} active={activeRowId === r._id} onClick={() => onSelectRow?.(r, 'battery')}>
             <div className="intake-stock-row-head">
               <span className="intake-stock-row-code">{r.sku_code}</span>
-              <span className="intake-stock-row-qty">×{r.quantity}</span>
+              <div className="intake-stock-row-actions">
+                <span className="intake-stock-row-qty">×{r.quantity}</span>
+                {pill('battery', r._id)}
+              </div>
             </div>
             <p className="intake-stock-row-name">{r.name}</p>
             <p className="intake-stock-row-meta">
               {r.battery_type} · Bán {formatMoney(r.price)}
             </p>
-          </StockRowButton>
+          </StockRow>
         ))}
       </div>
     );
@@ -101,25 +113,13 @@ export default function IntakeStockList({
     <div className="intake-stock-list">
       {rows.map((r) => {
         const trueCost = computeTrueCost(r);
-        const active = activeRowId === r._id;
         return (
-          <div
-            key={r._id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onSelectRow?.(r, 'camera')}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onSelectRow?.(r, 'camera');
-              }
-            }}
-            className={`intake-stock-row w-full text-left ${active ? 'intake-stock-row--active' : ''}`}
-          >
+          <StockRow key={r._id} active={activeRowId === r._id} onClick={() => onSelectRow?.(r, 'camera')}>
             <div className="intake-stock-row-head">
               <span className="intake-stock-row-code truncate min-w-0">{r.camera_code}</span>
               <div className="intake-stock-row-actions">
                 <CameraStatusBadge status={r.status} />
+                {pill('camera', r._id)}
                 {onOpenCameraDetail && (
                   <button
                     type="button"
@@ -146,7 +146,7 @@ export default function IntakeStockList({
             {r.condition_note && (
               <p className="intake-stock-row-meta text-[var(--color-orange)] truncate">{r.condition_note}</p>
             )}
-          </div>
+          </StockRow>
         );
       })}
     </div>

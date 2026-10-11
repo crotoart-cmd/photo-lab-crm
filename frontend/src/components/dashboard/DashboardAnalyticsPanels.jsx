@@ -122,16 +122,18 @@ function ShopCameraDefectOpsCard({ defectRate, cameraOps, flat = false }) {
 
 function CustomerRepairOpsMetricCard({ customerRepairOps, flat = false }) {
   const counts = customerRepairOps?.counts || {};
+  const webOrders = counts.don_web ?? 0;
   const intake = counts.tiep_nhan ?? 0;
   const awaiting = counts.cho_khach_xac_nhan ?? 0;
   const inRepair = counts.dang_sua ?? 0;
   const ready = counts.cho_tra ?? 0;
-  const pipelineTotal = intake + awaiting + inRepair + ready;
+  const pipelineTotal = webOrders + intake + awaiting + inRepair + ready;
   const revenueMonth = counts.revenue_month ?? 0;
   const profitMonth = counts.profit_month ?? 0;
 
   const pipelineSlices = [
-    { key: 'intake', label: 'Tiếp nhận', value: intake, color: CHART.track },
+    { key: 'web', label: 'Đơn web', value: webOrders, color: CHART.orange },
+    { key: 'intake', label: 'Đã nhận máy', value: intake, color: CHART.track },
     { key: 'awaiting', label: 'Chờ xác nhận', value: awaiting, color: CHART.orange },
     { key: 'inRepair', label: 'Đang sửa', value: inRepair, color: CHART.blue },
     { key: 'ready', label: 'Chờ trả', value: ready, color: CHART.green },
@@ -393,8 +395,8 @@ export function SalesPerformancePanel({
               ))}
             </ul>
           )}
-          <Link to="/retail?tab=sale" className="apple-btn-ghost text-[13px] mt-3 !py-1 inline-flex">
-            Mở bán hàng →
+          <Link to="/retail?tab=orders" className="apple-btn-ghost text-[13px] mt-3 !py-1 inline-flex">
+            Shop Products · Đơn →
           </Link>
         </SectionCard>
         )}
@@ -440,7 +442,7 @@ export function InventorySupplyPanel({ analytics, loading }) {
           </>
         )}
         <Link to="/retail?tab=intake" className="apple-btn-ghost text-[13px] mt-3 !py-1 inline-flex">
-          Nhập hàng film →
+          Shop Products · Kho →
         </Link>
       </SectionCard>
 

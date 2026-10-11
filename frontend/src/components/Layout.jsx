@@ -5,6 +5,7 @@ import NavDrawer from './NavDrawer';
 import MobileNavBar from './MobileNavBar';
 import MobileTabBar from './MobileTabBar';
 import RouteErrorBoundary from './RouteErrorBoundary';
+import { WebInboxProvider } from '../context/WebInboxContext';
 
 function useMobileShellMetrics(chromeRef, tabBarRef) {
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function Layout() {
   };
 
   return (
-    <>
+    <WebInboxProvider>
       <div className="ios-app-layout ios-app-shell min-h-screen flex">
         <NavDrawer user={user} isOwner={isOwner} onLogout={handleLogout} />
         <div className="ios-mobile-frame flex-1 flex flex-col min-w-0 min-h-0 w-full">
@@ -78,6 +79,6 @@ export default function Layout() {
         </div>
       </div>
       <MobileTabBar ref={tabBarRef} />
-    </>
+    </WebInboxProvider>
   );
 }

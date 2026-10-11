@@ -1,14 +1,13 @@
 import { STATUS_LABELS } from '../utils/filmLabels';
 
-const STEPS = ['received', 'processing', 'completed', 'delivered'];
-
-const stepIndex = (status) => {
-  const i = STEPS.indexOf(status);
-  return i >= 0 ? i : 0;
-};
+const CORE_STEPS = ['received', 'processing', 'completed', 'delivered'];
 
 export default function ProgressTimeline({ film }) {
-  const current = stepIndex(film.status);
+  const fromWeb =
+    film.status === 'web_order' ||
+    (film.statusHistory || []).some((entry) => entry.status === 'web_order');
+  const STEPS = fromWeb ? ['web_order', ...CORE_STEPS] : CORE_STEPS;
+  const current = Math.max(0, STEPS.indexOf(film.status));
   const history = film.statusHistory || [];
 
   return (

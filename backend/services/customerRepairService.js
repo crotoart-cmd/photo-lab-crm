@@ -110,6 +110,8 @@ async function createTicket(payload, userId) {
     throw err;
   }
 
+  const fromWeb = payload.source === 'web' || payload.fromWeb === true;
+  const status = fromWeb ? 'don_web' : 'tiep_nhan';
   const ticket_number = await generateRepairTicketNumber();
   const ticket = new CustomerRepairTicket({
     ticket_number,
@@ -120,18 +122,53 @@ async function createTicket(payload, userId) {
     symptom,
     intake_note: payload.intake_note || '',
     condition_at_intake: payload.condition_at_intake || '',
-    status: 'tiep_nhan',
-    received_at: new Date(),
+    status,
+    received_at: fromWeb ? undefined : new Date(),
     createdBy: userId || undefined,
   });
 
-  pushRepairStatusHistory(ticket, 'tiep_nhan', 'Tiếp nhận máy khách', userId);
+  pushRepairStatusHistory(
+    ticket,
+    status,
+    fromWeb ? 'Khách gửi đơn trên web' : 'Tiếp nhận máy khách',
+    userId
+  );
   await ticket.save();
 
   const skipEmail = Boolean(payload.skipEmail);
   const emailResult = skipEmail
     ? { sent: false, skipped: true }
-    : await sendRepairIntakeEmail(ticket);
+    : await sendRepairIntakeEmail(ticket, { phase: fromWeb ? 'order' : 'goods' });
+  if (emailResult.sent) {
+    ticket.intake_email_sent_at = Date.now();
+    await ticket.save();
+  }
+
+  return { ticket: mapTicket(ticket), emailResult };
+}
+
+async function markGoodsReceived(ticketId, userId, payload = {}) {
+  const ticket = await CustomerRepairTicket.findById(ticketId);
+  if (!ticket) {
+    const err = new Error('Không tìm thấy phiếu');
+    err.status = 404;
+    throw err;
+  }
+  if (ticket.status !== 'don_web') {
+    const err = new Error('Phiếu không phải đơn web chờ nhận máy');
+    err.status = 400;
+    throw err;
+  }
+
+  ticket.status = 'tiep_nhan';
+  ticket.received_at = new Date();
+  pushRepairStatusHistory(ticket, 'tiep_nhan', 'Lab đã nhận máy', userId);
+  await ticket.save();
+
+  const skipEmail = Boolean(payload.skipEmail);
+  const emailResult = skipEmail
+    ? { sent: false, skipped: true }
+    : await sendRepairIntakeEmail(ticket, { phase: 'goods' });
   if (emailResult.sent) {
     ticket.intake_email_sent_at = Date.now();
     await ticket.save();
@@ -376,7 +413,7 @@ async function getOpsSummary() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const [tickets, monthReturned] = await Promise.all([
     CustomerRepairTicket.find({
-      status: { $in: ['tiep_nhan', 'cho_khach_xac_nhan', 'dang_sua', 'cho_tra'] },
+      status: { $in: ['don_web', 'tiep_nhan', 'cho_khach_xac_nhan', 'dang_sua', 'cho_tra'] },
     }).lean(),
     CustomerRepairTicket.find({
       status: 'da_tra',
@@ -385,6 +422,7 @@ async function getOpsSummary() {
   ]);
 
   const counts = {
+    don_web: 0,
     tiep_nhan: 0,
     cho_khach_xac_nhan: 0,
     dang_sua: 0,
@@ -410,6 +448,7 @@ module.exports = {
   listTickets,
   getTicketById,
   createTicket,
+  markGoodsReceived,
   sendQuote,
   confirmByToken,
   confirmAtCounter,

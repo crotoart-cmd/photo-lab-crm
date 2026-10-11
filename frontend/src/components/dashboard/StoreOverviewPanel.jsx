@@ -127,8 +127,8 @@ export default function StoreOverviewPanel({
       <section className="apple-card p-4 store-overview__recent dashboard-store-desk__recent">
         <div className="flex items-center justify-between gap-2 mb-2 store-overview__recent-head">
           <h2 className="text-[15px] font-semibold text-[var(--color-label)]">Giao dịch gần nhất</h2>
-          <Link to="/retail?tab=sale" className="apple-btn-ghost text-[12px] !py-1">
-            Quét bán →
+          <Link to="/retail?tab=orders" className="apple-btn-ghost text-[12px] !py-1">
+            Mở đơn →
           </Link>
         </div>
         <ul className="store-overview__recent-bars" role="list">

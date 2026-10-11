@@ -14,6 +14,7 @@ const filmStockSchema = new mongoose.Schema({
   catalog_key: String,
   size: { type: String, enum: ['35mm', '120', '110', 'other'], default: '35mm' },
   quantity: { type: Number, required: true, default: 0, min: 0 },
+  receivedQty: { type: Number, default: 0, min: 0 },
   expiry_date: { type: Date, required: true, index: true },
   cost: { type: Number, default: 0, min: 0 },
   price: { type: Number, default: 0, min: 0 },
@@ -25,6 +26,10 @@ const filmStockSchema = new mongoose.Schema({
     },
   ],
   notes: String,
+  image: { type: String, default: '' },
+  images: { type: [String], default: [] },
+  showOnWeb: { type: Boolean, default: false, index: true },
+  webDescription: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

@@ -25,7 +25,8 @@ const pushStatusHistory = (film, status, note, userId) => {
 };
 
 const STATUS_LABELS = {
-  received: 'Tiếp nhận',
+  web_order: 'Đơn web',
+  received: 'Đã nhận cuộn',
   processing: 'Đang tráng',
   completed: 'Hoàn thành',
   delivered: 'Đã trả',

@@ -21,7 +21,9 @@ import PublicPrint from './pages/PublicPrint';
 import PublicScan from './pages/PublicScan';
 import PublicAccessories from './pages/PublicAccessories';
 import PublicBlog from './pages/PublicBlog';
+import PublicBlogPost from './pages/PublicBlogPost';
 import PublicFaq from './pages/PublicFaq';
+import SiteContent from './pages/SiteContent';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
 
@@ -61,6 +63,7 @@ export default function App() {
           <Route path="/sua-may" element={<PublicRepair />} />
           <Route path="/phu-kien" element={<PublicAccessories />} />
           <Route path="/blog" element={<PublicBlog />} />
+          <Route path="/blog/:slug" element={<PublicBlogPost />} />
           <Route path="/lien-he" element={<PublicContact />} />
           <Route path="/faq" element={<PublicFaq />} />
         </Route>
@@ -88,6 +91,7 @@ export default function App() {
         <Route path="films" element={<Films />} />
         <Route path="repairs" element={<Repairs />} />
         <Route path="inventory" element={<Inventory />} />
+        <Route path="noi-dung" element={<SiteContent />} />
         <Route path="retail" element={<Retail />} />
         <Route path="profile" element={<Profile />} />
       </Route>

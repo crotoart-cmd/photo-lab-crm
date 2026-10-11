@@ -1,4 +1,7 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const { verifyToken } = require('./auth');
 const FilmStock = require('../models/FilmStock');
 const BatteryStock = require('../models/BatteryStock');
@@ -18,9 +21,24 @@ const {
   getRepairOpsSummary,
 } = require('../services/cameraRepairService');
 const { mapCameraForClient } = require('../services/cameraLifecycleService');
+const { listShopCatalog, patchShopCard } = require('../services/shopCatalog');
+const { listShopOrders, markShopOrderPaid, cancelShopOrder } = require('../services/shopOrders');
 const { fullName, normalizeEmail } = require('../utils/customerNormalize');
 
 const router = express.Router();
+
+const SHOP_UPLOAD_DIR = path.join(__dirname, '../uploads/site');
+fs.mkdirSync(SHOP_UPLOAD_DIR, { recursive: true });
+const shopUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, SHOP_UPLOAD_DIR),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname || '') || '.jpg';
+      cb(null, `shop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext.toLowerCase()}`);
+    },
+  }),
+  limits: { fileSize: 12 * 1024 * 1024, files: 9 },
+});
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const saleCode = () => `SALE-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -176,6 +194,7 @@ router.post('/film-stock', verifyToken, async (req, res) => {
       color_character: req.body.color_character,
       catalog_key: req.body.catalog_key,
       quantity: qty,
+      receivedQty: qty,
       expiry_date: new Date(req.body.expiry_date),
       updatedAt: Date.now(),
     });
@@ -510,6 +529,7 @@ router.post('/checkout-cart', verifyToken, async (req, res) => {
         const result = await processRetailSaleItem(
           {
             ...item,
+            channel: item.channel || 'counter',
             customerId,
             buyerName: buyer.customer_name,
             buyerEmail: buyer.customer_email,
@@ -578,6 +598,70 @@ router.get('/sales', verifyToken, async (req, res) => {
     res.json({ sales: rows, totals });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi tải lịch sử bán', error: error.message });
+  }
+});
+
+router.get('/shop-catalog', verifyToken, async (_req, res) => {
+  try {
+    const items = await listShopCatalog();
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ message: 'Không tải được catalog Accessories', error: error.message });
+  }
+});
+
+router.patch('/shop-catalog/:source/:id', verifyToken, shopUpload.array('images', 9), async (req, res) => {
+  try {
+    const uploaded = (req.files || []).map((file) => `/uploads/site/${file.filename}`);
+    let images;
+    if (req.body?.imagesKept !== undefined) {
+      let kept = [];
+      try {
+        kept = JSON.parse(req.body.imagesKept);
+      } catch {
+        kept = [];
+      }
+      images = [...(Array.isArray(kept) ? kept : []), ...uploaded].filter(Boolean).slice(0, 9);
+    } else if (uploaded.length) {
+      images = uploaded;
+    }
+    const showOnWeb =
+      req.body?.showOnWeb === undefined ? undefined : /^(1|true|yes)$/i.test(String(req.body.showOnWeb));
+    await patchShopCard(req.params.source, req.params.id, {
+      showOnWeb,
+      images,
+      description: req.body?.description,
+    });
+    const items = await listShopCatalog();
+    res.json({ message: 'Đã cập nhật', items });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Không lưu được' });
+  }
+});
+
+router.get('/shop-orders', verifyToken, async (_req, res) => {
+  try {
+    res.json(await listShopOrders());
+  } catch (error) {
+    res.status(500).json({ message: 'Không tải được đơn web', error: error.message });
+  }
+});
+
+router.post('/shop-orders/:id/paid', verifyToken, async (req, res) => {
+  try {
+    const order = await markShopOrderPaid(req.params.id, req.userId);
+    res.json({ message: `Đã bán đơn ${order.code} — tồn đã trừ`, order });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Không xác nhận được' });
+  }
+});
+
+router.post('/shop-orders/:id/cancel', verifyToken, async (req, res) => {
+  try {
+    const order = await cancelShopOrder(req.params.id, req.userId, req.body?.reason);
+    res.json({ message: `Đã hủy đơn ${order.code} — hàng trả lại kho`, order });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Không hủy được' });
   }
 });
 

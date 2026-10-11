@@ -18,6 +18,7 @@ import {
 } from '../../utils/intakeOptions';
 import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot, SelectOptions } from './PublicIntakeFields';
+import { pingWebInbox } from '../../lib/webInboxPing';
 
 const PUBLIC_FILM_STUCK = FILM_STUCK.filter((o) => o.value !== 'yes_found_on_inspection');
 
@@ -70,6 +71,7 @@ export default function PublicFilmIntakeForm() {
         receptionNotes,
         ...checklist,
       });
+      pingWebInbox();
       setDone(data.message || `${t('form.ok.film')} ${data.ticketNumber || ''}`.trim());
       setCustomer(emptyCustomer);
       setQuantity(1);

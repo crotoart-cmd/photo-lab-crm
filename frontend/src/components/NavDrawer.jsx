@@ -2,8 +2,10 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { NAV_GROUPS, isNavItemActive } from '../config/navigation';
 import BrandLogo from './BrandLogo';
 import NavItemIcon from './icons/NavItemIcon';
+import AdminWebInbox, { NavCountBadge } from './AdminWebInbox';
+import { useWebInbox } from '../context/WebInboxContext';
 
-function NavItem({ item, location }) {
+function NavItem({ item, location, badge }) {
   const active = isNavItemActive(item, location);
   const className = [
     'apple-nav-item',
@@ -22,6 +24,7 @@ function NavItem({ item, location }) {
     >
       <NavItemIcon item={item} />
       <span className="apple-nav-item__label">{item.label}</span>
+      <NavCountBadge count={badge} />
     </NavLink>
   );
 }
@@ -29,6 +32,7 @@ function NavItem({ item, location }) {
 /** Sidebar desktop — rail icon, hover bung nhãn */
 export default function NavDrawer({ user, isOwner, onLogout }) {
   const location = useLocation();
+  const { badgeFor } = useWebInbox();
 
   return (
     <div className="apple-nav-rail-slot shrink-0 desktop-shell-only">
@@ -38,11 +42,17 @@ export default function NavDrawer({ user, isOwner, onLogout }) {
         </div>
 
         <nav className="apple-nav-scroll" aria-label="Menu chính">
+          <AdminWebInbox />
           {NAV_GROUPS.map((group) => (
             <div key={group.id} className="apple-nav-section">
               <p className="apple-nav-section-label">{group.label}</p>
               {group.items.map((item) => (
-                <NavItem key={`${group.id}-${item.label}`} item={item} location={location} />
+                <NavItem
+                  key={`${group.id}-${item.label}`}
+                  item={item}
+                  location={location}
+                  badge={badgeFor(item.to)}
+                />
               ))}
             </div>
           ))}

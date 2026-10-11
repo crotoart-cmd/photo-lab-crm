@@ -2,6 +2,7 @@ import { useState } from 'react';
 import publicApi from '../../api/publicClient';
 import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot } from './PublicIntakeFields';
+import { pingWebInbox } from '../../lib/webInboxPing';
 
 const empty = {
   firstName: '',
@@ -33,6 +34,7 @@ export default function PublicRepairIntakeForm() {
     setSaving(true);
     try {
       const { data } = await publicApi.post('/public/repair', { ...form, website });
+      pingWebInbox();
       setDone(data.message || `${t('form.ok.repair')} ${data.ticketNumber || ''}`.trim());
       setForm(empty);
     } catch (err) {

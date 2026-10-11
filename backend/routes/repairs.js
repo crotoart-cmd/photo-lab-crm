@@ -5,6 +5,7 @@ const {
   listTickets,
   getTicketById,
   createTicket,
+  markGoodsReceived,
   sendQuote,
   confirmAtCounter,
   addWorkLog,
@@ -57,6 +58,28 @@ router.post('/', verifyToken, async (req, res) => {
   } catch (error) {
     res.status(error.status || 500).json({
       message: error.message || 'Lỗi tạo phiếu',
+      error: error.message,
+    });
+  }
+});
+
+router.post('/:id/receive-goods', verifyToken, async (req, res) => {
+  try {
+    const { ticket, emailResult } = await markGoodsReceived(
+      req.params.id,
+      req.userId,
+      req.body
+    );
+    res.json({
+      message: `Đã nhận máy${formatEmailNote(emailResult)}`,
+      ticket,
+      emailSent: emailResult?.sent,
+      emailSkipped: emailResult?.skipped,
+      emailError: emailResult?.error || null,
+    });
+  } catch (error) {
+    res.status(error.status || 500).json({
+      message: error.message || 'Lỗi nhận máy',
       error: error.message,
     });
   }

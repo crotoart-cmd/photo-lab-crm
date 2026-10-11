@@ -178,7 +178,13 @@ router.get('/', verifyToken, async (req, res) => {
     const { status, date } = req.query;
     const filter = {};
 
-    if (status) filter.status = status;
+    if (status) {
+      const parts = String(status)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      filter.status = parts.length > 1 ? { $in: parts } : parts[0];
+    }
 
     if (date) {
       const startOfDay = new Date(date);
@@ -417,13 +423,53 @@ router.post('/receive', verifyToken, async (req, res) => {
   }
 });
 
+router.put('/:id/receive-goods', verifyToken, async (req, res) => {
+  try {
+    const film = await Film.findById(req.params.id);
+    if (!film) return res.status(404).json({ message: 'Không tìm thấy phiếu' });
+    if (film.status !== 'web_order') {
+      return res.status(400).json({ message: 'Phiếu không phải đơn web chờ nhận cuộn' });
+    }
+
+    film.status = 'received';
+    film.receivedAt = Date.now();
+    pushStatusHistory(film, 'received', req.body.note || 'Lab đã nhận cuộn', req.userId);
+    await film.save();
+
+    const updated = await Film.findById(film._id).populate('customerId');
+    const skipEmail = Boolean(req.body?.skipEmail);
+    const emailResult = skipEmail
+      ? { sent: false, skipped: true }
+      : await sendConfirmationEmail(updated, { phase: 'goods' });
+    if (emailResult.sent) {
+      film.emailSentAt = Date.now();
+      await film.save();
+    }
+
+    res.json({
+      message: `Đã nhận cuộn${formatEmailNote(emailResult)}`,
+      film: updated,
+      emailSent: emailResult.sent,
+      emailSkipped: emailResult.skipped,
+      emailError: emailResult.error || null,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi nhận cuộn', error: error.message });
+  }
+});
+
 // Bắt đầu tráng
 router.put('/:id/start-processing', verifyToken, async (req, res) => {
   try {
     const film = await Film.findById(req.params.id);
     if (!film) return res.status(404).json({ message: 'Không tìm thấy phiếu' });
     if (film.status !== 'received') {
-      return res.status(400).json({ message: 'Phiếu không ở trạng thái tiếp nhận' });
+      return res.status(400).json({
+        message:
+          film.status === 'web_order'
+            ? 'Cần bấm Đã nhận hàng trước khi tráng'
+            : 'Phiếu không ở trạng thái đã nhận cuộn',
+      });
     }
 
     film.status = 'processing';

@@ -20,7 +20,7 @@ const CATEGORIES = [
   { value: '', label: 'Tất cả' },
   { value: 'chemical', label: 'Hóa chất/Thuốc tráng' },
   { value: 'film', label: 'Cuộn film' },
-  { value: 'camera', label: 'Máy ảnh & phụ kiện' },
+  { value: 'camera', label: 'Máy ảnh' },
   { value: 'supplies', label: 'Vật tư khác' },
 ];
 
@@ -196,7 +196,7 @@ export default function Inventory() {
       </PageHeader>
 
       <Link to="/retail?tab=intake" className="lab-link-muted mb-4">
-        → Nhập hàng (AI & thủ công)
+        → Shop Products · Kho
       </Link>
 
       <AppleSegmentedControl

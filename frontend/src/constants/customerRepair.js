@@ -1,5 +1,6 @@
 export const REPAIR_STATUS_LABELS = {
-  tiep_nhan: 'Tiếp nhận',
+  don_web: 'Đơn web',
+  tiep_nhan: 'Đã nhận máy',
   cho_khach_xac_nhan: 'Chờ xác nhận',
   dang_sua: 'Đang sửa',
   cho_tra: 'Chờ trả',
@@ -9,6 +10,7 @@ export const REPAIR_STATUS_LABELS = {
 };
 
 export const REPAIR_STATUS_PILL = {
+  don_web: 'warning',
   tiep_nhan: 'active',
   cho_khach_xac_nhan: 'warning',
   dang_sua: 'processing',
@@ -20,7 +22,8 @@ export const REPAIR_STATUS_PILL = {
 
 export const REPAIR_TABS = [
   { id: '', label: 'Tất cả' },
-  { id: 'tiep_nhan', label: 'Tiếp nhận' },
+  { id: 'don_web', label: 'Đơn web' },
+  { id: 'tiep_nhan', label: 'Đã nhận máy' },
   { id: 'cho_khach_xac_nhan', label: 'Chờ xác nhận' },
   { id: 'dang_sua', label: 'Đang sửa' },
   { id: 'cho_tra', label: 'Chờ trả' },
@@ -29,6 +32,7 @@ export const REPAIR_TABS = [
 
 /** Thứ tự ưu tiên hiển thị — đồng bộ backend */
 export const REPAIR_STATUS_ORDER = [
+  'don_web',
   'tiep_nhan',
   'cho_khach_xac_nhan',
   'dang_sua',

@@ -4,7 +4,7 @@
 import { loadLabFilms, saveLabFilms, newLocalId } from './mobileLocalDb';
 import { findCustomerInCache } from './mobileCustomerLocal';
 
-const FILM_STATUSES = ['received', 'processing', 'completed', 'delivered', 'cancelled'];
+const FILM_STATUSES = ['web_order', 'received', 'processing', 'completed', 'delivered', 'cancelled'];
 
 function toTime(value) {
   const t = new Date(value || 0).getTime();
@@ -84,7 +84,11 @@ export function receiveFilmLocal(payload = {}) {
 export function listFilmsLocal(params = {}) {
   let rows = loadLabFilms().map(enrichFilmCustomer);
   if (params.status) {
-    rows = rows.filter((f) => f.status === params.status);
+    const set = String(params.status)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    rows = rows.filter((f) => set.includes(f.status));
   }
   const q = String(params.q || '').trim().toLowerCase();
   if (q) {
@@ -118,6 +122,7 @@ export function updateFilmStatusLocal(id, status, extra = {}) {
   if (!film) throw new Error('Không tìm thấy phiếu');
 
   const transitions = {
+    received: 'web_order',
     processing: 'received',
     completed: 'processing',
     delivered: 'completed',
@@ -136,6 +141,7 @@ export function updateFilmStatusLocal(id, status, extra = {}) {
     _pendingSync: true,
   };
 
+  if (status === 'received') next.receivedAt = now;
   if (status === 'processing') next.processingStartedAt = now;
   if (status === 'completed') {
     next.processingCompletedAt = now;

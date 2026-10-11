@@ -247,6 +247,10 @@ async function applyDeviceMail(sendFn) {
 
 export async function updateFilmStatusBridge(id, status, extra = {}) {
   if (!isMobileDataEnabled()) {
+    if (status === 'received') {
+      const { data } = await api.put(`/films/${id}/receive-goods`, { note: extra.note || 'Lab đã nhận cuộn' });
+      return data;
+    }
     if (status === 'processing') {
       const { data } = await api.put(`/films/${id}/start-processing`, { note: extra.note || 'Bắt đầu tráng' });
       return data;
@@ -377,7 +381,13 @@ export async function trySyncFilmQueueItem(queueItem) {
 
       let res = null;
       const emailFlag = { skipEmail: skipEmail !== false };
-      if (status === 'processing') {
+      if (status === 'received') {
+        res = await backupApi({
+          method: 'put',
+          url: `/films/${serverId}/receive-goods`,
+          data: { note: extra?.note || 'Lab đã nhận cuộn', ...emailFlag },
+        });
+      } else if (status === 'processing') {
         res = await backupApi({
           method: 'put',
           url: `/films/${serverId}/start-processing`,

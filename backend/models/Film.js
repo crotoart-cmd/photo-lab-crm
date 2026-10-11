@@ -39,7 +39,7 @@ const filmSchema = new mongoose.Schema({
   deliveredAt: Date,
   status: {
     type: String,
-    enum: ['received', 'processing', 'completed', 'delivered', 'cancelled'],
+    enum: ['web_order', 'received', 'processing', 'completed', 'delivered', 'cancelled'],
     default: 'received',
   },
   processingNotes: String,

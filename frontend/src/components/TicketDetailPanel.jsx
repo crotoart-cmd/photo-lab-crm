@@ -35,6 +35,13 @@ export default function TicketDetailPanel({ film, onUpdated, onClose, focusDeliv
     }
   };
 
+  const handleReceiveGoods = () =>
+    runAction(async () => {
+      const data = await updateFilmStatusBridge(film._id, 'received', { note: 'Lab đã nhận cuộn' });
+      setMessage(data.message);
+      if (data.emailError) setError(`Email: ${data.emailError}`);
+    });
+
   const handleStartProcessing = () =>
     runAction(async () => {
       const data = await updateFilmStatusBridge(film._id, 'processing', { note: 'Bắt đầu tráng' });
@@ -119,6 +126,17 @@ export default function TicketDetailPanel({ film, onUpdated, onClose, focusDeliv
       {error && <div className="apple-alert-error mb-3">{error}</div>}
 
       <div className="mt-auto space-y-3 border-t border-[var(--color-separator)] pt-4">
+        {film.status === 'web_order' && (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleReceiveGoods}
+            className="apple-btn-primary w-full"
+          >
+            Đã nhận hàng
+          </button>
+        )}
+
         {film.status === 'received' && (
           <button
             type="button"

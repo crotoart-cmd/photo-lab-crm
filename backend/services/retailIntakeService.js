@@ -422,6 +422,7 @@ async function confirmIntake(payload) {
       catalog_key: payload.catalog_key,
       size: payload.size || '35mm',
       quantity: qty,
+      receivedQty: qty,
       expiry_date: new Date(payload.expiry_date),
       cost,
       price,
@@ -440,6 +441,7 @@ async function confirmIntake(payload) {
     let row = await BatteryStock.findOne({ sku_code: sku });
     if (row) {
       row.quantity += qty;
+      row.receivedQty = num(row.receivedQty) + qty;
       if (cost > 0) {
         row.cost = cost;
         pushCostHistory(row, cost);
@@ -460,6 +462,7 @@ async function confirmIntake(payload) {
       brand_group: payload.brand_group,
       category_cluster: payload.category_cluster,
       quantity: qty,
+      receivedQty: qty,
       cost,
       price,
       floor_price: floor,

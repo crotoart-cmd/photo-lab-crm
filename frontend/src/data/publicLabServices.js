@@ -13,7 +13,7 @@ export const SERVICE_TILES = [
     id: 'toc-do',
     to: '/toc-do',
     title: 'Tốc độ',
-    caption: 'Thời gian xử lý từ 24 giờ',
+    caption: 'Khoảng 2 tuần, không tính Chủ nhật',
     tone: 'speed',
     enabled: true,
   },
@@ -52,14 +52,8 @@ export const SERVICE_TILES = [
 ];
 
 export const SPEED_STANDARD = [
-  { process: 'C-41', time: '24 giờ' },
-  { process: 'B&W', time: '48 giờ' },
-  { process: 'ECN-2', time: '48 giờ' },
-  { process: 'E-6', time: '7 ngày' },
-];
-
-export const SPEED_EXPRESS = [
-  { process: 'C-41', time: '1 giờ' },
-  { process: 'B&W', time: '24 giờ' },
-  { process: 'ECN-2', time: '24 giờ' },
+  { process: 'C-41', time: '2 tuần' },
+  { process: 'B&W', time: '2 tuần' },
+  { process: 'ECN-2', time: '2 tuần' },
+  { process: 'E-6', time: '2 tuần' },
 ];

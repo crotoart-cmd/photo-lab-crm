@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import Modal from '../components/Modal';
 import PageHeader from '../components/PageHeader';
@@ -35,25 +36,27 @@ import {
 import { loadEnrichedCustomers } from '../lib/mobileCustomerBridge';
 
 const TABS = [
-  { id: 'receive', label: 'Tiếp nhận' },
+  { id: 'receive', label: 'Nhận cuộn' },
   { id: 'tracking', label: 'Theo dõi tráng' },
   { id: 'delivery', label: 'Trả ảnh' },
 ];
 
 const TRACKING_FILTERS = [
   { id: '', label: 'Tất cả' },
+  { id: 'web_order', label: STATUS_LABELS.web_order },
   { id: 'received', label: STATUS_LABELS.received },
   { id: 'processing', label: STATUS_LABELS.processing },
   { id: 'completed', label: STATUS_LABELS.completed },
 ];
 
 export default function Films() {
-  const [activeTab, setActiveTab] = useState('receive');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'receive');
   const [films, setFilms] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(() => searchParams.get('id') || null);
   const [statusFilter, setStatusFilter] = useState('');
   const [showReceive, setShowReceive] = useState(false);
   const [createdSlip, setCreatedSlip] = useState(null);
@@ -108,6 +111,7 @@ export default function Films() {
 
   const loadFilms = useCallback(() => {
     const params = {};
+    if (activeTab === 'receive') params.status = 'web_order,received';
     if (activeTab === 'tracking' && statusFilter) params.status = statusFilter;
     if (activeTab === 'delivery') params.status = 'completed';
     return loadFilmsBridge(params).then(({ films }) => {
@@ -142,8 +146,15 @@ export default function Films() {
   }, []);
 
   useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && TABS.some((t) => t.id === tab)) setActiveTab(tab);
+    const id = searchParams.get('id');
+    if (id) setSelectedId(id);
+  }, [searchParams]);
+
+  useEffect(() => {
     setSearchResults(null);
-    setSelectedId(null);
+    if (!searchParams.get('id')) setSelectedId(null);
     clearSelection();
     if (activeTab === 'delivery') {
       setStatusFilter('completed');
@@ -162,7 +173,7 @@ export default function Films() {
       }
       setError('Không tải được danh sách phiếu');
     });
-  }, [activeTab, statusFilter, loadFilms]);
+  }, [activeTab, statusFilter, loadFilms, searchParams]);
 
   useEffect(() => {
     const onChanged = () => {
@@ -363,6 +374,11 @@ export default function Films() {
     <LabPageShell>
       <div className="max-md:hidden">
         <PageHeader title="Phiếu film">
+          {films.some((f) => f.status === 'web_order') ? (
+            <span className="text-sm font-medium text-amber-700">
+              {films.filter((f) => f.status === 'web_order').length} đơn web chờ nhận cuộn
+            </span>
+          ) : null}
           {activeTab === 'receive' && (
             <button type="button" onClick={() => setShowReceive(true)} className="apple-btn-primary">
               + Phiếu tiếp nhận

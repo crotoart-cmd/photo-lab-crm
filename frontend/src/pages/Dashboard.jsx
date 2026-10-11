@@ -34,21 +34,15 @@ import LabFilmCharts from '../components/dashboard/LabFilmCharts';
 import PeriodRangeSelect from '../components/dashboard/PeriodRangeSelect';
 import { toAnalyticsParams } from '../utils/periodRange';
 
-const INVENTORY_CATEGORY_LABELS = {
-  chemical: 'Hóa chất/Thuốc tráng',
-  film: 'Cuộn film',
-  camera: 'Máy ảnh & phụ kiện',
-  supplies: 'Vật tư khác',
-};
-
 const FILM_STATUS_LABELS = {
-  received: 'Tiếp nhận',
+  web_order: 'Đơn web',
+  received: 'Đã nhận cuộn',
   processing: 'Đang tráng',
   completed: 'Hoàn thành',
   delivered: 'Đã trả',
 };
 
-const FILM_STATUS_ORDER = ['received', 'processing', 'completed', 'delivered'];
+const FILM_STATUS_ORDER = ['web_order', 'received', 'processing', 'completed', 'delivered'];
 
 const MAIN_TABS = [
   { id: 'store', label: 'Dashboard', icon: 'dashboard' },
@@ -426,7 +420,7 @@ export default function Dashboard() {
     );
   }
 
-  const { films, inventory, customers } = data;
+  const { films, customers } = data;
   const retail = getRetailSnapshot(data);
   const filmLabActive = hasFilmLabActivity(films);
 
@@ -543,18 +537,18 @@ export default function Dashboard() {
           <div className="ios-quick-actions mb-6">
             <Link to="/films" className="ios-quick-action">
               <span className="material-symbols-outlined">movie</span>
-              Tiếp nhận film
+              Phiếu film
             </Link>
-            <Link to="/inventory" className="ios-quick-action">
-              <span className="material-symbols-outlined">science</span>
-              Thuốc Tráng
+            <Link to="/repairs" className="ios-quick-action">
+              <span className="material-symbols-outlined">build</span>
+              Sửa máy khách
             </Link>
           </div>
 
           <div className="dashboard-segment-group dashboard-segment-group--row mb-6" role="tablist">
             {[
               { id: 'today', label: 'Việc hôm nay', icon: 'today' },
-              { id: 'month', label: 'Tháng & Thuốc Tráng', icon: 'calendar_month' },
+              { id: 'month', label: 'Tháng', icon: 'calendar_month' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -635,91 +629,36 @@ export default function Dashboard() {
           )}
 
           {opsSubTab === 'month' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <section className="apple-card p-5">
-                <h2 className="text-[17px] font-semibold text-[var(--color-label)] mb-1">Thống kê tháng</h2>
-                {monthly?.month && (
-                  <p className="text-xs text-[var(--color-label-tertiary)] mb-4">{monthly.month}</p>
-                )}
-                {monthly ? (
-                  <>
-                    <ul className="space-y-2 text-sm text-[var(--color-label)] mb-6">
-                      <li className="flex justify-between">
-                        <span className="text-[var(--color-label-secondary)]">Tổng tiếp nhận</span>
-                        <strong>{monthly.totalReceived}</strong>
-                      </li>
-                      <li className="flex justify-between">
-                        <span className="text-[var(--color-label-secondary)]">Đã trả khách</span>
-                        <strong>{monthly.totalDelivered}</strong>
-                      </li>
-                      <li className="flex justify-between">
-                        <span className="text-[var(--color-label-secondary)]">Khách hàng active</span>
-                        <strong>{customers.active}</strong>
-                      </li>
-                    </ul>
-                    <h3 className="text-[13px] font-semibold text-[var(--color-label-secondary)] uppercase tracking-wide mb-3">
-                      Tiến độ phiếu trong tháng
-                    </h3>
-                    <StatusBreakdownChart breakdown={monthly.statusBreakdown} />
-                  </>
-                ) : (
-                  <LoadingIndicator label="Đang tải thống kê..." className="py-4" />
-                )}
-              </section>
-
-              <section
-                className={`apple-card p-5 ${
-                  inventory.lowStockCount > 0 ? '!border-[var(--color-red)]/40 !bg-[rgba(255,59,48,0.06)]' : ''
-                }`}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
-                  <h2 className="text-[17px] font-semibold text-[var(--color-label)]">
-                    {inventory.lowStockCount > 0 ? 'Thuốc Tráng sắp hết' : 'Thuốc Tráng'}
-                    {inventory.lowStockCount > 0 && (
-                      <span className="text-[var(--color-red)] ml-1">({inventory.lowStockCount})</span>
-                    )}
-                  </h2>
-                  <Link to="/inventory" className="apple-btn-ghost text-[13px] !py-1">
-                    Xem Thuốc Tráng →
-                  </Link>
-                </div>
-                {inventory.lowStockItems.length === 0 ? (
-                  <p className="text-sm text-[var(--color-green)]">Tồn kho ổn định</p>
-                ) : (
-                  <ul className="space-y-2 mb-4">
-                    {inventory.lowStockItems.map((item) => (
-                      <li
-                        key={item._id}
-                        className="flex justify-between gap-2 text-sm border-b border-[var(--color-separator)] pb-2"
-                      >
-                        <span>{item.itemName}</span>
-                        <span className="text-[var(--color-red)] font-medium shrink-0">
-                          {item.category === 'chemical'
-                            ? `${item.quantityMl || item.quantity} ml`
-                            : `${item.quantity} ${item.unit}`}{' '}
-                          / min {item.minStock} {item.category === 'chemical' ? 'ml' : item.unit}
-                        </span>
-                      </li>
-                    ))}
+            <section className="apple-card p-5">
+              <h2 className="text-[17px] font-semibold text-[var(--color-label)] mb-1">Thống kê tháng</h2>
+              {monthly?.month && (
+                <p className="text-xs text-[var(--color-label-tertiary)] mb-4">{monthly.month}</p>
+              )}
+              {monthly ? (
+                <>
+                  <ul className="space-y-2 text-sm text-[var(--color-label)] mb-6">
+                    <li className="flex justify-between">
+                      <span className="text-[var(--color-label-secondary)]">Tổng tiếp nhận</span>
+                      <strong>{monthly.totalReceived}</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-[var(--color-label-secondary)]">Đã trả khách</span>
+                      <strong>{monthly.totalDelivered}</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="text-[var(--color-label-secondary)]">Khách hàng active</span>
+                      <strong>{customers.active}</strong>
+                    </li>
                   </ul>
-                )}
-                {inventory.byCategory.length > 0 && (
-                  <div className="pt-3 border-t border-[var(--color-separator)]">
-                    <p className="text-xs font-medium text-[var(--color-label-secondary)] mb-2">Tóm tắt danh mục</p>
-                    <ul className="space-y-1 text-sm">
-                      {inventory.byCategory.map((cat) => (
-                        <li key={cat._id} className="flex justify-between text-[var(--color-label-secondary)]">
-                          <span>{INVENTORY_CATEGORY_LABELS[cat._id] || cat._id}</span>
-                          <span>
-                            {cat.totalItems} mặt hàng · SL {cat.totalQuantity}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </section>
-            </div>
+                  <h3 className="text-[13px] font-semibold text-[var(--color-label-secondary)] uppercase tracking-wide mb-3">
+                    Tiến độ phiếu trong tháng
+                  </h3>
+                  <StatusBreakdownChart breakdown={monthly.statusBreakdown} />
+                </>
+              ) : (
+                <LoadingIndicator label="Đang tải thống kê..." className="py-4" />
+              )}
+            </section>
           )}
         </>
       )}

@@ -17,7 +17,11 @@ import ProductScanSearchRow from './retail/ProductScanSearchRow';
 import IconLoading from './icons/IconLoading';
 import RefreshButton from './RefreshButton';
 import { ICON_SIZE } from './icons/iconSizes';
-import IntakeStockList from './retail/IntakeStockList';
+import MerchCreateSheet from './retail/MerchStockPanel';
+import ShopListingSheet from './retail/ShopListingSheet';
+import ShopListingFields, { useShopListingDraft } from './retail/ShopListingFields';
+import ShopProductList from './retail/ShopProductList';
+import { useShopCatalog } from '../lib/shopCatalog';
 import { buildCounterCodeLocal } from '../utils/cameraStockDisplay';
 import { printCameraCounterLabel } from '../utils/printCameraCounterLabel';
 import masterFilmCatalog from '../data/masterFilmCatalog.json';
@@ -67,11 +71,86 @@ const EMPTY = {
   estimated_year: '',
 };
 
-const GROUPS = [
-  { id: 'camera', label: 'Máy ảnh', desc: 'Mã Serial độc nhất' },
-  { id: 'film', label: 'Film ảnh', desc: 'Hãng + SKU master' },
-  { id: 'battery', label: 'Pin máy ảnh', desc: 'SKU theo số lượng' },
+const ADD_TYPES = [
+  { id: 'camera', label: 'Máy ảnh', desc: 'Một máy, một số sê-ri' },
+  { id: 'film', label: 'Film', desc: 'Theo lô và hạn sử dụng' },
+  { id: 'merch', label: 'Merch', desc: 'Túi, áo, vật phẩm lab' },
+  { id: 'battery', label: 'Pin máy ảnh', desc: 'SKU pin trên kệ' },
 ];
+
+function localCard(source, row) {
+  if (source === 'camera') {
+    return {
+      source,
+      id: row._id,
+      sku: row.camera_code,
+      brand: row.brand || row.brand_group || 'Camera',
+      title: row.model_name,
+      kind: 'Máy ảnh',
+      price: row.price,
+      quantity: row.status === 'San_Hang' ? 1 : 0,
+      image: row.image || '',
+      images: row.images || [],
+      showOnWeb: Boolean(row.showOnWeb),
+      description: row.webDescription || row.condition_note || '',
+      serial: row.serial_number,
+    };
+  }
+  if (source === 'film') {
+    return {
+      source,
+      id: row._id,
+      sku: row.sku_code,
+      brand: row.brand || 'Film',
+      title: row.name,
+      kind: 'Film',
+      price: row.price,
+      quantity: row.quantity,
+      image: row.image || '',
+      images: row.images || [],
+      showOnWeb: Boolean(row.showOnWeb),
+      description: row.webDescription || '',
+      expiry: row.expiry_date,
+    };
+  }
+  return {
+    source: 'battery',
+    id: row._id,
+    sku: row.sku_code,
+    brand: row.brand || 'Pin',
+    title: row.name,
+    kind: 'Pin',
+    price: row.price,
+    quantity: row.quantity,
+    image: row.image || '',
+    images: row.images || [],
+    showOnWeb: Boolean(row.showOnWeb),
+    description: row.webDescription || '',
+  };
+}
+
+function buildShopItems({ web, cameraRows, filmRows, batteryRows }) {
+  const byKey = new Map();
+  const put = (card) => {
+    if (card?.id) byKey.set(`${card.source}:${card.id}`, card);
+  };
+  (web.items || []).forEach(put);
+  cameraRows
+    .filter((row) => row.status !== 'Da_Ban')
+    .forEach((row) => {
+      if (!byKey.has(`camera:${row._id}`)) put(localCard('camera', row));
+    });
+  filmRows.forEach((row) => {
+    if (!byKey.has(`film:${row._id}`)) put(localCard('film', row));
+  });
+  batteryRows.forEach((row) => {
+    if (!byKey.has(`battery:${row._id}`)) put(localCard('battery', row));
+  });
+  return [...byKey.values()].sort((a, b) => {
+    if (Boolean(b.showOnWeb) !== Boolean(a.showOnWeb)) return a.showOnWeb ? -1 : 1;
+    return String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+  });
+}
 
 const VISION_SOURCES = new Set(['openai_vision', 'vision_mock', 'google_simulated']);
 const CAMERA_TYPE_LABELS = {
@@ -137,7 +216,6 @@ function pickCatalogList(apiList, bundledList) {
 }
 
 export default function SmartIntakePanel({
-  defaultGroup = 'camera',
   filmRows = [],
   batteryRows = [],
   cameraRows = [],
@@ -149,9 +227,7 @@ export default function SmartIntakePanel({
   const [scanInput, setScanInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [detected, setDetected] = useState(() => buildManualTemplate(
-    ['camera', 'film', 'battery'].includes(defaultGroup) ? defaultGroup : 'camera',
-  ));
+  const [detected, setDetected] = useState(() => buildManualTemplate('camera'));
   const [showCamera, setShowCamera] = useState(false);
   const [cameraHint, setCameraHint] = useState('');
   const [panelError, setPanelError] = useState('');
@@ -159,9 +235,19 @@ export default function SmartIntakePanel({
   const [filmStocks, setFilmStocks] = useState(masterFilmCatalog);
   const [serialCheck, setSerialCheck] = useState(null);
   const [filmFormat, setFilmFormat] = useState('35mm');
-  const [activeGroup, setActiveGroup] = useState(() =>
-    ['camera', 'film', 'battery'].includes(defaultGroup) ? defaultGroup : 'camera',
-  );
+  const [activeGroup, setActiveGroup] = useState('camera');
+  const [formOpen, setFormOpen] = useState(false);
+  const web = useShopCatalog();
+  const listingDraft = useShopListingDraft(null);
+  const [listingCard, setListingCard] = useState(null);
+  const [kind, setKind] = useState('');
+  const [webOnly, setWebOnly] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [merchType, setMerchType] = useState(null);
+  const reloadWeb = web.reload;
+  useEffect(() => {
+    reloadWeb();
+  }, [filmRows, batteryRows, cameraRows, reloadWeb]);
   const [lowConfidenceFields, setLowConfidenceFields] = useState(() => new Set());
   const [activeStockRowId, setActiveStockRowId] = useState(null);
   const [detailCameraId, setDetailCameraId] = useState(null);
@@ -182,13 +268,18 @@ export default function SmartIntakePanel({
   const uncertainClass = (field, base = '') =>
     lowConfidenceFields.has(field) ? `${base} intake-input-uncertain`.trim() : base;
 
-  const selectGroup = (groupId) => {
+  const openIntakeForm = (groupId) => {
     setActiveGroup(groupId);
+    setFormOpen(true);
     setActiveStockRowId(null);
     setLowConfidenceFields(new Set());
     setSerialCheck(null);
     setPanelError('');
+    listingDraft.reset(null);
     setDetected(buildManualTemplate(groupId));
+    requestAnimationFrame(() => {
+      formZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   };
 
   const resetToManualForm = (group = activeGroup) => {
@@ -217,15 +308,6 @@ export default function SmartIntakePanel({
     setPanelError('');
     onSuccess?.(msg);
   };
-
-  useEffect(() => {
-    if (!['camera', 'film', 'battery'].includes(defaultGroup)) return;
-    setActiveGroup(defaultGroup);
-    setDetected(buildManualTemplate(defaultGroup));
-    setActiveStockRowId(null);
-    setLowConfidenceFields(new Set());
-    setSerialCheck(null);
-  }, [defaultGroup]);
 
   useEffect(() => {
     api
@@ -261,18 +343,20 @@ export default function SmartIntakePanel({
 
   const applyDetected = (data, { fromVision = false, focusQuantity = false } = {}) => {
     const d = data.detected || data;
+    const nextGroup = d.product_group === 'film' ? 'film' : 'camera';
     setDetected({
       ...EMPTY,
       ...d,
-      product_group: d.product_group || activeGroup,
+      product_group: nextGroup,
       quantity: Math.max(1, Number(d.quantity) || 1),
       expiry_date: d.expiry_date ? String(d.expiry_date).slice(0, 10) : '',
     });
+    setFormOpen(true);
     setActiveStockRowId(null);
     setLowConfidenceFields(fromVision ? new Set(VISION_UNCERTAIN_FIELDS) : new Set());
     if (focusQuantity) pendingFocusRef.current = 'quantity';
-    if (fromVision && d.product_group === 'camera') pendingFocusRef.current = 'serial_number';
-    if (d.product_group) setActiveGroup(d.product_group);
+    if (fromVision && nextGroup === 'camera') pendingFocusRef.current = 'serial_number';
+    setActiveGroup(nextGroup);
     requestAnimationFrame(() => {
       formZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -286,6 +370,10 @@ export default function SmartIntakePanel({
       reportError('');
       try {
         const { data } = await api.post('/retail/smart-intake/scan', { code: c });
+        if (data.detected?.product_group === 'battery') {
+          reportError('Pin được nhập trong mục Merch → Thêm merch.');
+          return;
+        }
         const src = data.detected?.source || data.ai_mode;
         applyDetected(data, {
           fromVision: VISION_SOURCES.has(src),
@@ -536,8 +624,10 @@ export default function SmartIntakePanel({
 
   const loadFromStockRow = (row, group) => {
     setActiveGroup(group);
+    setFormOpen(true);
     setActiveStockRowId(row._id);
     setLowConfidenceFields(new Set());
+    listingDraft.reset(null);
     if (group === 'film') {
       setDetected({
         ...EMPTY,
@@ -676,16 +766,28 @@ export default function SmartIntakePanel({
         serial_is_generated: detected.serial_is_generated,
         estimated_year: detected.estimated_year,
       };
-      const { data } = await confirmIntake(payload);
+      const result = await confirmIntake(payload);
+      const data = result.data;
+      if (!result.savedOnDevice && data?.row?._id && listingDraft.dirty) {
+        await web.save(
+          { source: data.product_group, id: data.row._id },
+          listingDraft.payload()
+        );
+      }
       if (data?.product_group === 'camera' && data.row?.status && data.row.status !== 'San_Hang') {
         reportSuccess(
-          `${data.message} — máy đang "${data.row.status === 'Cho_Sua' ? 'Chờ sửa' : 'Đang sửa'}", chưa hiện ở tab Bán cho đến khi sẵn hàng.`
+          `${data.message} — máy đang "${data.row.status === 'Cho_Sua' ? 'Chờ sửa' : 'Đang sửa'}", chưa sẵn để đăng bán.`
         );
       } else {
-        reportSuccess(data.message);
+        reportSuccess(
+          listingDraft.showOnWeb && !result.savedOnDevice ? `${data.message} — đã đăng Shop` : data.message
+        );
       }
       setScanInput('');
+      listingDraft.reset(null);
       resetToManualForm(activeGroup);
+      setFormOpen(false);
+      await web.reload();
       onSaved?.();
     } catch (err) {
       reportRequestError(err, 'Lưu nhập kho thất bại');
@@ -791,9 +893,29 @@ export default function SmartIntakePanel({
   const detectedFormBlock = detected ? (
     <div className="retail-cart-card retail-intake-card rounded-2xl border border-[var(--color-separator)] bg-[var(--color-bg-elevated)] retail-intake-detected-form">
       <div className="retail-cart-card-head intake-form-head">
-        <p className="intake-form-sheet-title">Phiếu nhập</p>
-        <RefreshButton onClick={() => resetToManualForm(activeGroup)} />
+        <p className="intake-form-sheet-title">
+          {activeGroup === 'camera' ? 'Nhập máy' : activeGroup === 'film' ? 'Nhập film' : 'Nhập pin'}
+        </p>
+        <div className="flex items-center gap-1">
+          <RefreshButton onClick={() => resetToManualForm(activeGroup)} />
+          <button
+            type="button"
+            className="apple-btn-ghost !px-2 !py-1 text-[13px]"
+            onClick={() => setFormOpen(false)}
+          >
+            Đóng
+          </button>
+        </div>
       </div>
+      <ShopListingFields
+        draft={listingDraft}
+        hint={
+          activeGroup === 'film'
+            ? 'Bật riêng từng lô — lô sắp hết hạn có thể tắt.'
+            : 'Khách đặt trên web, lab xác nhận ở tab Đơn.'
+        }
+      />
+
       {lowConfidenceFields.size > 0 && (
         <p className="intake-uncertain-hint retail-intake-card-section">
           AI gợi ý — kiểm tra các ô viền vàng trước khi lưu.
@@ -1065,67 +1187,29 @@ export default function SmartIntakePanel({
           disabled={saving}
           className="apple-btn-primary btn-pill--block"
         >
-          {saving ? 'Đang lưu...' : 'Duyệt nhập kho'}
+          {saving ? 'Đang lưu...' : listingDraft.showOnWeb ? 'Lưu và đăng Shop' : 'Lưu vào kho'}
         </button>
       </div>
     </div>
   ) : null;
-
-  const groupPickerBlock = (
-    <section className="retail-intake-group-section">
-      <p className="retail-manual-section-title">Danh mục kho</p>
-      <div className="retail-group-picker">
-        {GROUPS.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => selectGroup(g.id)}
-            className={`retail-group-btn ${activeGroup === g.id ? 'retail-group-btn-active' : ''}`}
-          >
-            <p className="font-semibold retail-group-btn-title">{g.label}</p>
-            <p className="retail-group-btn-desc">{g.desc}</p>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
 
   const entryClusterBlock = (
     <section className="intake-entry-cluster" aria-label="Thêm hàng">
       <ProductScanSearchRow
         hideLabel
         hideLeadingIcon
-        ariaLabel="Quét hoặc nhập mã"
+        ariaLabel={activeGroup === 'camera' ? 'Quét mã máy ảnh' : 'Quét mã film'}
         value={scanInput}
         onChange={(e) => setScanInput(e.target.value)}
         onSubmit={handleBarcodeScan}
         onOpenCamera={() => setShowCamera(true)}
         loading={aiLoading}
-        note="Gõ mã, quét camera hoặc chọn ảnh trong màn quét"
+        note={
+          activeGroup === 'camera'
+            ? 'Gõ mã, quét serial hoặc chọn ảnh để nhận diện máy'
+            : 'Gõ hoặc quét SKU / barcode của film'
+        }
       />
-    </section>
-  );
-
-  const stockListBlock = (
-    <section className="retail-intake-stock-section" aria-label="Tồn kho">
-      <div className="retail-intake-stock-panel">
-        <div className="retail-intake-stock-panel-head">
-          <p className="retail-intake-stock-panel-title">Tồn kho — chạm để bổ sung</p>
-        </div>
-        <IntakeStockList
-          group={activeGroup}
-          filmRows={filmRows}
-          batteryRows={batteryRows}
-          cameraRows={cameraRows}
-          activeRowId={activeStockRowId}
-          onSelectRow={loadFromStockRow}
-          onSeedTestCameras={activeGroup === 'camera' ? onSeedTestCameras : undefined}
-          onOpenCameraDetail={(cam) => {
-            setDetailCameraId(cam._id);
-            setDetailOpen(true);
-          }}
-        />
-      </div>
     </section>
   );
 
@@ -1137,6 +1221,45 @@ export default function SmartIntakePanel({
   ) : (
     detectedFormBlock
   );
+
+  const shopItems = useMemo(() => {
+    const rows = buildShopItems({ web, cameraRows, filmRows, batteryRows });
+    return rows.filter((row) => {
+      if (kind === 'merch') {
+        if (row.source !== 'merch' && row.source !== 'battery') return false;
+      } else if (kind && row.source !== kind) {
+        return false;
+      }
+      if (webOnly && !row.showOnWeb) return false;
+      return true;
+    });
+  }, [web, cameraRows, filmRows, batteryRows, kind, webOnly]);
+
+  const openAdd = (type) => {
+    setPickerOpen(false);
+    if (type === 'merch' || type === 'battery') {
+      setMerchType(type);
+      return;
+    }
+    openIntakeForm(type);
+  };
+
+  const restockFromCard = (card) => {
+    setListingCard(null);
+    const id = String(card.id);
+    if (card.source === 'film') {
+      const row = filmRows.find((item) => String(item._id) === id);
+      if (row) loadFromStockRow(row, 'film');
+      return;
+    }
+    if (card.source === 'battery') {
+      const row = batteryRows.find((item) => String(item._id) === id);
+      if (row) loadFromStockRow(row, 'battery');
+      return;
+    }
+    const row = cameraRows.find((item) => String(item._id) === id);
+    if (row) loadFromStockRow(row, 'camera');
+  };
 
   return (
     <>
@@ -1152,7 +1275,6 @@ export default function SmartIntakePanel({
         }}
       />
 
-      {/* Mobile xếp dọc; desktop md+: Danh mục kho trái — phiếu/quét phải */}
       <div className="retail-pos-mobile retail-intake-mobile">
         {panelError && (
           <p className="retail-intake-error" role="alert">
@@ -1160,23 +1282,17 @@ export default function SmartIntakePanel({
           </p>
         )}
 
-        <div className="retail-intake-layout">
-          <aside className="retail-intake-layout__aside">{groupPickerBlock}</aside>
-
-          <div className="retail-intake-layout__main">
-            {entryClusterBlock}
-
-            <section
-              ref={formZoneRef}
-              className="retail-pos-cart retail-intake-form-zone"
-              aria-label="Phiếu nhập"
-            >
-              {intakeContentBlock}
-            </section>
-
-            {stockListBlock}
-          </div>
-        </div>
+        <ShopProductList
+          items={shopItems}
+          online={web.online}
+          kind={kind}
+          onKind={setKind}
+          webOnly={webOnly}
+          onToggleWebOnly={() => setWebOnly((v) => !v)}
+          onOpen={setListingCard}
+          onAdd={() => setPickerOpen(true)}
+          onSeedTestCameras={onSeedTestCameras}
+        />
       </div>
 
       {showCamera && (
@@ -1218,6 +1334,61 @@ export default function SmartIntakePanel({
         onClose={() => setDetailOpen(false)}
         onUpdated={onSaved}
       />
+
+      {listingCard ? (
+        <ShopListingSheet
+          key={`${listingCard.source}:${listingCard.id}`}
+          card={listingCard}
+          onClose={() => setListingCard(null)}
+          onSave={web.save}
+          onSuccess={reportSuccess}
+          onOpenProfile={(card) => {
+            setListingCard(null);
+            setDetailCameraId(card.id);
+            setDetailOpen(true);
+          }}
+          onRestock={restockFromCard}
+        />
+      ) : null}
+
+      {pickerOpen ? (
+        <Modal title="Thêm sản phẩm" onClose={() => setPickerOpen(false)} compact>
+          <div className="shop-type-picker">
+            {ADD_TYPES.map((item) => (
+              <button key={item.id} type="button" onClick={() => openAdd(item.id)}>
+                <strong>{item.label}</strong>
+                <small>{item.desc}</small>
+              </button>
+            ))}
+          </div>
+        </Modal>
+      ) : null}
+
+      {formOpen && (activeGroup === 'camera' || activeGroup === 'film' || activeGroup === 'battery') ? (
+        <Modal
+          wide
+          title={
+            activeGroup === 'camera' ? 'Nhập máy' : activeGroup === 'film' ? 'Nhập film' : 'Nhập pin'
+          }
+          onClose={() => setFormOpen(false)}
+        >
+          <div ref={formZoneRef} className="shop-create-sheet">
+            {entryClusterBlock}
+            {intakeContentBlock}
+          </div>
+        </Modal>
+      ) : null}
+
+      {merchType ? (
+        <MerchCreateSheet
+          type={merchType}
+          web={web}
+          onClose={() => setMerchType(null)}
+          onSaved={onSaved}
+          onError={reportError}
+          onSuccess={reportSuccess}
+        />
+      ) : null}
     </>
   );
 }

@@ -4,6 +4,9 @@ const CameraStock = require('../models/CameraStock');
 const CameraRepairEvent = require('../models/CameraRepairEvent');
 const RetailSale = require('../models/RetailSale');
 const Customer = require('../models/Customer');
+const SiteContent = require('../models/SiteContent');
+const { consumeFilmBatches } = require('./filmChannelStock');
+const { reservedFor } = require('./shopReservations');
 const { sendRetailInvoiceEmail } = require('./emailService');
 const { fullName, normalizeEmail } = require('../utils/customerNormalize');
 const {
@@ -40,6 +43,20 @@ function receiptLineFromSale(sale) {
   };
 }
 
+async function assertFree(source, ref, onHand, qty, unit, body) {
+  const held = await reservedFor(source, ref, { excludeOrderId: body.shop_order_id });
+  if (!held.qty) return;
+  const free = Math.max(0, num(onHand) - held.qty);
+  if (free >= qty) return;
+  const err = new Error(
+    source === 'camera'
+      ? `Máy đang giữ cho đơn web ${held.codes.join(', ')} — xác nhận hoặc hủy đơn ở tab Đơn trước`
+      : `Còn ${free} ${unit} bán được — ${held.qty} đang giữ cho đơn web ${held.codes.join(', ')}`
+  );
+  err.status = 409;
+  throw err;
+}
+
 /**
  * Kiểm tra một món có bán được không (chỉ đọc, không đổi tồn kho).
  * Dùng để tiền kiểm tra cả giỏ trước khi xuất kho tuần tự — tránh bán dở dang.
@@ -53,16 +70,25 @@ async function assertRetailSaleItemSellable(body) {
     throw err;
   };
 
-  if (!['film', 'battery', 'camera'].includes(product_group)) fail('Nhóm hàng không hợp lệ');
+  if (!['film', 'battery', 'camera', 'merch'].includes(product_group)) fail('Nhóm hàng không hợp lệ');
   if (qty <= 0) fail('Số lượng phải > 0');
 
   if (product_group === 'film') {
     const sku = String(code || '').toUpperCase();
-    if (!sku) fail('Thiếu mã SKU film');
-    const batches = await FilmStock.find({ sku_code: sku, quantity: { $gt: 0 } }).sort({ expiry_date: 1 });
+    if (!sku && !body.batch_id) fail('Thiếu mã SKU film');
+    const batches = body.batch_id
+      ? await FilmStock.find({ _id: body.batch_id })
+      : await FilmStock.find({
+          sku_code: sku,
+          quantity: { $gt: 0 },
+          ...(body.web_only ? { showOnWeb: true } : {}),
+        }).sort({ expiry_date: 1 });
     const totalQty = batches.reduce((acc, b) => acc + Number(b.quantity || 0), 0);
-    if (totalQty < qty) fail(`Tồn film không đủ. Còn ${totalQty} cuộn`);
+    if (totalQty < qty) {
+      fail(`Tồn film${body.web_only ? ' (lô bật web)' : ''} không đủ. Còn ${totalQty} cuộn`);
+    }
     const ref = batches[0];
+    await assertFree('film', ref?.sku_code || sku, totalQty, qty, 'cuộn', body);
     const price = num(unit_price) || num(ref?.price);
     const floorMsg = floorViolation(price, ref?.floor_price);
     if (floorMsg) fail(floorMsg);
@@ -74,9 +100,19 @@ async function assertRetailSaleItemSellable(body) {
     const row = await BatteryStock.findOne({ sku_code: sku });
     if (!row) fail('Không tìm thấy mã pin', 404);
     if (Number(row.quantity) < qty) fail(`Tồn pin không đủ. Còn ${row.quantity}`);
+    await assertFree('battery', row._id, row.quantity, qty, 'pin', body);
     const price = num(unit_price) || num(row.price);
     const floorMsg = floorViolation(price, row.floor_price);
     if (floorMsg) fail(floorMsg);
+    return;
+  }
+
+  if (product_group === 'merch') {
+    const row = await SiteContent.findById(code);
+    if (!row || row.type !== 'accessory') fail('Không tìm thấy merch', 404);
+    const stock = row.quantity == null ? 1 : Number(row.quantity || 0);
+    if (stock < qty) fail(`Tồn merch không đủ. Còn ${stock}`);
+    await assertFree('merch', row._id, stock, qty, 'món', body);
     return;
   }
 
@@ -86,6 +122,7 @@ async function assertRetailSaleItemSellable(body) {
   if (!row) fail('Không tìm thấy mã máy ảnh', 404);
   const saleGate = isSaleBlocked(row, { sell_as_is: Boolean(sell_as_is) });
   if (saleGate.blocked) fail(saleGate.reason);
+  await assertFree('camera', row._id, 1, 1, 'máy', body);
   const price = num(unit_price) || num(row.price);
   const trueCost = computeTrueCost(row);
   const effectiveFloor = Math.max(num(row.floor_price), trueCost);
@@ -104,13 +141,15 @@ async function processRetailSaleItem(body, userId) {
     unit_price,
     camera_id,
     note,
+    batch_id,
     customerId,
     buyerName,
     buyerEmail,
     sell_as_is,
   } = body;
   const qty = Number(quantity || 1);
-  if (!['film', 'battery', 'camera'].includes(product_group)) {
+  const channel = body.channel === 'online' ? 'online' : 'counter';
+  if (!['film', 'battery', 'camera', 'merch'].includes(product_group)) {
     const err = new Error('Nhóm hàng không hợp lệ');
     err.status = 400;
     throw err;
@@ -121,56 +160,40 @@ async function processRetailSaleItem(body, userId) {
     throw err;
   }
 
+  await assertRetailSaleItemSellable(body);
+
   let itemName = '';
   let listPrice = 0;
   let usedPrice = num(unit_price);
   let totalCost = 0;
   const metadata = {};
+  if (body.shop_order_code) metadata.shop_order = body.shop_order_code;
 
   if (product_group === 'film') {
     const sku = String(code || '').toUpperCase();
-    if (!sku) {
+    if (!sku && !batch_id) {
       const err = new Error('Thiếu mã SKU film');
       err.status = 400;
       throw err;
     }
-    const batches = await FilmStock.find({ sku_code: sku, quantity: { $gt: 0 } }).sort({ expiry_date: 1 });
-    const totalQty = batches.reduce((acc, b) => acc + Number(b.quantity || 0), 0);
-    if (totalQty < qty) {
-      const err = new Error(`Tồn film không đủ. Còn ${totalQty} cuộn`);
-      err.status = 400;
-      throw err;
-    }
-
-    const ref = batches[0];
-    listPrice = num(ref?.price);
+    const preview = batch_id
+      ? await FilmStock.findById(batch_id)
+      : await FilmStock.findOne({ sku_code: sku, quantity: { $gt: 0 } }).sort({ expiry_date: 1 });
+    listPrice = num(preview?.price);
     if (!usedPrice) usedPrice = listPrice;
-    const floorMsg = floorViolation(usedPrice, ref?.floor_price);
+    const floorMsg = floorViolation(usedPrice, preview?.floor_price);
     if (floorMsg) {
       const err = new Error(floorMsg);
       err.status = 400;
       throw err;
     }
-
-    let left = qty;
-    const consumed = [];
-    for (const batch of batches) {
-      if (left <= 0) break;
-      const take = Math.min(Number(batch.quantity), left);
-      batch.quantity -= take;
-      batch.updatedAt = Date.now();
-      await batch.save();
-      left -= take;
-      const batchCost =
-        num(batch.cost) || num(batch.cost_history?.[batch.cost_history.length - 1]?.cost);
-      totalCost += batchCost * take;
-      consumed.push({
-        batchId: batch._id,
-        qty: take,
-        expiry_date: batch.expiry_date,
-        unit_cost: num(batch.cost),
-      });
-    }
+    const { ref, consumed, totalCost: filmCost } = await consumeFilmBatches({
+      sku,
+      qty,
+      batchId: batch_id,
+      webOnly: Boolean(body.web_only),
+    });
+    totalCost = filmCost;
     itemName = ref?.name || sku;
     metadata.fifo = consumed;
   }
@@ -245,6 +268,7 @@ async function processRetailSaleItem(body, userId) {
     const repairCount = repairs.length;
 
     row.status = 'Da_Ban';
+    row.showOnWeb = false;
     row.sold_at = Date.now();
     row.sold_price = usedPrice;
     row.sold_note = note || (saleGate.asIs ? 'Bán nguyên trạng (as-is)' : '');
@@ -261,6 +285,29 @@ async function processRetailSaleItem(body, userId) {
     Object.assign(metadata, buildSaleMetadata(row.toObject(), repairs));
     metadata.sold_as_is = Boolean(sell_as_is);
   }
+
+  if (product_group === 'merch') {
+    const row = await SiteContent.findById(code);
+    if (!row || row.type !== 'accessory') {
+      const err = new Error('Không tìm thấy merch');
+      err.status = 404;
+      throw err;
+    }
+    const stock = row.quantity == null ? 1 : Number(row.quantity || 0);
+    if (stock < qty) {
+      const err = new Error(`Tồn merch không đủ. Còn ${stock}`);
+      err.status = 400;
+      throw err;
+    }
+    listPrice = num(row.price);
+    if (!usedPrice) usedPrice = listPrice;
+    row.quantity = stock - qty;
+    await row.save();
+    itemName = row.title;
+    totalCost = 0;
+  }
+
+  metadata.channel = channel;
 
   const total = Number((usedPrice * qty).toFixed(2));
   const profit = Number((total - totalCost).toFixed(2));
@@ -280,6 +327,7 @@ async function processRetailSaleItem(body, userId) {
     buyerName: buyerName || undefined,
     buyerEmail: buyerEmail ? String(buyerEmail).trim().toLowerCase() : undefined,
     metadata,
+    channel,
     createdBy: userId,
   });
 

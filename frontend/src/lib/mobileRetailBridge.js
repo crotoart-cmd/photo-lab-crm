@@ -37,6 +37,7 @@ const SYNC_PRIORITY = {
   'customer-create': 0,
   'customer-update': 1,
   'repair-create': 2,
+  'repair-receive-goods': 3,
   'repair-quote': 3,
   'repair-confirm': 3,
   'repair-work-log': 3,
@@ -386,6 +387,7 @@ async function resolveMobileSaleEmailAfterLocal(payload, log, profit, queueType,
 export async function checkoutCart(payload) {
   if (!isMobileDataEnabled()) {
     const { data } = await api.post('/retail/checkout-cart', payload);
+    notifyRetailDataChanged();
     return { data, savedOnDevice: false, synced: true };
   }
 
@@ -397,7 +399,7 @@ export async function checkoutCart(payload) {
 
   const log = [];
   for (const item of payload.items || []) {
-    const localResult = checkSaleLocal({ ...item, ...saleMeta });
+    const localResult = checkSaleLocal({ ...item, ...saleMeta, channel: item.channel || 'counter' });
     log.push({
       name: item.name || item.code,
       qty: item.quantity,
@@ -407,6 +409,8 @@ export async function checkoutCart(payload) {
       ok: true,
     });
   }
+
+  notifyRetailDataChanged();
 
   const profit = log.reduce((s, r) => s + (r.profit || 0), 0);
 

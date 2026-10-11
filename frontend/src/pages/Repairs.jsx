@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import FeedbackBanner from '../components/FeedbackBanner';
 import SearchField from '../components/SearchField';
@@ -37,10 +38,11 @@ const EMPTY_FORM = {
 };
 
 export default function Repairs() {
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || '');
   const [tickets, setTickets] = useState([]);
   const [searchQ, setSearchQ] = useState('');
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(() => searchParams.get('id') || null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showCreate, setShowCreate] = useState(false);
@@ -58,6 +60,15 @@ export default function Repairs() {
     setTickets(sortRepairTickets(tickets));
     return tickets;
   }, [statusFilter, searchQ]);
+
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status != null && REPAIR_TABS.some((t) => t.id === status)) {
+      setStatusFilter(status);
+    }
+    const id = searchParams.get('id');
+    if (id) setSelectedId(id);
+  }, [searchParams]);
 
   useEffect(() => {
     loadTickets().catch(() => setError('Không tải được danh sách phiếu sửa'));
@@ -145,6 +156,11 @@ export default function Repairs() {
   return (
     <LabPageShell>
       <PageHeader title="Sửa máy khách">
+        {tickets.some((t) => t.status === 'don_web') ? (
+          <span className="text-sm font-medium text-amber-700">
+            {tickets.filter((t) => t.status === 'don_web').length} đơn web chờ nhận máy
+          </span>
+        ) : null}
         <button
           type="button"
           className="apple-btn-primary w-full sm:w-auto"

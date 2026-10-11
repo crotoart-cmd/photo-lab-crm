@@ -49,6 +49,10 @@ const cameraStockSchema = new mongoose.Schema({
   sold_at: Date,
   sold_price: Number,
   sold_note: String,
+  image: { type: String, default: '' },
+  images: { type: [String], default: [] },
+  showOnWeb: { type: Boolean, default: false, index: true },
+  webDescription: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

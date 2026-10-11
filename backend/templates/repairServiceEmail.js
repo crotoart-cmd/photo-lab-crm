@@ -24,7 +24,8 @@ const detailRow = (label, value) => {
   </tr>`;
 };
 
-function buildRepairIntakeEmailHtml(ticket) {
+function buildRepairIntakeEmailHtml(ticket, { phase = 'goods' } = {}) {
+  const isOrder = phase === 'order';
   const t = ticket.ticket_number;
   const received = fmtDate(ticket.received_at || ticket.createdAt);
   const name = ticket.customer_name || '—';
@@ -34,7 +35,7 @@ function buildRepairIntakeEmailHtml(ticket) {
   const summaryTable = `
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:8px;">
       ${detailRow('Mã phiếu', t)}
-      ${detailRow('Ngày tiếp nhận', received)}
+      ${detailRow(isOrder ? 'Ngày đặt' : 'Ngày nhận máy', received)}
       ${detailRow('Máy', ticket.model_name)}
       ${ticket.brand ? detailRow('Hãng', ticket.brand) : ''}
       ${ticket.serial_number ? detailRow('Sê-ri', ticket.serial_number) : ''}
@@ -48,15 +49,19 @@ function buildRepairIntakeEmailHtml(ticket) {
     }`;
 
   return buildEmailLayout({
-    eyebrow: 'PHIẾU TIẾP NHẬN SỬA MÁY',
+    eyebrow: isOrder ? 'ĐƠN SỬA MÁY TRÊN WEB' : 'PHIẾU TIẾP NHẬN SỬA MÁY',
     greeting: `Xin chào ${name},`,
-    introHtml: `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã tiếp nhận máy ảnh của bạn để kiểm tra và sửa chữa. Vui lòng giữ mã phiếu bên dưới khi liên hệ hoặc đến lấy máy.</p>`,
+    introHtml: isOrder
+      ? `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã ghi nhận đơn sửa máy của bạn. Đây chưa phải bước nhận máy tại lab — khi máy tới tay, bạn sẽ nhận email tiếp nhận.</p>`
+      : `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã nhận máy ảnh của bạn để kiểm tra và sửa chữa. Vui lòng giữ mã phiếu bên dưới khi liên hệ hoặc đến lấy máy.</p>`,
     metaLeftHtml: `<strong style="color:#111;">MÃ PHIẾU:</strong> ${escapeHtml(t)}<br/><strong style="color:#111;">Ngày:</strong> ${escapeHtml(received)}`,
     metaRightHtml: `<strong style="color:#111;">KHÁCH HÀNG:</strong><br/>${escapeHtml(name)}<br/>${escapeHtml(phone)}<br/>${escapeHtml(emailAddr)}`,
     bodyHtml: summaryTable,
     calloutHtml: buildCalloutHtml(
       'Tiếp theo',
-      'Sau khi kiểm tra, bạn sẽ nhận <strong>email báo giá</strong> để xác nhận trước khi tiệm tiến hành sửa.'
+      isOrder
+        ? 'Gửi máy tới lab kèm mã phiếu. Lab chỉ bắt đầu kiểm tra sau khi <strong>đã nhận máy</strong>.'
+        : 'Sau khi kiểm tra, bạn sẽ nhận <strong>email báo giá</strong> để xác nhận trước khi tiệm tiến hành sửa.'
     ),
   });
 }

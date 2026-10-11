@@ -45,3 +45,5 @@ coverage/
 # Uploaded delivery scans (keep folder via .gitkeep)
 backend/uploads/delivery/*
 !backend/uploads/delivery/.gitkeep
+backend/uploads/site/*
+!backend/uploads/site/.gitkeep

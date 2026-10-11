@@ -3,6 +3,7 @@ import { apiErrorMessage } from '../../utils/apiError';
 import { REPAIR_STATUS_LABELS, formatRepairMoney } from '../../constants/customerRepair';
 import { LabeledInput, LabeledTextarea } from '../formFields';
 import {
+  receiveRepairBridge,
   quoteRepairBridge,
   confirmRepairBridge,
   workLogRepairBridge,
@@ -81,6 +82,22 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
           </p>
         )}
       </section>
+
+      {ticket.status === 'don_web' && (
+        <section className="border-t border-[var(--color-separator)] pt-3 space-y-2">
+          <p className="text-sm text-[var(--color-label-secondary)]">
+            Đơn từ web — chưa cầm máy. Bấm khi hàng tới lab.
+          </p>
+          <button
+            type="button"
+            disabled={busy === 'receive'}
+            className="apple-btn-primary w-full"
+            onClick={() => run('receive', () => receiveRepairBridge(ticket._id))}
+          >
+            {busy === 'receive' ? 'Đang lưu…' : 'Đã nhận hàng'}
+          </button>
+        </section>
+      )}
 
       {(ticket.quote_amount > 0 || ticket.status === 'tiep_nhan' || ticket.status === 'cho_khach_xac_nhan') && (
         <section className="border-t border-[var(--color-separator)] pt-3 space-y-2">

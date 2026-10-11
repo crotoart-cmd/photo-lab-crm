@@ -6,7 +6,7 @@ import {
   LAB_STATUS_LABELS,
 } from '../../utils/chartColors';
 
-const STATUS_ORDER = ['received', 'processing', 'completed', 'delivered'];
+const STATUS_ORDER = ['web_order', 'received', 'processing', 'completed', 'delivered'];
 
 function statusSlices(breakdown) {
   if (!breakdown) return [];

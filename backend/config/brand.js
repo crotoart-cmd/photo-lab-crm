@@ -12,7 +12,7 @@ module.exports = {
   BRAND_NAME: process.env.BRAND_NAME || 'HDTLabx',
   STORE_NAME: process.env.STORE_NAME || process.env.BRAND_NAME || 'HDTLabx',
   BRAND_TAGLINE: process.env.BRAND_TAGLINE || 'Heritage · Detail · Technology',
-  LOGO_CID: 'nuocleo-logo',
+  LOGO_CID: 'hdtlabx-logo',
   PRODUCTION_SITE_URL,
   PRODUCTION_ADMIN_URL,
   getFrontendUrl,

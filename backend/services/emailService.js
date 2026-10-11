@@ -173,14 +173,19 @@ const sendMail = async ({
 /**
  * Gửi email phiếu tiếp nhận — HTML trùng nội dung UI TicketSlip (film phải populate customerId).
  */
-const sendConfirmationEmail = async (film) => {
+const sendConfirmationEmail = async (film, { phase } = {}) => {
   const customer = customerForEmail(film.customerId);
   const to = customer?.email;
   if (!to) return { sent: false, error: 'Khách hàng chưa có email' };
 
+  const resolvedPhase = phase || (film.status === 'web_order' ? 'order' : 'goods');
   const ticketNumber = film.ticketNumber || film.filmCode;
-  const subject = brandSubject(`Phiếu tiếp nhận film - ${ticketNumber}`);
-  const html = buildFilmReceiptEmailHtml(film, customer);
+  const subject = brandSubject(
+    resolvedPhase === 'order'
+      ? `Đã nhận đơn film - ${ticketNumber}`
+      : `Phiếu tiếp nhận film - ${ticketNumber}`
+  );
+  const html = buildFilmReceiptEmailHtml(film, customer, { phase: resolvedPhase });
 
   return sendMail({
     to,
@@ -296,11 +301,18 @@ function repairFrontendBase() {
   return require('../config/brand').getFrontendUrl();
 }
 
-const sendRepairIntakeEmail = async (ticket) => {
+const sendRepairIntakeEmail = async (ticket, { phase } = {}) => {
   const to = ticket.customer_email;
   if (!to) return { sent: false, error: 'Khách chưa có email' };
-  const subject = brandSubject(`Tiếp nhận sửa máy - ${ticket.ticket_number}`);
-  const html = buildRepairIntakeEmailHtml(ticket.toObject ? ticket.toObject() : ticket);
+  const resolvedPhase = phase || (ticket.status === 'don_web' ? 'order' : 'goods');
+  const subject = brandSubject(
+    resolvedPhase === 'order'
+      ? `Đã nhận đơn sửa máy - ${ticket.ticket_number}`
+      : `Tiếp nhận sửa máy - ${ticket.ticket_number}`
+  );
+  const html = buildRepairIntakeEmailHtml(ticket.toObject ? ticket.toObject() : ticket, {
+    phase: resolvedPhase,
+  });
   return sendMail({
     to,
     subject,

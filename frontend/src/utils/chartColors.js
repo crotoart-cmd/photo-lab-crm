@@ -41,6 +41,7 @@ export const REVENUE_SLICE_META = [
 ];
 
 export const LAB_STATUS_COLORS = {
+  web_order: CHART.yellow,
   received: CHART.blue,
   processing: CHART.orange,
   completed: CHART.teal,
@@ -48,7 +49,8 @@ export const LAB_STATUS_COLORS = {
 };
 
 export const LAB_STATUS_LABELS = {
-  received: 'Tiếp nhận',
+  web_order: 'Đơn web',
+  received: 'Đã nhận cuộn',
   processing: 'Đang tráng',
   completed: 'Hoàn thành',
   delivered: 'Đã trả',

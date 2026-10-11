@@ -5,6 +5,8 @@ const { sendConfirmationEmail } = require('../services/emailService');
 const { generateTicketNumber, pushStatusHistory } = require('../utils/filmHelpers');
 const { filmTypeFromDetail, normalizeIntakeChecklist } = require('../utils/intakeChecklist');
 const { createTicket } = require('../services/customerRepairService');
+const { listPublicShop } = require('../services/shopCatalog');
+const { createShopOrder } = require('../services/shopOrders');
 const {
   tooManyRequests,
   isHoneypot,
@@ -25,6 +27,49 @@ function fail(res, err) {
     message: err.status === 400 || err.name === 'ValidationError' ? err.message : 'Không gửi được đơn',
   });
 }
+
+router.get('/shop', async (_req, res) => {
+  try {
+    const items = await listPublicShop();
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ message: 'Không tải được cửa hàng' });
+  }
+});
+
+router.post('/shop/orders', async (req, res) => {
+  try {
+    if (tooManyRequests(req)) {
+      return res.status(429).json({ message: 'Bạn đặt quá nhiều đơn. Thử lại sau.' });
+    }
+    if (isHoneypot(req.body)) {
+      return res.status(201).json({ ok: true, code: 'WEB-OK' });
+    }
+    const customer = await findOrCreateWebCustomer({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      phone: req.body.phone,
+      address: req.body.delivery === 'ship' ? req.body.address : undefined,
+    });
+    const order = await createShopOrder({
+      items: req.body.items,
+      customer,
+      delivery: req.body.delivery,
+      address: str(req.body.address, 400),
+      note: str(req.body.note, 600),
+    });
+    res.status(201).json({
+      ok: true,
+      code: order.code,
+      total: order.total,
+      holdUntil: order.holdUntil,
+    });
+  } catch (error) {
+    if (error.status === 409) return res.status(409).json({ message: error.message });
+    fail(res, error);
+  }
+});
 
 router.post('/film', async (req, res) => {
   try {
@@ -53,10 +98,10 @@ router.post('/film', async (req, res) => {
       filmType,
       receptionNotes: note ? `Đơn web: ${note}` : 'Đơn web khách gửi',
       intakeChecklist: checklist,
-      status: 'received',
+      status: 'web_order',
     });
 
-    pushStatusHistory(film, 'received', 'Khách gửi đơn trên web', null);
+    pushStatusHistory(film, 'web_order', 'Khách gửi đơn trên web', null);
     await film.save();
 
     const slip = await Film.findById(film._id).populate('customerId');
@@ -110,6 +155,7 @@ router.post('/repair', async (req, res) => {
         symptom: str(req.body.symptom, 800),
         condition_at_intake: str(req.body.condition_at_intake, 800),
         intake_note: extra ? `Đơn web: ${extra}` : 'Đơn web khách gửi',
+        source: 'web',
       },
       null
     );

@@ -1,15 +1,35 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PsGridFrame from '../components/public/PsGridFrame';
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
+import PsPhoto from '../components/public/PsPhoto';
+import { LAB_PHOTO } from '../data/publicLabPhotos';
 import { SERVICE_TILES } from '../data/publicLabServices';
+import { loadPublicContent } from '../lib/publicContent';
+import { fallbackBlogPosts, remoteBlogPosts } from '../lib/publicBlog';
 
-const DEV_SCAN_IDS = new Set(['trang', 'toc-do', 'scan', 'in-analog']);
-const FEATURED = SERVICE_TILES.filter((tile) => DEV_SCAN_IDS.has(tile.id));
-const REST = SERVICE_TILES.filter((tile) => !DEV_SCAN_IDS.has(tile.id));
-const PLATE_COUNT = 2;
+const FEATURED_IDS = ['trang', 'toc-do', 'scan', 'in-analog'];
+const FEATURED = FEATURED_IDS.map((id) => SERVICE_TILES.find((tile) => tile.id === id)).filter(Boolean);
 
+function workSlides(tiles) {
+  return tiles.flatMap((tile) => {
+    const shots = LAB_PHOTO.work[tile.id] || [''];
+    return shots.map((src, i) => ({
+      tile,
+      src,
+      plate: i,
+      plateCount: shots.length,
+    }));
+  });
+}
+
+const ACC_CARDS = [
+  { id: 'c1', tone: 'film' },
+  { id: 'c2', tone: 'speed' },
+  { id: 'c3', tone: 'print' },
+  { id: 'c4', tone: 'scan' },
+];
 function PagerArrow({ back }) {
   return (
     <svg viewBox="0 0 18 8" aria-hidden>
@@ -28,47 +48,16 @@ function PagerArrow({ back }) {
   );
 }
 
-function ServiceTile({ tile }) {
+function FeaturedWork({ tiles }) {
   const { t } = usePublicLocale();
-  const status = tile.enabled ? t('work.open') : t('work.soon');
-  const inner = (
-    <>
-      <div className={`ps-tile-photo ps-tile-photo--${tile.tone}`} aria-hidden />
-      <h3 className="ps-tile-title">{t(`svc.${tile.id}.title`)}</h3>
-      <div className="ps-tile-fields">
-        <div>
-          <b>{t('work.note')}</b>
-          <span>{t(`svc.${tile.id}.caption`)}</span>
-        </div>
-        <div>
-          <b>{t('work.status')}</b>
-          <span>{status}</span>
-        </div>
-      </div>
-    </>
-  );
-
-  if (!tile.enabled) {
-    return (
-      <div className="ps-tile ps-tile--disabled" aria-disabled="true">
-        {inner}
-      </div>
-    );
-  }
-
-  return (
-    <Link to={tile.to} className="ps-tile">
-      {inner}
-    </Link>
-  );
-}
-
-function FeaturedWork({ tile, peekTone }) {
-  const { t } = usePublicLocale();
-  const [plate, setPlate] = useState(0);
+  const slides = workSlides(tiles);
+  const [index, setIndex] = useState(0);
+  const slide = slides[Math.min(index, slides.length - 1)] || { tile: tiles[0], src: '', plate: 0, plateCount: 1 };
+  const tile = slide.tile;
   const title = t(`svc.${tile.id}.title`);
   const status = tile.enabled ? t('work.open') : t('work.soon');
-  const shotClass = `ps-work-shot ps-work-shot--main ps-tile-photo ps-tile-photo--${tile.tone}${plate ? ' is-alt' : ''}`;
+  const peek = slides[(index + 1) % slides.length];
+  const shotClass = 'ps-work-shot ps-work-shot--main';
 
   return (
     <article className={`ps-work${tile.enabled ? '' : ' ps-work--off'}`}>
@@ -97,15 +86,15 @@ function FeaturedWork({ tile, peekTone }) {
           </div>
           <div className="ps-work-pager">
             <p className="ps-label">
-              {t('work.image')} {plate + 1}/{PLATE_COUNT}
+              {t('work.image')} {index + 1}/{slides.length}
             </p>
             <div className="ps-pager-btns">
               <button
                 type="button"
                 className="ps-pager-btn"
                 aria-label={t('work.prev')}
-                disabled={plate === 0}
-                onClick={() => setPlate((p) => Math.max(0, p - 1))}
+                disabled={index === 0}
+                onClick={() => setIndex((p) => Math.max(0, p - 1))}
               >
                 <PagerArrow back />
               </button>
@@ -113,8 +102,8 @@ function FeaturedWork({ tile, peekTone }) {
                 type="button"
                 className="ps-pager-btn"
                 aria-label={t('work.next')}
-                disabled={plate === PLATE_COUNT - 1}
-                onClick={() => setPlate((p) => Math.min(PLATE_COUNT - 1, p + 1))}
+                disabled={index === slides.length - 1}
+                onClick={() => setIndex((p) => Math.min(slides.length - 1, p + 1))}
               >
                 <PagerArrow />
               </button>
@@ -123,19 +112,62 @@ function FeaturedWork({ tile, peekTone }) {
         </div>
       </div>
       {tile.enabled ? (
-        <Link to={tile.to} className={shotClass} aria-label={title} />
+        <Link to={tile.to} className={shotClass} aria-label={title}>
+          <PsPhoto src={slide.src} tone={tile.tone} className="ps-work-shot-photo" alt={title} />
+        </Link>
       ) : (
-        <div className={shotClass} aria-hidden />
+        <div className={shotClass} aria-hidden>
+          <PsPhoto src={slide.src} tone={tile.tone} className="ps-work-shot-photo" alt="" />
+        </div>
       )}
-      {peekTone ? (
-        <div className={`ps-work-shot ps-work-shot--peek ps-tile-photo ps-tile-photo--${peekTone}`} aria-hidden />
+      {peek ? (
+        <div className="ps-work-shot ps-work-shot--peek" aria-hidden>
+          <PsPhoto src={peek.src} tone={peek.tile.tone} className="ps-work-shot-photo" alt="" />
+        </div>
       ) : null}
     </article>
   );
 }
 
+function BandHead({ title, lede, actions }) {
+  return (
+    <>
+      <h2 className="ps-lab-heading">{title}</h2>
+      <div className="ps-lab-side">
+        <p className="ps-lab-intro">{lede}</p>
+        <div className="ps-band-ctas">{actions}</div>
+      </div>
+    </>
+  );
+}
+
 export default function PublicHome() {
-  const { t } = usePublicLocale();
+  const { t, lang } = usePublicLocale();
+  const [extras, setExtras] = useState({ blog: [], accessories: [] });
+  useEffect(() => {
+    loadPublicContent().then(setExtras);
+  }, []);
+  const accCards = extras.accessories.length
+    ? extras.accessories.map((row, i) => ({
+        id: row.id,
+        title: row.title,
+        note: row.excerpt || row.kind,
+        status: row.kind || t('work.soon'),
+        image: row.image,
+        tone: ACC_CARDS[i % ACC_CARDS.length].tone,
+      }))
+    : ACC_CARDS.map((card, i) => ({
+        id: card.id,
+        title: t(`acc.${card.id}h`),
+        note: t(`acc.${card.id}p`),
+        status: t('work.soon'),
+        image: LAB_PHOTO.acc[i] || '',
+        tone: card.tone,
+      }));
+  const stories = (extras.blog.length ? remoteBlogPosts(extras.blog, t, lang) : fallbackBlogPosts(t)).slice(
+    0,
+    3
+  );
   return (
     <PsPage>
       <section className="ps-hero ps-grid">
@@ -159,6 +191,7 @@ export default function PublicHome() {
             {t('cta.repair')}
           </Link>
         </div>
+        <PsPhoto src={LAB_PHOTO.homeHero} tone="film" className="ps-hero-photo" alt="" />
       </section>
 
       <section className="ps-lab-block ps-grid">
@@ -166,22 +199,89 @@ export default function PublicHome() {
         <h2 className="ps-lab-heading">{t('home.services')}</h2>
         <div className="ps-lab-side">
           <p className="ps-lab-intro">{t('home.intro')}</p>
-          <a href="#them" className="ps-cta">
+          <a href="#sua-may-home" className="ps-cta">
             {t('cta.allServices')}
           </a>
         </div>
         <div className="ps-works">
-          {FEATURED.map((tile, i) => (
-            <FeaturedWork
-              key={tile.id}
-              tile={tile}
-              peekTone={(FEATURED[i + 1] || REST[0] || {}).tone}
-            />
+          <FeaturedWork tiles={FEATURED} />
+        </div>
+      </section>
+
+      <section id="sua-may-home" className="ps-lab-block ps-band ps-grid">
+        <PsGridFrame tone="band" />
+        <BandHead
+          title={t('home.bandRepair')}
+          lede={t('home.bandRepairP')}
+          actions={
+            <>
+              <Link to="/sua-may" className="ps-cta">
+                {t('cta.sendRepair')}
+              </Link>
+              <Link to="/lien-he" className="ps-cta">
+                {t('nav.contact')} →
+              </Link>
+            </>
+          }
+        />
+        <PsPhoto src={LAB_PHOTO.repair} tone="print" className="ps-band-field" alt="" />
+      </section>
+
+      <section className="ps-lab-block ps-band ps-grid">
+        <PsGridFrame tone="band" />
+        <BandHead
+          title={t('home.bandAcc')}
+          lede={t('home.bandAccP')}
+          actions={
+            <Link to="/phu-kien" className="ps-cta">
+              {t('cta.viewAcc')}
+            </Link>
+          }
+        />
+        <div className="ps-prod-row">
+          {accCards.map((card) => (
+            <Link key={card.id} to="/phu-kien" className="ps-prod">
+              <PsPhoto src={card.image} tone={card.tone} className="ps-prod-photo" alt={card.title} />
+              <h3>{card.title}</h3>
+              <div className="ps-prod-meta">
+                <div>
+                  <b className="ps-label">{t('work.note')}</b>
+                  <span>{card.note}</span>
+                </div>
+                <div>
+                  <b className="ps-label">{t('work.status')}</b>
+                  <span>{card.status}</span>
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
-        <div id="them" className="ps-tiles">
-          {REST.map((tile) => (
-            <ServiceTile key={tile.id} tile={tile} />
+      </section>
+
+      <section className="ps-lab-block ps-band ps-grid">
+        <PsGridFrame tone="band" />
+        <BandHead
+          title={t('home.bandBlog')}
+          lede={t('home.bandBlogP')}
+          actions={
+            <Link to="/blog" className="ps-cta">
+              {t('cta.viewBlog')}
+            </Link>
+          }
+        />
+        <div className="ps-stories">
+          {stories.map((post) => (
+            <Link key={post.id} to={post.href} className="ps-story">
+              <PsPhoto src={post.image} tone={post.tone} className="ps-story-photo" alt={post.title} />
+              <div className="ps-story-title">
+                <h3>{post.title}</h3>
+                <div className="ps-story-tags">
+                  <span className="ps-label">{post.kind}</span>
+                  <span className="ps-label">{post.date}</span>
+                </div>
+              </div>
+              <p>{post.excerpt}</p>
+            </Link>
           ))}
         </div>
       </section>

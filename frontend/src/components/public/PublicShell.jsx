@@ -23,7 +23,7 @@ const NAV = [
 function PsBrand({ onClick }) {
   return (
     <Link to="/" className="ps-brand" onClick={onClick} aria-label={BRAND_NAME}>
-      <img src={LOGO_SRC} alt={BRAND_NAME} width={300} height={50} />
+      <img src={LOGO_SRC} alt={BRAND_NAME} />
     </Link>
   );
 }

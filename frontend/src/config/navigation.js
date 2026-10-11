@@ -17,20 +17,19 @@ export const MOBILE_TAB_ITEMS = [
   {
     type: 'link',
     to: '/retail?tab=intake',
-    label: 'Nhập hàng',
-    shortLabel: 'Nhập',
+    label: 'Shop Products',
+    shortLabel: 'Kho',
     icon: 'inventory',
     tabIcon: 'intake',
     match: 'retail-intake',
   },
   {
     type: 'link',
-    to: '/retail?tab=sale',
-    label: 'Bán hàng',
-    shortLabel: 'Bán',
-    icon: 'barcode_scanner',
-    tabIcon: 'sale',
-    match: 'retail-sale',
+    to: '/retail?tab=orders',
+    label: 'Shop Products',
+    shortLabel: 'Đơn',
+    icon: 'shopping_bag',
+    match: 'retail-orders',
   },
 ];
 
@@ -44,23 +43,22 @@ export const NAV_GROUPS = [
   },
   {
     id: 'retail',
-    label: 'Kho & bán lẻ',
+    label: 'Shop Products',
     items: [
       {
         type: 'link',
         to: '/retail?tab=intake',
-        label: 'Nhập hàng',
+        label: 'Kho',
         icon: 'inventory',
         navIcon: 'intake',
         match: 'retail-intake',
       },
       {
         type: 'link',
-        to: '/retail?tab=sale',
-        label: 'Bán hàng — Scan',
-        icon: 'barcode_scanner',
-        navIcon: 'sale',
-        match: 'retail-sale',
+        to: '/retail?tab=orders',
+        label: 'Đơn',
+        icon: 'shopping_bag',
+        match: 'retail-orders',
       },
     ],
   },
@@ -70,7 +68,13 @@ export const NAV_GROUPS = [
     items: [
       { type: 'link', to: '/films', label: 'Phiếu film', icon: 'movie' },
       { type: 'link', to: '/repairs', label: 'Sửa máy khách', icon: 'build' },
-      { type: 'link', to: '/inventory', label: 'Thuốc Tráng', icon: 'science' },
+    ],
+  },
+  {
+    id: 'web',
+    label: 'Website',
+    items: [
+      { type: 'link', to: '/noi-dung', label: 'Blog', icon: 'article' },
     ],
   },
   {
@@ -90,13 +94,13 @@ export const NAV_GROUPS = [
 export function isNavItemActive(item, location) {
   const { pathname, search } = location;
   const params = new URLSearchParams(search);
-  const tab = params.get('tab') || 'sale';
+  const tab = params.get('tab') || 'intake';
 
   if (item.match === 'retail-intake') {
-    return pathname === '/retail' && tab === 'intake';
+    return pathname === '/retail' && tab !== 'orders';
   }
-  if (item.match === 'retail-sale') {
-    return pathname === '/retail' && (tab === 'sale' || tab === 'pos');
+  if (item.match === 'retail-orders') {
+    return pathname === '/retail' && tab === 'orders';
   }
   if (item.end) {
     return pathname === item.to;

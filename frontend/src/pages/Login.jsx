@@ -9,7 +9,6 @@ import BrandLogo from '../components/BrandLogo';
 import LoadingIndicator from '../components/LoadingIndicator';
 import IconMail from '../components/icons/IconMail';
 import IconLock from '../components/icons/IconLock';
-import { BRAND_NAME } from '../config/brand';
 import { needsServerUrlSetup } from '../config/apiBase';
 import ServerUrlField from '../components/ServerUrlField';
 
@@ -71,9 +70,7 @@ export default function Login() {
     <div className="ios-login-screen md:min-h-screen md:flex md:items-center md:justify-center md:p-6" style={{ background: 'var(--color-bg)' }}>
       <div className="ios-login-card md:apple-card md:max-w-[420px] md:p-8">
         <div className="text-center mb-8 flex flex-col items-center">
-          <BrandLogo size="lg" className="items-center mb-3" />
-          <h1 className="apple-page-title text-[24px]">{BRAND_NAME}</h1>
-          <p className="apple-page-subtitle">Đăng nhập hệ thống</p>
+          <BrandLogo size="sm" className="items-center" />
         </div>
 
         {isMobileDataEnabled() && !hasOfflineCreds && (

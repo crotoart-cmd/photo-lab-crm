@@ -52,6 +52,7 @@ export default function SmartSalePanel({
   const [buyerEmail, setBuyerEmail] = useState('');
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [sheetH, setSheetH] = useState(0);
   const [sheetDragging, setSheetDragging] = useState(false);
 
@@ -141,6 +142,7 @@ export default function SmartSalePanel({
       stock_qty: num(apiItem.stock_qty, 99),
       qty: num(apiItem.default_qty, 1),
       match_source: apiItem.match_source || 'scan',
+      showOnWeb: Boolean(apiItem.showOnWeb),
     };
 
     setCart((prev) => {
@@ -326,7 +328,7 @@ export default function SmartSalePanel({
     [selectedBuyer, buyerName, buyerEmail]
   );
 
-  const handleCheckout = async () => {
+  const requestCheckout = () => {
     if (cart.length === 0) return;
     if (!buyerReady) {
       setCheckoutOpen(true);
@@ -337,6 +339,12 @@ export default function SmartSalePanel({
       onError?.('Giỏ hàng có sản phẩm bị vi phạm giá sàn — hãy điều chỉnh giá offer trước khi thanh toán');
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const handleCheckout = async () => {
+    if (cart.length === 0 || checkoutLoading) return;
+    setConfirmOpen(false);
     setCheckoutLoading(true);
     clearHint();
 
@@ -348,6 +356,7 @@ export default function SmartSalePanel({
         unit_price: num(item.offer_price, item.list_price),
         camera_id: item.camera_id,
         name: item.name,
+        channel: 'counter',
       }));
       const { data } = await checkoutCart({
         items,
@@ -384,6 +393,7 @@ export default function SmartSalePanel({
         setBuyerName('');
         setBuyerEmail('');
         setSelectedBuyer(null);
+        setConfirmOpen(false);
         onCheckoutDone?.();
       } else {
         onError?.('Một số sản phẩm lỗi khi xuất kho — xem chi tiết bên dưới');
@@ -599,7 +609,7 @@ export default function SmartSalePanel({
                     </div>
                     <button
                       type="button"
-                      onClick={handleCheckout}
+                      onClick={requestCheckout}
                       disabled={checkoutLoading || cartHasFloorViolation || !buyerReady}
                       className="retail-checkout-btn"
                     >
@@ -747,7 +757,7 @@ export default function SmartSalePanel({
             </div>
             <button
               type="button"
-              onClick={handleCheckout}
+              onClick={requestCheckout}
               disabled={checkoutLoading || cartHasFloorViolation || !buyerReady}
               className="retail-checkout-btn"
             >
@@ -796,6 +806,55 @@ export default function SmartSalePanel({
         </div>
       </div>
     )}
+
+    {confirmOpen ? (
+      <Modal onClose={() => !checkoutLoading && setConfirmOpen(false)} title="Xác nhận bán" compact>
+        <div className="flex flex-col gap-3">
+          <p className="text-[13px] text-[var(--color-label-secondary)]">
+            Chỉ trừ tồn khi đã nhận tiền. Hàng đang hiện trên web sẽ gỡ / giảm số ngay.
+          </p>
+          <ul className="flex flex-col gap-2 m-0 p-0 list-none">
+            {cart.map((item) => {
+              const webNote =
+                item.product_group === 'camera' && item.showOnWeb
+                  ? 'Máy đang trên web — bán sẽ gỡ khỏi trang Shop.'
+                  : item.showOnWeb
+                    ? 'Đang hiện web — số trên trang sẽ giảm.'
+                    : 'Không đang hiện web.';
+              return (
+                <li key={item._cid} className="text-[15px] text-[var(--color-label)]">
+                  <span className="font-medium">{item.name}</span>
+                  {item.serial_number ? ` · SN ${item.serial_number}` : ''}
+                  {` · ×${item.qty}`}
+                  <span className="block text-[13px] text-[var(--color-label-secondary)]">{webNote}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-[15px] font-semibold text-[var(--color-label)]">
+            Tổng {fmt(totalRevenue)}
+          </p>
+          <div className="flex gap-2 justify-end pt-1">
+            <button
+              type="button"
+              className="apple-btn-secondary btn-pill"
+              disabled={checkoutLoading}
+              onClick={() => setConfirmOpen(false)}
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              className="apple-btn-primary btn-pill"
+              disabled={checkoutLoading}
+              onClick={handleCheckout}
+            >
+              {checkoutLoading ? 'Đang bán…' : 'Đã nhận tiền — bán'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    ) : null}
   </>
   );
 }

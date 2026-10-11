@@ -134,7 +134,8 @@ function buildChecklistBlocks(checklist) {
   );
 }
 
-function buildFilmReceiptEmailHtml(film, customer) {
+function buildFilmReceiptEmailHtml(film, customer, { phase = 'goods' } = {}) {
+  const isOrder = phase === 'order';
   // Chỉ dùng họ tên / SĐT / email — không bao giờ đưa customer.notes vào email khách
   const t = ticketCode(film);
   const received = fmtDate(film.receivedAt || film.createdAt);
@@ -150,7 +151,7 @@ function buildFilmReceiptEmailHtml(film, customer) {
   const summaryTable = `
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:8px;">
       ${detailRow('Mã phiếu', t)}
-      ${detailRow('Ngày tiếp nhận', received)}
+      ${detailRow(isOrder ? 'Ngày đặt' : 'Ngày nhận cuộn', received)}
       ${detailRow('Số cuộn', `${qty} cuộn`)}
       ${summaryLine ? detailRow('Tóm tắt', summaryLine) : ''}
     </table>
@@ -162,15 +163,19 @@ function buildFilmReceiptEmailHtml(film, customer) {
     }`;
 
   return buildEmailLayout({
-    eyebrow: 'PHIẾU TIẾP NHẬN FILM',
+    eyebrow: isOrder ? 'ĐƠN TRÁNG FILM TRÊN WEB' : 'PHIẾU TIẾP NHẬN FILM',
     greeting: `Xin chào ${name},`,
-    introHtml: `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã tiếp nhận film của bạn. Nội dung phiếu dưới đây trùng với phiếu in tại lab.</p>`,
+    introHtml: isOrder
+      ? `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã ghi nhận đơn tráng film. Đây chưa phải bước nhận cuộn tại lab — khi film tới tay, bạn sẽ nhận email tiếp nhận.</p>`
+      : `<p style="margin:0;">${escapeHtml(BRAND_NAME)} đã nhận film của bạn. Nội dung phiếu dưới đây trùng với phiếu in tại lab.</p>`,
     metaLeftHtml: `<strong style="color:#111;">MÃ PHIẾU:</strong> ${escapeHtml(t)}<br/><strong style="color:#111;">Ngày:</strong> ${escapeHtml(received)}`,
     metaRightHtml: `<strong style="color:#111;">KHÁCH HÀNG:</strong><br/>${escapeHtml(name)}<br/>${escapeHtml(phone)}<br/>${escapeHtml(emailAddr)}`,
     bodyHtml: summaryTable,
     calloutHtml: buildCalloutHtml(
       'Tiếp theo',
-      'Bạn sẽ nhận thêm email khi film <strong>tráng xong</strong> và khi lab <strong>xác nhận đã trả ảnh</strong>.'
+      isOrder
+        ? 'Gửi cuộn tới lab kèm mã phiếu. Lab chỉ bắt đầu tráng sau khi <strong>đã nhận cuộn</strong>.'
+        : 'Bạn sẽ nhận thêm email khi film <strong>tráng xong</strong> và khi lab <strong>xác nhận đã trả ảnh</strong>.'
     ),
   });
 }

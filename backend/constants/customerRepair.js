@@ -1,4 +1,5 @@
 const REPAIR_STATUSES = [
+  'don_web',
   'tiep_nhan',
   'cho_khach_xac_nhan',
   'dang_sua',
@@ -9,7 +10,8 @@ const REPAIR_STATUSES = [
 ];
 
 const STATUS_LABELS = {
-  tiep_nhan: 'Tiếp nhận',
+  don_web: 'Đơn web',
+  tiep_nhan: 'Đã nhận máy',
   cho_khach_xac_nhan: 'Chờ khách xác nhận',
   dang_sua: 'Đang sửa',
   cho_tra: 'Chờ trả máy',
@@ -26,6 +28,7 @@ const QUOTE_ALLOWED = ['tiep_nhan', 'cho_khach_xac_nhan'];
 
 /** Thứ tự ưu tiên hiển thị danh sách (pipeline vận hành) */
 const STATUS_DISPLAY_ORDER = [
+  'don_web',
   'tiep_nhan',
   'cho_khach_xac_nhan',
   'dang_sua',

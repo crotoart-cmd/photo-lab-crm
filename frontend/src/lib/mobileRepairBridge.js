@@ -229,6 +229,26 @@ export function createRepairLocal(form = {}) {
   return ticket;
 }
 
+export function markReceivedRepairLocal(ticketId) {
+  const ticket = findTicket(ticketId);
+  if (!ticket) throw new Error('Không tìm thấy phiếu');
+  if (ticket.status !== 'don_web') {
+    throw new Error('Phiếu không phải đơn web chờ nhận máy');
+  }
+  const now = new Date().toISOString();
+  const next = {
+    ...ticket,
+    status: 'tiep_nhan',
+    received_at: now,
+    status_history: pushStatusHistory(ticket, 'tiep_nhan', 'Lab đã nhận máy'),
+    updatedAt: now,
+    _pendingSync: true,
+  };
+  const saved = upsertTicket(next);
+  queueRepairSync('repair-receive-goods', { ticketId, skipEmail: true });
+  return saved;
+}
+
 export function quoteRepairLocal(ticketId, payload = {}) {
   const ticket = findTicket(ticketId);
   if (!ticket) throw new Error('Không tìm thấy phiếu');
@@ -413,6 +433,17 @@ export async function trySyncRepairQueueItem(queueItem) {
     const ticketId = await resolveTicketIdForServer(queueItem.payload?.ticketId);
     if (!ticketId || isLocalRepairId(ticketId)) return { synced: false };
 
+    if (queueItem.type === 'repair-receive-goods') {
+      const res = await backupApi({
+        method: 'post',
+        url: `/repairs/${ticketId}/receive-goods`,
+        data: { skipEmail: queueItem.payload?.skipEmail !== false },
+      });
+      if (!res?.data?.ticket) return { synced: false };
+      upsertTicket({ ...res.data.ticket, _local: false, _pendingSync: false });
+      return { synced: true };
+    }
+
     if (queueItem.type === 'repair-quote') {
       const { quote_amount, deposit_amount, quote_note, quote_lines, skipEmail } =
         queueItem.payload;
@@ -561,6 +592,44 @@ export async function createRepairBridge(form) {
     ticket,
     savedOnDevice: true,
     synced: false,
+    ...emailMeta,
+  };
+}
+
+export async function receiveRepairBridge(ticketId) {
+  if (!isMobileDataEnabled()) {
+    const { data } = await api.post(`/repairs/${ticketId}/receive-goods`);
+    return data;
+  }
+  const ticket = markReceivedRepairLocal(ticketId);
+  const { sendRepairIntakeFromDevice } = await import('./mobileDeviceEmail');
+  let emailMeta = {
+    emailSent: false,
+    emailSentTo: null,
+    emailSkipped: true,
+    emailError: null,
+  };
+  try {
+    const mail = await sendRepairIntakeFromDevice(ticket);
+    if (mail.sent) {
+      emailMeta = { emailSent: true, emailSentTo: mail.to, emailSkipped: false, emailError: null };
+    } else if (mail.error) {
+      emailMeta = {
+        emailSent: false,
+        emailSentTo: null,
+        emailSkipped: false,
+        emailError: mail.error,
+      };
+    }
+  } catch (err) {
+    emailMeta.emailError = err?.message || 'Gửi email thất bại';
+    emailMeta.emailSkipped = false;
+  }
+  return {
+    message: emailMeta.emailSent
+      ? `${MSG_DEVICE_SAVED} — đã gửi email nhận máy tới ${emailMeta.emailSentTo}`
+      : `${MSG_DEVICE_SAVED} — ${MSG_BACKUP_PENDING}`,
+    ticket,
     ...emailMeta,
   };
 }

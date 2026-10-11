@@ -6,6 +6,9 @@ const RetailSale = require('../models/RetailSale');
 const CameraStock = require('../models/CameraStock');
 const FilmStock = require('../models/FilmStock');
 const BatteryStock = require('../models/BatteryStock');
+const CustomerRepairTicket = require('../models/CustomerRepairTicket');
+const ShopOrder = require('../models/ShopOrder');
+const { expireStaleOrders } = require('../services/shopReservations');
 const { verifyToken } = require('./auth');
 const { buildDashboardAnalytics } = require('../services/dashboardAnalyticsService');
 const { ensureSampleRetailSales } = require('../services/ensureSampleRetailSales');
@@ -24,6 +27,75 @@ const endOfDay = (date = new Date()) => {
   d.setHours(23, 59, 59, 999);
   return d;
 };
+
+router.get('/web-inbox', verifyToken, async (req, res) => {
+  try {
+    await expireStaleOrders();
+    const [filmCount, repairCount, shopCount, films, repairs, shopOrders] = await Promise.all([
+      Film.countDocuments({ status: 'web_order' }),
+      CustomerRepairTicket.countDocuments({ status: 'don_web' }),
+      ShopOrder.countDocuments({ status: 'pending' }),
+      Film.find({ status: 'web_order' })
+        .sort({ createdAt: -1 })
+        .limit(12)
+        .populate('customerId', 'firstName lastName')
+        .lean(),
+      CustomerRepairTicket.find({ status: 'don_web' }).sort({ createdAt: -1 }).limit(12).lean(),
+      ShopOrder.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(12).lean(),
+    ]);
+
+    const filmItems = films.map((film) => {
+      const c = film.customerId;
+      const name =
+        c && typeof c === 'object'
+          ? `${c.firstName || ''} ${c.lastName || ''}`.trim()
+          : '';
+      return {
+        kind: 'film',
+        id: String(film._id),
+        code: film.ticketNumber || film.filmCode,
+        title: 'Tráng film',
+        customer: name || 'Khách web',
+        createdAt: film.createdAt,
+        href: `/films?tab=receive&id=${film._id}`,
+      };
+    });
+
+    const repairItems = repairs.map((ticket) => ({
+      kind: 'repair',
+      id: String(ticket._id),
+      code: ticket.ticket_number,
+      title: ticket.model_name || 'Sửa máy',
+      customer: ticket.customer_name || 'Khách web',
+      createdAt: ticket.createdAt,
+      href: `/repairs?status=don_web&id=${ticket._id}`,
+    }));
+
+    const shopItems = shopOrders.map((order) => ({
+      kind: 'shop',
+      id: String(order._id),
+      code: order.code,
+      title: order.items?.[0]?.title || 'Đơn mua',
+      customer: order.customer_name || 'Khách web',
+      createdAt: order.createdAt,
+      href: `/retail?tab=orders&id=${order._id}`,
+    }));
+
+    const items = [...filmItems, ...repairItems, ...shopItems]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 16);
+
+    res.json({
+      filmCount,
+      repairCount,
+      shopCount,
+      total: filmCount + repairCount + shopCount,
+      items,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Không tải được đơn web', error: error.message });
+  }
+});
 
 router.get('/today', verifyToken, async (req, res) => {
   try {
@@ -51,7 +123,7 @@ router.get('/today', verifyToken, async (req, res) => {
         status: 'delivered',
         deliveredAt: { $gte: todayStart, $lte: todayEnd },
       }),
-      Film.countDocuments({ status: { $in: ['received', 'processing'] } }),
+      Film.countDocuments({ status: { $in: ['web_order', 'received', 'processing'] } }),
       Inventory.find().then((items) => items.filter((i) => qtyForAlert(i) <= Number(i.minStock || 0))),
       Customer.countDocuments({ status: 'active' }),
       RetailSale.find({ createdAt: { $gte: todayStart, $lte: todayEnd } }).lean(),

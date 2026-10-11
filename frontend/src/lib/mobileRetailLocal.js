@@ -51,9 +51,11 @@ export function aggregateFilmSku() {
       price: row.price,
       floor_price: row.floor_price,
       total_quantity: 0,
+      showOnWeb: false,
       nearest_expiry: row.expiry_date,
     };
-    cur.total_quantity += row.quantity;
+    cur.total_quantity += num(row.quantity);
+    if (row.showOnWeb) cur.showOnWeb = true;
     if (row.expiry_date && (!cur.nearest_expiry || row.expiry_date < cur.nearest_expiry)) {
       cur.nearest_expiry = row.expiry_date;
     }
@@ -77,6 +79,7 @@ export function resolveScanCode(code) {
       list_price: num(film.price),
       floor_price: num(film.floor_price),
       stock_qty: num(film.total_quantity),
+      showOnWeb: Boolean(film.showOnWeb),
       default_qty: 1,
       match_source: 'local',
     };
@@ -92,6 +95,7 @@ export function resolveScanCode(code) {
         list_price: num(row.price),
         floor_price: num(row.floor_price),
         stock_qty: num(row.quantity),
+        showOnWeb: Boolean(row.showOnWeb),
         default_qty: 1,
         match_source: 'local',
       };
@@ -110,6 +114,7 @@ export function resolveScanCode(code) {
       list_price: num(bat.price),
       floor_price: num(bat.floor_price),
       stock_qty: num(bat.quantity),
+      showOnWeb: Boolean(bat.showOnWeb),
       default_qty: 1,
       match_source: 'local',
     };
@@ -164,6 +169,7 @@ export function resolveScanCode(code) {
       default_qty: 1,
       match_source: 'local',
       sale_blocked: false,
+      showOnWeb: Boolean(cam.showOnWeb),
     };
   }
 
@@ -194,7 +200,9 @@ export function confirmIntakeLocal(payload) {
       iso: num(payload.iso),
       size: payload.size || '35mm',
       quantity: qty,
+      receivedQty: qty,
       expiry_date: payload.expiry_date,
+      createdAt: now,
       cost,
       price,
       floor_price: floor,
@@ -216,6 +224,7 @@ export function confirmIntakeLocal(payload) {
     let row = rows.find((r) => upper(r.sku_code) === sku);
     if (row) {
       row.quantity += qty;
+      row.receivedQty = num(row.receivedQty) + qty;
       if (cost > 0) row.cost = cost;
       if (price > 0) row.price = price;
       if (floor > 0) row.floor_price = floor;
@@ -229,6 +238,8 @@ export function confirmIntakeLocal(payload) {
         name: payload.name,
         battery_type: payload.battery_type || 'OTHER',
         quantity: qty,
+        receivedQty: qty,
+        createdAt: now,
         cost,
         price,
         floor_price: floor,
@@ -324,6 +335,7 @@ function floorViolation(offer, floor) {
 
 export function checkSaleLocal(body) {
   const { product_group, code, quantity = 1, unit_price, camera_id, customerId, customer_name, customer_email } = body;
+  const channel = body.channel === 'online' ? 'online' : 'counter';
   const qty = num(quantity, 1);
   if (qty <= 0) throw new Error('Số lượng phải > 0');
 
@@ -339,7 +351,7 @@ export function checkSaleLocal(body) {
       .filter((r) => r.sku_code === sku && r.quantity > 0)
       .sort((a, b) => String(a.expiry_date).localeCompare(String(b.expiry_date)));
 
-    const totalQty = rows.reduce((s, r) => s + r.quantity, 0);
+    const totalQty = rows.reduce((s, r) => s + num(r.quantity), 0);
     if (totalQty < qty) throw new Error(`Tồn film không đủ. Còn ${totalQty} cuộn`);
 
     const ref = rows[0];
@@ -349,8 +361,8 @@ export function checkSaleLocal(body) {
 
     let left = qty;
     for (const batch of all) {
-      if (batch.sku_code !== sku || batch.quantity <= 0 || left <= 0) continue;
-      const take = Math.min(batch.quantity, left);
+      if (batch.sku_code !== sku || left <= 0 || batch.quantity <= 0) continue;
+      const take = Math.min(num(batch.quantity), left);
       batch.quantity -= take;
       totalCost += num(batch.cost) * take;
       left -= take;
@@ -388,6 +400,7 @@ export function checkSaleLocal(body) {
     if (floorMsg) throw new Error(floorMsg);
 
     row.status = 'Da_Ban';
+    row.showOnWeb = false;
     totalCost = trueCost;
     itemName = row.model_name || row.name;
     saveCameraStock(rows);
@@ -411,6 +424,7 @@ export function checkSaleLocal(body) {
     buyerName: customer_name || null,
     buyerEmail: customer_email || null,
     sold_at: new Date().toISOString(),
+    channel: body.channel === 'online' ? 'online' : 'counter',
     _local: true,
   };
 

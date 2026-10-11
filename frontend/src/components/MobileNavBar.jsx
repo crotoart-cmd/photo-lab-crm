@@ -6,26 +6,32 @@ import SubNavBar from './SubNavBar';
 import MobileSyncMenuPanel from './MobileSyncMenuPanel';
 import { IconPersonAdd } from './icons/tabBarIcons';
 import { useMobileSyncStatus } from '../hooks/useMobileSyncStatus';
+import AdminWebInbox, { NavCountBadge } from './AdminWebInbox';
+import { useWebInbox } from '../context/WebInboxContext';
 
 export default function MobileNavBar({ user, isOwner, onLogout, open, onOpenChange }) {
   const location = useLocation();
   const setOpen = (value) => onOpenChange?.(value);
   const customersActive = location.pathname.startsWith('/customers');
   const { hasAttention } = useMobileSyncStatus();
+  const { badgeFor } = useWebInbox();
 
   return (
     <>
       <SubNavBar
         className="mobile-shell-only"
         leading={(
-          <div className="relative shrink-0">
-            <BrandLogo size="sm" onClick={() => setOpen(true)} />
-            {hasAttention && (
-              <span
-                className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-[var(--color-orange)] ring-2 ring-white"
-                aria-hidden
-              />
-            )}
+          <div className="flex items-center gap-1 shrink-0">
+            <div className="relative">
+              <BrandLogo size="sm" onClick={() => setOpen(true)} />
+              {hasAttention && (
+                <span
+                  className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-[var(--color-orange)] ring-2 ring-white"
+                  aria-hidden
+                />
+              )}
+            </div>
+            <AdminWebInbox variant="toolbar" />
           </div>
         )}
         rightAction="icon"
@@ -67,6 +73,7 @@ export default function MobileNavBar({ user, isOwner, onLogout, open, onOpenChan
                       >
                         <NavItemIcon item={item} />
                         {item.label}
+                        <NavCountBadge count={badgeFor(item.to)} />
                       </NavLink>
                     );
                   })}

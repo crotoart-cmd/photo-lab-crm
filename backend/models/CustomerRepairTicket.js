@@ -73,7 +73,7 @@ const customerRepairTicketSchema = new mongoose.Schema({
   quote_email_sent_at: Date,
   ready_email_sent_at: Date,
 
-  received_at: { type: Date, default: Date.now },
+  received_at: Date,
   quote_sent_at: Date,
   repair_started_at: Date,
   completed_at: Date,

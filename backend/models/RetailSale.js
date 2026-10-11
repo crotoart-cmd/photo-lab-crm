@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const retailSaleSchema = new mongoose.Schema({
   sale_code: { type: String, required: true, unique: true, index: true },
-  product_group: { type: String, enum: ['film', 'battery', 'camera'], required: true },
+  product_group: { type: String, enum: ['film', 'battery', 'camera', 'merch'], required: true },
+  channel: { type: String, enum: ['counter', 'online'], default: 'counter', index: true },
   code: { type: String, required: true },
   name: { type: String, required: true },
   quantity: { type: Number, required: true, min: 1, default: 1 },

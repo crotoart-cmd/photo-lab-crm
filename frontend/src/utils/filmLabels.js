@@ -1,5 +1,6 @@
 export const STATUS_LABELS = {
-  received: 'Tiếp nhận',
+  web_order: 'Đơn web',
+  received: 'Đã nhận cuộn',
   processing: 'Đang tráng',
   completed: 'Sẵn sàng trả',
   delivered: 'Đã trả',
@@ -26,6 +27,7 @@ export const customerPhone = (film) => film.customerId?.phone || '—';
 export const customerEmail = (film) => film.customerId?.email || '—';
 
 export const FILM_STATUS_PILL = {
+  web_order: 'warning',
   received: 'active',
   processing: 'processing',
   completed: 'success',
@@ -34,6 +36,7 @@ export const FILM_STATUS_PILL = {
 };
 
 export const statusColors = {
+  web_order: 'bg-amber-100 text-amber-800',
   received: 'bg-sky-100 text-sky-700',
   processing: 'bg-amber-100 text-amber-700',
   completed: 'bg-emerald-100 text-emerald-700',

@@ -11,9 +11,10 @@ import {
   refreshRetailDataInBackground,
 } from '../lib/mobileRetailBridge';
 import SmartIntakePanel from '../components/SmartIntakePanel';
-import SmartSalePanel from '../components/SmartSalePanel';
+import ShopOrdersPanel from '../components/retail/ShopOrdersPanel';
 import { IosPage } from '../components/mobile';
-import { IconIntake, IconSale } from '../components/icons/tabBarIcons';
+import { IconIntake, IconSeeMore } from '../components/icons/tabBarIcons';
+import { useWebInbox } from '../context/WebInboxContext';
 import { ICON_SIZE } from '../components/icons/iconSizes';
 import { useToast } from '../context/ToastContext';
 import { RETAIL_DATA_CHANGED } from '../lib/seedTestCameras';
@@ -23,19 +24,16 @@ import {
 } from '../lib/seedLocalTestBundle';
 
 const normalizeTab = (t) => {
-  if (!t || t === 'pos' || t === 'sale') return 'sale';
-  if (t === 'smart' || t === 'stock') return 'intake';
-  return t === 'intake' ? 'intake' : 'sale';
+  if (t === 'orders') return 'orders';
+  return 'intake';
 };
-
-const normalizeIntakeGroup = (g) =>
-  ['camera', 'film', 'battery'].includes(g) ? g : 'camera';
 
 export default function Retail() {
   const mobileInitial = getRetailSnapshotInstant();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [pageTab, setPageTab] = useState(() => normalizeTab(searchParams.get('tab')));
+  const shopBadge = useWebInbox().badgeFor('/retail?tab=orders');
 
   const setRetailTab = (tab) => {
     const id = normalizeTab(tab);
@@ -52,34 +50,16 @@ export default function Retail() {
   const [pendingSync, setPendingSync] = useState(() => getPendingSyncCount());
   const [syncing, setSyncing] = useState(false);
 
-  const [filmSkus, setFilmSkus] = useState(mobileInitial?.filmSkus ?? []);
-  const [batteries, setBatteries] = useState(mobileInitial?.batteries ?? []);
-  const [cameras, setCameras] = useState(mobileInitial?.cameras ?? []);
-
   // —— Nhập kho ——
   const [filmRows, setFilmRows] = useState(mobileInitial?.filmRows ?? []);
   const [batteryRows, setBatteryRows] = useState(mobileInitial?.batteryRows ?? []);
   const [cameraRows, setCameraRows] = useState(mobileInitial?.cameraRows ?? []);
-
-  const loadCatalog = useCallback(async () => {
-    const [skuRes, batRes, camRes] = await Promise.all([
-      api.get('/retail/film-sku'),
-      api.get('/retail/battery-stock'),
-      api.get('/retail/camera-stock', { params: { status: 'San_Hang' } }),
-    ]);
-    setFilmSkus(skuRes.data);
-    setBatteries(batRes.data.filter((b) => b.quantity > 0));
-    setCameras(camRes.data);
-  }, []);
 
   const applySnapshot = useCallback((snap) => {
     setSummary(snap.summary);
     setFilmRows(snap.filmRows ?? []);
     setBatteryRows(snap.batteryRows ?? []);
     setCameraRows(snap.cameraRows ?? []);
-    setFilmSkus(snap.filmSkus ?? []);
-    setBatteries(snap.batteries ?? []);
-    setCameras(snap.cameras ?? []);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -104,9 +84,8 @@ export default function Retail() {
     setFilmRows(filmRes.data);
     setBatteryRows(batRes.data);
     setCameraRows(camRes.data);
-    await loadCatalog();
     return null;
-  }, [loadCatalog, applySnapshot]);
+  }, [applySnapshot]);
 
   useEffect(() => {
     if (isMobileDataEnabled()) {
@@ -169,21 +148,18 @@ export default function Retail() {
   };
 
   useEffect(() => {
-    setPageTab(normalizeTab(searchParams.get('tab')));
-  }, [searchParams]);
+    const tab = normalizeTab(searchParams.get('tab'));
+    setPageTab(tab);
+    if (searchParams.get('tab') !== tab) {
+      navigate(`/retail?tab=${tab}`, { replace: true });
+    }
+  }, [navigate, searchParams]);
 
   return (
     <IosPage>
     <div className="retail-page">
-      <div className={pageTab === 'sale' || pageTab === 'intake' ? 'hidden' : ''}>
-        <PageHeader
-          title="Kho & bán lẻ"
-          subtitle={
-            pageTab === 'sale' || pageTab === 'intake'
-              ? undefined
-              : 'Quét mã · AI Vision · giá nhập → niêm yết → sàn'
-          }
-        />
+      <div className="hidden">
+        <PageHeader title="Shop Products" />
       </div>
 
       {deviceMode && pendingSync > 0 && (
@@ -201,7 +177,7 @@ export default function Retail() {
       )}
 
       {summary && (
-        <div className={`retail-summary-grid mb-4 md:mb-6 ${pageTab === 'sale' || pageTab === 'intake' ? 'hidden' : ''}`}>
+        <div className="retail-summary-grid mb-4 md:mb-6 hidden">
           <div className="retail-stat-pill">
             <p>Lô film</p>
             <p className="text-[var(--color-label)]">{summary.filmBatches}</p>
@@ -234,13 +210,13 @@ export default function Retail() {
       )}
 
       <div
-        className="dashboard-segment-group dashboard-segment-group--row mb-4 desktop-shell-only desktop-shell-flex"
+        className="dashboard-segment-group dashboard-segment-group--row mb-4"
         role="tablist"
-        aria-label="Chế độ kho & bán"
+        aria-label="Shop Products"
       >
         {[
-          { id: 'sale', label: 'Bán hàng', Icon: IconSale },
-          { id: 'intake', label: 'Nhập hàng', Icon: IconIntake },
+          { id: 'intake', label: 'Kho', Icon: IconIntake },
+          { id: 'orders', label: 'Đơn', Icon: IconSeeMore, badge: shopBadge },
         ].map((t) => (
           <button
             key={t.id}
@@ -254,33 +230,23 @@ export default function Retail() {
           >
             <t.Icon size={ICON_SIZE.toolbar} className="shrink-0" aria-hidden />
             {t.label}
+            {t.badge ? <span className="retail-tab-badge">{t.badge}</span> : null}
           </button>
         ))}
       </div>
 
-      {pageTab === 'sale' && (
-        <div className="space-y-3 md:space-y-6">
-          <SmartSalePanel
-            stockSummary={
-              summary
-                ? { ready: summary.cameraReady, sold: summary.cameraSold }
-                : null
-            }
-            readyCameras={cameras}
-            filmSkus={filmSkus}
-            batteries={batteries}
-            onSeedTestCameras={deviceMode ? handleSeedTestCameras : undefined}
-            onCheckoutDone={refresh}
-            onError={showError}
-            onSuccess={showToast}
-          />
-        </div>
+      {pageTab === 'orders' && (
+        <ShopOrdersPanel
+          focusId={searchParams.get('id') || ''}
+          onError={showError}
+          onSuccess={showToast}
+          onChanged={refresh}
+        />
       )}
 
       {pageTab === 'intake' && (
         <div className="retail-intake-page">
           <SmartIntakePanel
-            defaultGroup={normalizeIntakeGroup(searchParams.get('group'))}
             filmRows={filmRows}
             batteryRows={batteryRows}
             cameraRows={cameraRows}
