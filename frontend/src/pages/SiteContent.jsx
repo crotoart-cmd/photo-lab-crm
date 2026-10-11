@@ -94,7 +94,7 @@ export default function SiteContent({ lockType, embedded = false }) {
         type: 'ok',
         text:
           type === 'accessory'
-            ? 'Đã lưu. Bật đăng thì hiện trên /phu-kien.'
+            ? 'Đã lưu. Bật đăng thì hiện trên /shop.'
             : 'Đã lưu. Bật đăng thì hiện trên /blog.',
       });
     } catch (err) {

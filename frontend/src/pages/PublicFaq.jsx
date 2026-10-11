@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PATH } from '../config/publicPaths';
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 
@@ -16,7 +17,7 @@ export default function PublicFaq() {
           <Link to="/film" className="ps-cta ps-cta--fill">
             {t('faq.ctaFilm')}
           </Link>
-          <Link to="/lien-he" className="ps-cta">
+          <Link to={PATH.contact} className="ps-cta">
             {t('faq.ctaContact')}
           </Link>
         </div>

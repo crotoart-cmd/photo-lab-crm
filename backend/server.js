@@ -48,7 +48,9 @@ app.use((req, res, next) => {
     req.path.startsWith('/lien-he') ||
     req.path.startsWith('/faq') ||
     req.path.startsWith('/delivery') ||
-    req.path.startsWith('/repair/confirm')
+    req.path.startsWith('/repair') ||
+    req.path.startsWith('/shop') ||
+    req.path.startsWith('/contact')
   ) {
     return next();
   }
@@ -118,6 +120,8 @@ const afterDatabaseReady = async () => {
     if (process.env.SEED_DEMO_SALES === 'true') {
       await ensureSampleRetailSales();
     }
+    const { ensureShopWebSeed } = require('./services/ensureShopWebSeed');
+    await ensureShopWebSeed();
     console.log(`   Đăng nhập chủ: ${OWNER_EMAIL}`);
 
     if (process.env.AUTO_SEED === 'true') {

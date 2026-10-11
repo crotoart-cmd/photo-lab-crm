@@ -2,7 +2,7 @@ import publicApi from '../api/publicClient';
 
 export async function loadPublicContent() {
   try {
-    const { data } = await publicApi.get('/api/site-content/public');
+    const { data } = await publicApi.get('/site-content/public');
     return {
       blog: Array.isArray(data?.blog) ? data.blog : [],
       accessories: Array.isArray(data?.accessories) ? data.accessories : [],

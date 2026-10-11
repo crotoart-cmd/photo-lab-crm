@@ -6,8 +6,11 @@ import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
 import { LAB_PHOTO } from '../data/publicLabPhotos';
 import { SERVICE_TILES } from '../data/publicLabServices';
+import { PATH } from '../config/publicPaths';
+import publicApi from '../api/publicClient';
 import { loadPublicContent } from '../lib/publicContent';
 import { fallbackBlogPosts, remoteBlogPosts } from '../lib/publicBlog';
+import { formatShopPublicPrice } from '../lib/shopFx';
 
 const FEATURED_IDS = ['trang', 'toc-do', 'scan', 'in-analog'];
 const FEATURED = FEATURED_IDS.map((id) => SERVICE_TILES.find((tile) => tile.id === id)).filter(Boolean);
@@ -143,11 +146,23 @@ function BandHead({ title, lede, actions }) {
 
 export default function PublicHome() {
   const { t, lang } = usePublicLocale();
-  const [extras, setExtras] = useState({ blog: [], accessories: [] });
+  const [extras, setExtras] = useState({ blog: [], accessories: [], shop: [] });
   useEffect(() => {
-    loadPublicContent().then(setExtras);
+    Promise.all([
+      loadPublicContent(),
+      publicApi.get('/public/shop').then(({ data }) => data?.items || []).catch(() => []),
+    ]).then(([content, shop]) => setExtras({ ...content, shop }));
   }, []);
-  const accCards = extras.accessories.length
+  const accCards = extras.shop.length
+    ? extras.shop.slice(0, 4).map((row, i) => ({
+        id: `${row.source}-${row.id}`,
+        title: row.title,
+        note: row.description || row.brand,
+        status: row.available ? formatShopPublicPrice(row.price) : t('acc.sold'),
+        image: row.image,
+        tone: ACC_CARDS[i % ACC_CARDS.length].tone,
+      }))
+    : extras.accessories.length
     ? extras.accessories.map((row, i) => ({
         id: row.id,
         title: row.title,
@@ -187,7 +202,7 @@ export default function PublicHome() {
           <Link to="/film" className="ps-cta ps-cta--fill">
             {t('cta.sendRoll')}
           </Link>
-          <Link to="/sua-may" className="ps-cta">
+          <Link to={PATH.repair} className="ps-cta">
             {t('cta.repair')}
           </Link>
         </div>
@@ -199,7 +214,7 @@ export default function PublicHome() {
         <h2 className="ps-lab-heading">{t('home.services')}</h2>
         <div className="ps-lab-side">
           <p className="ps-lab-intro">{t('home.intro')}</p>
-          <a href="#sua-may-home" className="ps-cta">
+          <a href="#repair-home" className="ps-cta">
             {t('cta.allServices')}
           </a>
         </div>
@@ -208,17 +223,17 @@ export default function PublicHome() {
         </div>
       </section>
 
-      <section id="sua-may-home" className="ps-lab-block ps-band ps-grid">
+      <section id="repair-home" className="ps-lab-block ps-band ps-grid">
         <PsGridFrame tone="band" />
         <BandHead
           title={t('home.bandRepair')}
           lede={t('home.bandRepairP')}
           actions={
             <>
-              <Link to="/sua-may" className="ps-cta">
+              <Link to={PATH.repair} className="ps-cta">
                 {t('cta.sendRepair')}
               </Link>
-              <Link to="/lien-he" className="ps-cta">
+              <Link to={PATH.contact} className="ps-cta">
                 {t('nav.contact')} →
               </Link>
             </>
@@ -233,14 +248,14 @@ export default function PublicHome() {
           title={t('home.bandAcc')}
           lede={t('home.bandAccP')}
           actions={
-            <Link to="/phu-kien" className="ps-cta">
+            <Link to={PATH.shop} className="ps-cta">
               {t('cta.viewAcc')}
             </Link>
           }
         />
         <div className="ps-prod-row">
           {accCards.map((card) => (
-            <Link key={card.id} to="/phu-kien" className="ps-prod">
+            <Link key={card.id} to={PATH.shop} className="ps-prod">
               <PsPhoto src={card.image} tone={card.tone} className="ps-prod-photo" alt={card.title} />
               <h3>{card.title}</h3>
               <div className="ps-prod-meta">

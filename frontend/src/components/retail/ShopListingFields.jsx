@@ -108,7 +108,7 @@ export default function ShopListingFields({ draft, hint }) {
       <label className="shop-listing-row">
         <span>
           <strong>Hiện trên Shop</strong>
-          <small>{hint || 'Khách thấy trên /phu-kien. Đơn vào tab Đơn.'}</small>
+          <small>{hint || 'Khách thấy trên /shop. Đơn vào tab Đơn.'}</small>
         </span>
         <input
           type="checkbox"

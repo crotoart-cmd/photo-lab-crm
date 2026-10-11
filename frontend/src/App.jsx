@@ -26,6 +26,7 @@ import PublicFaq from './pages/PublicFaq';
 import SiteContent from './pages/SiteContent';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
+import { PATH, PATH_REDIRECTS } from './config/publicPaths';
 
 function AdminRedirect() {
   useEffect(() => {
@@ -60,12 +61,15 @@ export default function App() {
           <Route path="/toc-do" element={<PublicSpeed />} />
           <Route path="/in-analog" element={<PublicPrint />} />
           <Route path="/scan" element={<PublicScan />} />
-          <Route path="/sua-may" element={<PublicRepair />} />
-          <Route path="/phu-kien" element={<PublicAccessories />} />
+          <Route path={PATH.repair} element={<PublicRepair />} />
+          <Route path={PATH.shop} element={<PublicAccessories />} />
           <Route path="/blog" element={<PublicBlog />} />
           <Route path="/blog/:slug" element={<PublicBlogPost />} />
-          <Route path="/lien-he" element={<PublicContact />} />
+          <Route path={PATH.contact} element={<PublicContact />} />
           <Route path="/faq" element={<PublicFaq />} />
+          {PATH_REDIRECTS.map((row) => (
+            <Route key={row.from} path={row.from} element={<Navigate to={row.to} replace />} />
+          ))}
         </Route>
         <Route path="/delivery/:slug" element={<DeliveryGallery />} />
         <Route path="/repair/confirm/:token" element={<RepairConfirm />} />

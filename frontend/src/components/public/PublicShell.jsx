@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BRAND_NAME, LOGO_SRC } from '../../config/brand';
+import { PATH } from '../../config/publicPaths';
 import PsGridFrame from './PsGridFrame';
 import { PsLangSwitch, PublicLocaleProvider, usePublicLocale } from './PublicLocale';
 
@@ -13,10 +14,10 @@ const DEV_SCAN_NAV = [
 
 const NAV = [
   { type: 'group', key: 'nav.devScan', children: DEV_SCAN_NAV },
-  { to: '/sua-may', key: 'nav.repair' },
-  { to: '/phu-kien', key: 'nav.acc' },
+  { to: PATH.repair, key: 'nav.repair' },
+  { to: PATH.shop, key: 'nav.acc' },
   { to: '/blog', key: 'nav.blog' },
-  { to: '/lien-he', key: 'nav.contact' },
+  { to: PATH.contact, key: 'nav.contact' },
   { to: '/faq', key: 'nav.faq' },
 ];
 
@@ -233,13 +234,13 @@ function PublicShellInner() {
               <Link to="/scan">{t('nav.scan')}</Link>
             </li>
             <li>
-              <Link to="/phu-kien">{t('nav.acc')}</Link>
+              <Link to={PATH.shop}>{t('nav.acc')}</Link>
             </li>
             <li>
               <Link to="/blog">{t('nav.blog')}</Link>
             </li>
             <li>
-              <Link to="/lien-he">{t('nav.contact')}</Link>
+              <Link to={PATH.contact}>{t('nav.contact')}</Link>
             </li>
             <li>
               <Link to="/faq">{t('nav.faq')}</Link>
@@ -265,7 +266,7 @@ function PublicShellInner() {
               <Link to="/in-analog">{t('nav.print')}</Link>
             </li>
             <li>
-              <Link to="/sua-may">{t('nav.repair')}</Link>
+              <Link to={PATH.repair}>{t('nav.repair')}</Link>
             </li>
             <li>
               <span>{t('foot.shopSoon')}</span>
@@ -275,7 +276,7 @@ function PublicShellInner() {
             <p className="ps-foot-label">{t('foot.contact')}</p>
             <ul>
               <li>
-                <Link to="/lien-he">{t('foot.meet')}</Link>
+                <Link to={PATH.contact}>{t('foot.meet')}</Link>
               </li>
               <li>
                 <span>{t('foot.quoteMail')}</span>
@@ -294,7 +295,7 @@ function PublicShellInner() {
               <Link to="/toc-do">{t('foot.turnaround')}</Link>
             </li>
             <li>
-              <Link to="/sua-may">{t('foot.sendCam')}</Link>
+              <Link to={PATH.repair}>{t('foot.sendCam')}</Link>
             </li>
             <li>
               <Link to="/film">{t('foot.pickup')}</Link>
