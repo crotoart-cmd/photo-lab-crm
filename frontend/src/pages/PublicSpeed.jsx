@@ -1,12 +1,9 @@
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
-import { SPEED_EXPRESS, SPEED_STANDARD } from '../data/publicLabServices';
+import { SPEED_STANDARD } from '../data/publicLabServices';
 
 const TIME_KEY = {
-  '24 giờ': 'time.24h',
-  '48 giờ': 'time.48h',
-  '1 giờ': 'time.1h',
-  '7 ngày': 'time.7d',
+  '2 tuần': 'time.2w',
 };
 
 export default function PublicSpeed() {
@@ -21,6 +18,12 @@ export default function PublicSpeed() {
       </section>
 
       <div className="ps-body ps-grid">
+        <section className="ps-section ps-prose">
+          <h2>{t('speed.whyH')}</h2>
+          <p>{t('speed.whyP')}</p>
+          <p className="ps-note">{t('speed.sunday')}</p>
+        </section>
+
         <section className="ps-section">
           <h2>{t('speed.devScan')}</h2>
           <table className="ps-table">
@@ -41,25 +44,9 @@ export default function PublicSpeed() {
           </table>
         </section>
 
-        <section className="ps-section">
+        <section className="ps-section ps-prose">
           <h2>{t('speed.express')}</h2>
-          <table className="ps-table">
-            <thead>
-              <tr>
-                <th>{t('speed.process')}</th>
-                <th>{t('speed.express')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SPEED_EXPRESS.map((row) => (
-                <tr key={row.process}>
-                  <td>{row.process}</td>
-                  <td>{time(row.time)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="ps-note">{t('speed.solo')}</p>
+          <p>{t('speed.rushOff')}</p>
         </section>
 
         <section className="ps-section">

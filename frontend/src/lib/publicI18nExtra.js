@@ -33,7 +33,7 @@ export const EXTRA_COPY = {
     'blog.p1d': 'October 2026',
     'blog.p1h': 'Fresh chemistry, on a calendar',
     'blog.p1p':
-      'C-41 on the Noritsu V-30, B&W and ECN-2 on Jobo ATL-3000 / CPA-2, E-6 on the same Jobo line. Tanks are mixed and checked on a schedule, not when a roll “looks off”. That quiet work is why a standard C-41 can leave in 24 hours.',
+      'C-41 on the Noritsu V-30, B&W and ECN-2 on Jobo ATL-3000 / CPA-2, E-6 on the same Jobo line. Tanks are mixed and checked on a schedule, not when a roll “looks off”. While the lab is new we wait for a full batch — that is why develop and return take about two weeks, Sundays not counted.',
     'blog.p2d': 'September 2026',
     'blog.p2h': 'Noritsu, Frontier, or the Heidelberg',
     'blog.p2p':
@@ -51,7 +51,7 @@ export const EXTRA_COPY = {
     'faq.a1': 'Yes. Every common disposable we see at intake.',
     'faq.q2': 'What is your turnaround?',
     'faq.a2':
-      'Standard C-41 is 24 hours. B&W and ECN-2 48 hours. E-6 seven days. Rush exists for some processes — see Turnaround. Same-day C-41 depends on how full the machine is. One roll processed alone adds 48 hours.',
+      'About two weeks for C-41, B&W, ECN-2 and E-6. Sundays are not counted. The lab is newly open: we batch chemistry and machines to keep operating cost — and the price — down. Rush is not offered for now. See Turnaround.',
     'faq.q3': 'Do I get my negatives back?',
     'faq.a3':
       'Yes, unless you chose discard. We hold them 30 days from drop-off. If you send rolls in, return shipping can go on the ticket. If you do not want them back, say so there.',
@@ -130,7 +130,7 @@ export const EXTRA_COPY = {
     'blog.p1d': 'Tháng 10 2026',
     'blog.p1h': 'Hóa chất mới, theo lịch',
     'blog.p1p':
-      'C-41 trên Noritsu V-30, B&W và ECN-2 trên Jobo ATL-3000 / CPA-2, E-6 cùng line Jobo. Tank pha và kiểm theo lịch, không đợi cuộn “trông lạ”. Việc im đó là lý do C-41 chuẩn ra 24 giờ.',
+      'C-41 trên Noritsu V-30, B&W và ECN-2 trên Jobo ATL-3000 / CPA-2, E-6 cùng line Jobo. Tank pha và kiểm theo lịch, không đợi cuộn “trông lạ”. Lab mới nên gom đủ mẻ — nhận tráng và trả ảnh khoảng 2 tuần, không tính Chủ nhật.',
     'blog.p2d': 'Tháng 9 2026',
     'blog.p2h': 'Noritsu, Frontier, hay Heidelberg',
     'blog.p2p':
@@ -148,7 +148,7 @@ export const EXTRA_COPY = {
     'faq.a1': 'Có. Mọi disposable lab thường gặp khi tiếp nhận.',
     'faq.q2': 'Tốc độ bao lâu?',
     'faq.a2':
-      'C-41 chuẩn 24 giờ. B&W và ECN-2 48 giờ. E-6 bảy ngày. Có gấp — xem Tốc độ. C-41 trong ngày tùy mẻ. Một cuộn xử lý riêng cộng 48 giờ.',
+      'Khoảng 2 tuần cho C-41, B&W, ECN-2 và E-6. Không tính Chủ nhật. Lab mới hoạt động: gom mẻ hóa chất và máy để tối ưu chi phí — và giữ giá thấp. Hiện không nhận gấp. Xem Tốc độ.',
     'faq.q3': 'Có nhận lại negatives không?',
     'faq.a3':
       'Có, trừ khi chọn hủy. Giữ 30 ngày từ lúc gửi. Gửi ship thì phí về nhà ghi trên phiếu. Không giữ thì ghi rõ.',
@@ -224,7 +224,7 @@ export const EXTRA_COPY = {
     'blog.p1d': 'Oktober 2026',
     'blog.p1h': 'Frische Chemie, nach Kalender',
     'blog.p1p':
-      'C-41 auf Noritsu V-30, S/W und ECN-2 auf Jobo ATL-3000 / CPA-2, E-6 dieselbe Jobo-Linie. Tanks nach Plan, nicht wenn eine Rolle „komisch“ aussieht. Deshalb Standard-C-41 in 24 Stunden.',
+      'C-41 auf Noritsu V-30, S/W und ECN-2 auf Jobo ATL-3000 / CPA-2, E-6 dieselbe Jobo-Linie. Tanks nach Plan. Solange das Labor neu ist, warten wir auf eine volle Charge — Annahme und Rückgabe etwa zwei Wochen, sonntags nicht gezählt.',
     'blog.p2d': 'September 2026',
     'blog.p2h': 'Noritsu, Frontier oder Heidelberg',
     'blog.p2p':
@@ -242,7 +242,7 @@ export const EXTRA_COPY = {
     'faq.a1': 'Ja. Jede gängige Einwegkamera bei der Annahme.',
     'faq.q2': 'Laufzeit?',
     'faq.a2':
-      'C-41 Standard 24 Stunden. S/W und ECN-2 48 Stunden. E-6 sieben Tage. Express: siehe Laufzeit. Eine Rolle allein: plus 48 Stunden.',
+      'Etwa zwei Wochen für C-41, S/W, ECN-2 und E-6. Sonntage zählen nicht. Das Labor ist neu: Chargen halten Chemie und Preis. Express vorerst nicht. Siehe Laufzeit.',
     'faq.q3': 'Negative zurück?',
     'faq.a3': 'Ja, außer Entsorgung. 30 Tage ab Abgabe. Versand kann auf den Schein. Nicht behalten: vermerken.',
     'faq.q4': 'Welcher Scanner?',
@@ -310,7 +310,7 @@ export const EXTRA_COPY = {
     'blog.p1d': 'Octubre 2026',
     'blog.p1h': 'Química nueva, con calendario',
     'blog.p1p':
-      'C-41 en Noritsu V-30, B&N y ECN-2 en Jobo ATL-3000 / CPA-2, E-6 en la misma línea Jobo. Tanques según calendario. Por eso el C-41 estándar sale en 24 horas.',
+      'C-41 en Noritsu V-30, B&N y ECN-2 en Jobo ATL-3000 / CPA-2, E-6 en la misma línea Jobo. Tanques según calendario. El lab es nuevo: esperamos tanda completa — entrega y devolución unas dos semanas, sin contar domingo.',
     'blog.p2d': 'Septiembre 2026',
     'blog.p2h': 'Noritsu, Frontier o Heidelberg',
     'blog.p2p':
@@ -328,7 +328,7 @@ export const EXTRA_COPY = {
     'faq.a1': 'Sí. Cualquier desechable habitual en la recepción.',
     'faq.q2': '¿Plazos?',
     'faq.a2':
-      'C-41 estándar 24 horas. B&N y ECN-2 48 horas. E-6 siete días. Urgente: ver Plazos. Un rollo solo: más 48 horas.',
+      'Unas dos semanas para C-41, B&N, ECN-2 y E-6. Los domingos no cuentan. El lab acaba de abrir: tandas para química y precio. De momento no hay urgente. Ver Plazos.',
     'faq.q3': '¿Devuelven los negativos?',
     'faq.a3': 'Sí, salvo descarte. 30 días desde la entrega. El envío de vuelta puede ir en la ficha.',
     'faq.q4': '¿Qué escáner?',
