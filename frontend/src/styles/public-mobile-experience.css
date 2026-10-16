@@ -33,50 +33,66 @@
   }
 
   .public-site--mobile .ps-mtabs {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: center;
-    justify-content: space-between;
     left: 8px;
     right: 8px;
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     width: auto;
-    max-width: 448px;
-    height: 60px;
+    max-width: 480px;
+    height: 82px;
     margin: 0 auto;
-    padding: 6px;
-    border: 1px solid #e5e7e9;
-    border-radius: 999px;
+    padding: 0 3px;
+    border: 1px solid #e6e6e6;
+    border-radius: 20px;
     background: #fff;
-    box-shadow: 0 6px 20px rgba(30, 35, 40, 0.1), 0 2px 4px rgba(30, 35, 40, 0.03);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
   }
 
   .public-site--mobile .ps-mtabs :is(a, button) {
-    flex: 1 1 0;
-    flex-direction: row;
-    gap: 0;
-    width: auto;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
     min-width: 44px;
-    min-height: 46px;
-    height: 46px;
-    padding: 0;
-    border-radius: 999px;
+    min-height: 80px;
+    height: 80px;
+    padding: 12px 1px 16px;
+    border-radius: 8px;
     background: transparent;
-    color: #707780;
-    font-size: 13px;
-    font-weight: 550;
+    color: #757575;
+    font-size: 12px;
+    font-weight: 500;
     line-height: 1.2;
     overflow-wrap: normal;
     -webkit-tap-highlight-color: transparent;
-    transition: color 160ms ease, background-color 160ms ease, transform 120ms ease;
+    transition: color 160ms ease, background-color 160ms ease;
   }
 
   .public-site--mobile .ps-mtabs .is-on {
-    flex: 0 1 auto;
-    gap: 7px;
-    padding: 0 12px;
-    background: #f0f2f3;
-    color: #424a54;
-    font-weight: 650;
+    background: transparent;
+    color: #202020;
+    font-weight: 600;
+  }
+
+  .public-site--mobile .ps-mtabs :is(a, button)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 16px);
+    width: 32px;
+    height: 4px;
+    border-radius: 4px 4px 0 0;
+    background: #202020;
+    opacity: 0;
+    transform: scaleX(0.4);
+    transition: opacity 160ms ease, transform 180ms ease;
+  }
+
+  .public-site--mobile .ps-mtabs .is-on::after {
+    opacity: 1;
+    transform: scaleX(1);
   }
 
   .public-site--mobile .ps-mtabs .ps-mtab-symbol {
@@ -89,17 +105,14 @@
     border-radius: 0;
     background: transparent;
     color: inherit;
+    transition: transform 120ms ease;
   }
 
   .public-site--mobile .ps-mtabs .ps-mtab-label {
-    display: none;
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  .public-site--mobile .ps-mtabs .is-on .ps-mtab-label {
     display: block;
-    animation: pm-tab-label-in 160ms ease-out;
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
   }
 
   .public-site--mobile .ps-mtabs .is-on svg {
@@ -107,13 +120,17 @@
   }
 
   .public-site--mobile .ps-mtabs :is(a, button):active {
-    transform: scale(0.95);
-    background: #e7eaed;
+    background: #f7f7f7;
+    color: #202020;
+  }
+
+  .public-site--mobile .ps-mtabs :is(a, button):active .ps-mtab-symbol {
+    transform: scale(0.92);
   }
 
   .public-site--mobile .ps-mtabs :is(a, button):focus-visible {
-    outline: 2px solid #697581;
-    outline-offset: 2px;
+    outline: 2px solid #202020;
+    outline-offset: -4px;
   }
 
   .pm-frame-favorite.is-on [data-icon="favorite"] svg,
@@ -121,29 +138,17 @@
     fill: currentColor;
   }
 
-  @keyframes pm-tab-label-in {
-    from { opacity: 0; transform: translateX(-3px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  @media (max-width: 359px) {
-    .public-site--mobile .ps-mtabs .is-on {
-      gap: 6px;
-      padding: 0 6px;
-      font-size: 12px;
-    }
-  }
-
   @media (hover: hover) {
     .public-site--mobile .ps-mtabs :is(a, button):not(.is-on):hover {
-      background: #f5f6f7;
-      color: #424a54;
+      background: #f7f7f7;
+      color: #202020;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .public-site--mobile .ps-mtabs :is(a, button),
-    .public-site--mobile .ps-mtabs .ps-mtab-label {
+    .public-site--mobile .ps-mtabs :is(a, button)::after,
+    .public-site--mobile .ps-mtabs .ps-mtab-symbol {
       transition: none;
       animation: none;
     }

@@ -6,8 +6,8 @@ import { usePublicLocale } from './PublicLocale';
 
 const TABS = [
   { to: '/', key: 'mpage.home', id: 'today', icon: 'home' },
-  { to: PATH.film, key: 'nav.film', id: 'film', icon: 'movie' },
-  { to: PATH.repair, key: 'nav.repair', id: 'repair', icon: 'build' },
+  { to: PATH.film, key: 'nav.film', labelKey: 'mtab.film', id: 'film', icon: 'movie' },
+  { to: PATH.repair, key: 'nav.repair', labelKey: 'mtab.repair', id: 'repair', icon: 'build' },
   { to: PATH.shop, key: 'mtab.shop', id: 'shop', icon: 'storefront' },
 ];
 const MORE = [
@@ -76,7 +76,7 @@ export default function PublicMobileTabs() {
           return (
             <Link key={tab.id} to={tab.to} className={active ? 'is-on' : ''} aria-current={current ? 'page' : undefined} aria-label={t(tab.key)} title={t(tab.key)}>
               <span className="ps-mtab-symbol" aria-hidden><PublicMobileIcon name={tab.icon} /></span>
-              <span className="ps-mtab-label" aria-hidden="true">{t(tab.key)}</span>
+              <span className="ps-mtab-label" aria-hidden="true">{t(tab.labelKey || tab.key)}</span>
             </Link>
           );
         })}
