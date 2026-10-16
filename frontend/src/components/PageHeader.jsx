@@ -1,6 +1,6 @@
-export default function PageHeader({ title, subtitle, children }) {
+export default function PageHeader({ title, subtitle, children, className = '' }) {
   return (
-    <header className="mb-4 md:mb-8 flex flex-wrap items-end justify-between gap-3 md:gap-4">
+    <header className={`mb-4 md:mb-8 flex flex-wrap items-end justify-between gap-3 md:gap-4 ${className}`.trim()}>
       <div className="min-w-0">
         <h1 className="apple-page-title">{title}</h1>
         {subtitle && <p className="apple-page-subtitle">{subtitle}</p>}

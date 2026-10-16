@@ -1,8 +1,8 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
+const { issueSession } = require('../lib/authSession');
 const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
-const { OWNER_EMAIL, isOwnerRole } = require('../config/users');
+const { isOwnerRole } = require('../config/users');
 const { authWithUser } = require('../middleware/authz');
 
 const router = express.Router();
@@ -17,6 +17,13 @@ const publicUser = (user) => ({
 });
 
 const { verifyToken } = require('../middleware/verifyToken');
+const { rateLimit } = require('../middleware/rateLimit');
+const { noStore } = require('../middleware/security');
+const {
+  clearSessionCookie,
+} = require('../lib/sessionCookie');
+
+router.use(noStore);
 
 /** Đăng ký công khai đã tắt — tạo nhân viên qua POST /api/users (chủ hệ thống). */
 router.post('/register', (_req, res) => {
@@ -35,7 +42,7 @@ router.patch(
   [
     body('name').optional().notEmpty().withMessage('Tên không được trống'),
     body('email').optional().isEmail(),
-    body('password').optional().isLength({ min: 6 }),
+    body('password').optional().isString().isLength({ min: 8 }).custom((value) => Buffer.byteLength(value) <= 72),
   ],
   async (req, res) => {
     try {
@@ -65,62 +72,72 @@ router.patch(
       }
 
       await user.save();
-      res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user) });
-    } catch (error) {
-      res.status(500).json({ message: 'Lỗi cập nhật hồ sơ', error: error.message });
+      const refreshed = password ? issueSession(req, res, user) : {};
+      res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...refreshed });
+    } catch (_error) {
+      res.status(500).json({ message: 'Lỗi cập nhật hồ sơ' });
     }
   }
 );
 
-// Login
-router.post('/login', [
-  body('email').isEmail(),
-  body('password').notEmpty(),
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+const LOGIN_FAIL = 'Email hoặc mật khẩu không đúng';
 
-    const email = String(req.body.email || '').trim().toLowerCase();
-    const { password } = req.body;
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      const { OWNER_EMAIL, OWNER_PASSWORD, OWNER_NAME } = require('../config/users');
-      if (email === OWNER_EMAIL) {
-        const { ensureOwner } = require('../services/ensureOwner');
-        user = await ensureOwner();
-      } else {
-        return res.status(400).json({ message: 'Không tìm thấy tài khoản với email này' });
+router.post(
+  '/login',
+  rateLimit({
+    max: 10,
+    windowMs: 15 * 60 * 1000,
+    bucket: 'login',
+    message: 'Thử đăng nhập quá nhiều. Đợi 15 phút rồi thử lại.',
+  }),
+  [body('email').isEmail(), body('password').notEmpty()],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ message: LOGIN_FAIL });
       }
+
+      if (!process.env.JWT_SECRET) {
+        return res.status(500).json({ message: 'Máy chủ chưa cấu hình xác thực' });
+      }
+
+      const email = String(req.body.email || '').trim().toLowerCase();
+      const { password } = req.body;
+      const user = await User.findOne({ email });
+
+      if (!user || user.status !== 'active') {
+        return res.status(401).json({ message: LOGIN_FAIL });
+      }
+
+      const isPasswordValid = await user.matchPassword(password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: LOGIN_FAIL });
+      }
+
+      const role = isOwnerRole(user.role) ? 'owner' : 'staff';
+      const session = issueSession(req, res, user);
+      const payload = {
+        message: 'Login successful',
+        user: publicUser(user),
+        isOwner: role === 'owner',
+        cookieSession: true,
+      };
+      Object.assign(payload, session);
+      res.json(payload);
+    } catch (_error) {
+      res.status(500).json({ message: 'Không đăng nhập được' });
     }
+  }
+);
 
-    if (user.status !== 'active') {
-      return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
-    }
-
-    const isPasswordValid = await user.matchPassword(password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: 'Mật khẩu không đúng' });
-    }
-
-    const role = isOwnerRole(user.role) ? 'owner' : 'staff';
-    const token = jwt.sign(
-      { userId: user._id, role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
-    );
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: publicUser(user),
-      isOwner: role === 'owner',
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+router.post('/logout', verifyToken, async (req, res) => {
+  try {
+    await User.updateOne({ _id: req.userId }, { $inc: { sessionVersion: 1 } });
+    clearSessionCookie(res);
+    res.json({ ok: true });
+  } catch (_error) {
+    res.status(500).json({ message: 'Không đăng xuất được' });
   }
 });
 

@@ -1,11 +1,15 @@
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
+import { PublicMobilePrint } from '../components/public/PublicMobileService';
 import { LAB_PHOTO } from '../data/publicLabPhotos';
 
 export default function PublicPrint() {
   const { t } = usePublicLocale();
   return (
+    <>
+    <PublicMobilePrint />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-page-hero--photo ps-grid">
         <p className="ps-kicker">{t('kicker.service')}</p>
@@ -21,5 +25,7 @@ export default function PublicPrint() {
         </section>
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

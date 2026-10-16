@@ -115,40 +115,18 @@ export async function verifyDeviceSmtp() {
   return withTimeout(smtp.verify(), 35000, 'Gửi email thử');
 }
 
-const BOOTSTRAP_FLAG = 'nuocleo_device_smtp_bootstrapped';
-
 export async function bootstrapDeviceSmtpFromBuild() {
   if (!supportsDeviceSmtp()) return { ok: false, reason: 'not-native' };
 
   const smtp = getDeviceSmtpPlugin();
   if (!smtp) return { ok: false, reason: 'plugin-missing' };
 
-  const email = (import.meta.env.VITE_DEVICE_SMTP_EMAIL || '').trim();
-  const appPassword = (import.meta.env.VITE_DEVICE_SMTP_PASSWORD || '').replace(/\s/g, '');
-  if (!email || appPassword.length < 16) {
-    return { ok: false, reason: 'no-build-config' };
-  }
-
   try {
     const status = await withTimeout(smtp.isConfigured(), 5000, `Đọc ${vaultLabel()}`);
-    if (status.configured && status.email?.toLowerCase() === email.toLowerCase()) {
-      localStorage.setItem(BOOTSTRAP_FLAG, '1');
+    if (status.configured) {
       return { ok: true, already: true, email: status.email };
     }
-
-    const bootFlag = localStorage.getItem(BOOTSTRAP_FLAG);
-    if (bootFlag === '1' && status.configured) {
-      return { ok: true, already: true, email: status.email };
-    }
-
-    await withTimeout(
-      smtp.saveCredentials({ email, appPassword }),
-      8000,
-      `Lưu ${vaultLabel()}`
-    );
-    localStorage.setItem(BOOTSTRAP_FLAG, '1');
-    const after = await withTimeout(smtp.isConfigured(), 5000, `Đọc ${vaultLabel()}`);
-    return { ok: Boolean(after.configured), email, configured: after.configured };
+    return { ok: false, reason: 'no-build-config' };
   } catch (err) {
     return { ok: false, reason: capPluginErrorMessage(err, 'bootstrap-failed') };
   }
@@ -231,12 +209,7 @@ export async function sendFilmReceiptFromDevice(film) {
 }
 
 export async function sendFilmCompletionFromDevice(film, options = {}) {
-  const galleryUrl =
-    options.galleryUrl ||
-    film.driveWebViewLink ||
-    (film.deliverySlug
-      ? `${(import.meta.env.VITE_FRONTEND_URL || '').replace(/\/$/, '') || 'https://localhost'}/delivery/${film.deliverySlug}`
-      : null);
+  const galleryUrl = options.galleryUrl || film.driveWebViewLink || film.galleryUrl || null;
   const linkKind = options.linkKind || (film.driveWebViewLink ? 'drive' : 'local');
   const ticketNumber = film.ticketNumber || film.filmCode || 'PH';
   return sendHtmlFromDevice({

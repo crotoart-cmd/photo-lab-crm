@@ -1,0 +1,211 @@
+@media (max-width: 767px) {
+  .pm-mobile-brand {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    min-height: 44px;
+    max-width: calc(100% - 64px);
+    text-decoration: none;
+  }
+
+  .pm-mobile-brand img {
+    display: block;
+    width: 156px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .pm-gallery-nav .pm-mobile-brand {
+    justify-self: center;
+    max-width: 100%;
+  }
+
+  .pm-home-blog,
+  .pm-home-shop {
+    padding-top: 28px;
+    scroll-margin-top: 20px;
+  }
+
+  .pm-section-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .pm-section-more .pm-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  .pm-blog-feature,
+  .pm-blog-row {
+    display: block;
+    color: #242424;
+  }
+
+  .pm-blog-feature {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 14px;
+    min-height: 128px;
+    padding-bottom: 16px;
+  }
+
+  .pm-blog-feature .pm-blog-photo {
+    width: 96px;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+
+  .pm-blog-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pm-blog-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0 0 8px;
+    color: #777;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .pm-blog-copy {
+    min-width: 0;
+  }
+
+  .pm-blog-copy h3 {
+    margin: 0;
+    font-weight: 550;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .pm-blog-feature h3 {
+    font-size: 19px;
+  }
+
+  .pm-blog-row {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 14px;
+    min-height: 108px;
+    border-top: 1px solid #dedede;
+    padding: 16px 0;
+  }
+
+  .pm-blog-row .pm-blog-photo {
+    width: 76px;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+
+  .pm-blog-row h3 {
+    font-size: 15px;
+  }
+
+  .pm-blog-feature > .pm-icon,
+  .pm-blog-row > .pm-icon {
+    width: 20px;
+    height: 20px;
+    color: #666;
+    font-size: 20px;
+  }
+
+  .pm-home-shop {
+    margin-top: 8px;
+    border-top: 1px solid #dedede;
+  }
+
+  .pm-home-products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 12px;
+  }
+
+  .public-site--mobile .pm-home-product {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: #fff;
+    color: #242424;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .pm-product-photo {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f4f4f4;
+  }
+
+  .pm-product-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .pm-product-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    min-height: 104px;
+    padding-top: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .pm-product-copy small {
+    color: #777;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .pm-product-copy b {
+    font-size: 15px;
+    font-weight: 550;
+    line-height: 1.4;
+  }
+
+  .pm-product-copy > span {
+    margin-top: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .pm-product-copy .pm-product-sold {
+    color: #777;
+  }
+
+  .pm-home-shop-empty {
+    margin: 0;
+    border-bottom: 1px solid #dedede;
+    padding: 24px 0;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}

@@ -77,7 +77,7 @@ npm start
 ## Cấu Trúc Dự Án
 
 ```
-nuoc-leo-crm/   (web: https://hdtlabx.com)
+HDTLabx/   (web: https://hdtlabx.com)
 ├── backend/
 │   ├── models/
 │   ├── routes/

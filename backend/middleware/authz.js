@@ -11,8 +11,8 @@ const loadUser = async (req, res, next) => {
     req.user = user;
     req.userRole = user.role;
     next();
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi xác thực', error: error.message });
+  } catch (_error) {
+    res.status(500).json({ message: 'Lỗi xác thực' });
   }
 };
 

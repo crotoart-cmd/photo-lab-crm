@@ -210,7 +210,7 @@ export default function Retail() {
       )}
 
       <div
-        className="dashboard-segment-group dashboard-segment-group--row mb-4"
+        className="dashboard-segment-group dashboard-segment-group--row shop-desk-tabs mb-4"
         role="tablist"
         aria-label="Shop Products"
       >

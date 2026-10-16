@@ -25,6 +25,10 @@
 @import './styles/lab-ios.css';
 @import './styles/intake-checklist-ios.css';
 @import './styles/public-site.css';
+@import './styles/public-mobile-customer.css';
+@import './styles/public-mobile-experience.css';
+@import './styles/public-mobile-repair.css';
+@import './styles/public-mobile-home-content.css';
 
 @tailwind base;
 @tailwind components;

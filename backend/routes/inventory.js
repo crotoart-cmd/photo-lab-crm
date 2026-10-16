@@ -2,6 +2,7 @@ const express = require('express');
 const Inventory = require('../models/Inventory');
 const InventoryLog = require('../models/InventoryLog');
 const { verifyToken } = require('./auth');
+const { authWithUser, requireOwner } = require('../middleware/authz');
 const { createInventoryLog } = require('../services/inventoryService');
 
 const router = express.Router();
@@ -223,7 +224,7 @@ router.get('/meta/alerts', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', ...authWithUser, requireOwner, async (req, res) => {
   try {
     const item = await Inventory.findByIdAndDelete(req.params.id);
     if (!item) {

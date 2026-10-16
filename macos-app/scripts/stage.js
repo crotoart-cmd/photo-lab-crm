@@ -9,7 +9,7 @@ const backendSrc = path.join(projectRoot, 'backend');
 const backendDst = path.join(staging, 'backend');
 const frontendDst = path.join(staging, 'frontend');
 
-const IGNORE = new Set(['node_modules', 'uploads', '.env', 'credentials.json']);
+const IGNORE = new Set(['node_modules', 'uploads', 'backups', '.env', 'credentials.json']);
 
 function copyDir(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
@@ -23,24 +23,6 @@ function copyDir(src, dst) {
   }
 }
 
-function writeDesktopEnv() {
-  const envPath = path.join(backendDst, '.env');
-  const lines = [
-    'PORT=59101',
-    'USE_MEMORY_DB=true',
-    'NODE_ENV=production',
-    'JWT_SECRET=nuoc_leo_desktop_local_secret_change_me',
-    'JWT_EXPIRE=30d',
-    'OWNER_EMAIL=crotoart@gmail.com',
-    'OWNER_PASSWORD=123456',
-    'OWNER_NAME=Crotoart Admin',
-    'BRAND_NAME=HDTLabx',
-    'STORE_NAME=HDTLabx',
-    'FRONTEND_URL=http://127.0.0.1:59102',
-  ];
-  fs.writeFileSync(envPath, `${lines.join('\n')}\n`);
-}
-
 fs.rmSync(staging, { recursive: true, force: true });
 fs.mkdirSync(staging, { recursive: true });
 
@@ -51,7 +33,6 @@ if (!fs.existsSync(path.join(dist, 'index.html'))) {
 }
 
 copyDir(backendSrc, backendDst);
-writeDesktopEnv();
 fs.cpSync(dist, frontendDst, { recursive: true });
 
 console.log('📦 Staging backend + frontend...');

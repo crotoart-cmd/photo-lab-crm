@@ -10,6 +10,7 @@ import {
   parsePostBody,
   remoteBlogPosts,
 } from '../lib/publicBlog';
+import { PublicMobilePost } from '../components/public/PublicMobileMore';
 
 export default function PublicBlogPost() {
   const { slug } = useParams();
@@ -35,13 +36,21 @@ export default function PublicBlogPost() {
 
   if (!post) {
     return (
-      <PsPage>
-        <section className="ps-index" />
-      </PsPage>
+      <>
+        <PublicMobilePost post={null} related={[]} blocks={[]} />
+        <div className="ps-desk">
+          <PsPage>
+            <section className="ps-index" />
+          </PsPage>
+        </div>
+      </>
     );
   }
 
   return (
+    <>
+    <PublicMobilePost post={post} related={related} blocks={blocks} />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-post-hero">
         <PsPhoto src={post.image} tone={post.tone} className="ps-post-hero-photo" alt={post.title} />
@@ -112,5 +121,7 @@ export default function PublicBlogPost() {
         </section>
       ) : null}
     </PsPage>
+    </div>
+    </>
   );
 }

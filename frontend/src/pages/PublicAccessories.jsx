@@ -3,6 +3,7 @@ import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
 import PublicShopOrderSheet from '../components/public/PublicShopOrderSheet';
+import PublicMobileShop from '../components/public/PublicMobileShop';
 import publicApi from '../api/publicClient';
 import { loadPublicContent } from '../lib/publicContent';
 import { formatShopPublicPrice } from '../lib/shopFx';
@@ -86,6 +87,17 @@ export default function PublicAccessories() {
   });
 
   return (
+    <>
+    <PublicMobileShop
+      kinds={KINDS}
+      kind={kind}
+      setKind={setKind}
+      items={items}
+      onBuy={setBuying}
+      kindLabel={(row) => catalogKindLabel(row, t)}
+      priceOf={(row) => formatShopPublicPrice(row.price)}
+    />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-catalog ps-grid">
         <aside className="ps-catalog-side">
@@ -175,15 +187,16 @@ export default function PublicAccessories() {
           })}
         </div>
       </section>
-
-      {buying ? (
-        <PublicShopOrderSheet
-          item={buying}
-          priceLabel={formatShopPublicPrice(buying.price)}
-          onClose={() => setBuying(null)}
-          onOrdered={() => setReloadKey((k) => k + 1)}
-        />
-      ) : null}
     </PsPage>
+    </div>
+    {buying ? (
+      <PublicShopOrderSheet
+        item={buying}
+        priceLabel={formatShopPublicPrice(buying.price)}
+        onClose={() => setBuying(null)}
+        onOrdered={() => setReloadKey((k) => k + 1)}
+      />
+    ) : null}
+    </>
   );
 }

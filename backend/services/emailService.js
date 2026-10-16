@@ -9,6 +9,7 @@ const {
 } = require('../templates/repairServiceEmail');
 const { BRAND_NAME, getLogoAttachment, brandSubject } = require('./emailBranding');
 const { customerForEmail } = require('../utils/customerNormalize');
+const { maskEmail } = require('../lib/httpSafety');
 
 let transporter = null;
 
@@ -37,6 +38,7 @@ const getTransporter = () => {
       process.env.EMAIL_HOST === 'smtp.gmail.com' ||
       /@gmail\.com$/i.test(process.env.EMAIL_USER || '');
 
+    const mailSafety = { disableFileAccess: true, disableUrlAccess: true };
     transporter = useGmail
       ? nodemailer.createTransport({
           service: 'gmail',
@@ -44,6 +46,7 @@ const getTransporter = () => {
             user: process.env.EMAIL_USER,
             pass,
           },
+          ...mailSafety,
         })
       : nodemailer.createTransport({
           host: process.env.EMAIL_HOST,
@@ -53,6 +56,7 @@ const getTransporter = () => {
             user: process.env.EMAIL_USER,
             pass,
           },
+          ...mailSafety,
         });
   }
   return transporter;
@@ -67,7 +71,7 @@ const resolveRecipient = (intendedTo) => {
   if (!isTestRedirectActive()) return intendedTo;
   const override = (process.env.TEST_EMAIL_TO || '').trim();
   if (override.toLowerCase() !== String(intendedTo || '').toLowerCase()) {
-    console.log(`📧 [TEST_EMAIL_TO] ${intendedTo || '(trống)'} → ${override}`);
+    console.log(`📧 [TEST_EMAIL_TO] ${maskEmail(intendedTo)} → ${maskEmail(override)}`);
   }
   return override;
 };
@@ -115,7 +119,7 @@ const sendMail = async ({
   const actualTo = resolveRecipient(to);
 
   if (!transport) {
-    console.log(`📧 [Email skipped - not configured] To: ${actualTo} | ${subject}`);
+    console.log(`📧 [Email skipped - not configured] To: ${maskEmail(actualTo)} | ${subject}`);
     return { sent: false, skipped: true };
   }
 
@@ -323,13 +327,14 @@ const sendRepairIntakeEmail = async (ticket, { phase } = {}) => {
   });
 };
 
-const sendRepairQuoteEmail = async (ticket) => {
+const sendRepairQuoteEmail = async (ticket, { confirmToken } = {}) => {
   const to = ticket.customer_email;
   if (!to) return { sent: false, error: 'Khách chưa có email' };
-  if (!ticket.confirm_token) return { sent: false, error: 'Chưa có mã xác nhận' };
+  const rawToken = confirmToken || ticket.confirm_token;
+  if (!rawToken) return { sent: false, error: 'Chưa có mã xác nhận' };
   const base = repairFrontendBase();
-  const confirmUrl = `${base}/repair/confirm/${ticket.confirm_token}?action=accept`;
-  const declineUrl = `${base}/repair/confirm/${ticket.confirm_token}?action=decline`;
+  const confirmUrl = `${base}/repair/confirm/${rawToken}?action=accept`;
+  const declineUrl = `${base}/repair/confirm/${rawToken}?action=decline`;
   const subject = brandSubject(`Báo giá sửa máy - ${ticket.ticket_number}`);
   const html = buildRepairQuoteEmailHtml(ticket.toObject ? ticket.toObject() : ticket, {
     confirmUrl,

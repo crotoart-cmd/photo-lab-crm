@@ -61,9 +61,9 @@ function searchKey(customer) {
 
 function validateCustomerInput(body) {
   const errors = [];
-  const firstName = normalizeNamePart(body.firstName);
-  const lastName = normalizeNamePart(body.lastName);
-  const email = normalizeEmail(body.email);
+  const firstName = normalizeNamePart(body.firstName).slice(0, 80);
+  const lastName = normalizeNamePart(body.lastName).slice(0, 80);
+  const email = normalizeEmail(body.email).slice(0, 120);
   const phone = normalizePhoneVN(body.phone);
 
   if (!firstName) errors.push('Họ không được trống');
@@ -82,10 +82,10 @@ function validateCustomerInput(body) {
       lastName,
       email,
       phone,
-      address: String(body.address || '').trim(),
-      city: String(body.city || '').trim(),
-      postalCode: String(body.postalCode || '').trim(),
-      notes: String(body.notes || '').trim(),
+      address: String(body.address || '').trim().slice(0, 400),
+      city: String(body.city || '').trim().slice(0, 80),
+      postalCode: String(body.postalCode || '').trim().slice(0, 20),
+      notes: String(body.notes || '').trim().slice(0, 600),
       status: body.status === 'inactive' ? 'inactive' : 'active',
     },
   };

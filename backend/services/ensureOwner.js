@@ -9,6 +9,10 @@ async function ensureOwner() {
 
   let owner = await User.findOne({ email: OWNER_EMAIL });
   if (!owner) {
+    if (!OWNER_PASSWORD) {
+      console.error('❌ OWNER_PASSWORD chưa đặt — không tạo tài khoản chủ');
+      return null;
+    }
     owner = await User.create({
       name: OWNER_NAME,
       email: OWNER_EMAIL,
@@ -16,7 +20,7 @@ async function ensureOwner() {
       role: 'owner',
       status: 'active',
     });
-    console.log(`✅ Đã tạo chủ hệ thống: ${OWNER_EMAIL}`);
+    console.log('✅ Đã tạo chủ hệ thống');
     return owner;
   }
 
@@ -25,8 +29,12 @@ async function ensureOwner() {
   if (owner.name !== OWNER_NAME) owner.name = OWNER_NAME;
 
   if (process.env.RESET_OWNER_PASSWORD === 'true') {
-    owner.password = OWNER_PASSWORD;
-    console.log(`🔑 Đã reset mật khẩu chủ: ${OWNER_EMAIL}`);
+    if (!OWNER_PASSWORD) {
+      console.error('❌ RESET_OWNER_PASSWORD bật nhưng OWNER_PASSWORD trống');
+    } else {
+      owner.password = OWNER_PASSWORD;
+      console.log('🔑 Đã reset mật khẩu chủ');
+    }
   }
 
   await owner.save();

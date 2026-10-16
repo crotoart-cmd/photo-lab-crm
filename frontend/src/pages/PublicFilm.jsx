@@ -3,11 +3,15 @@ import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
 import PublicFilmIntakeForm from '../components/public/PublicFilmIntakeForm';
+import PublicMobileFilm from '../components/public/PublicMobileFilm';
 import { LAB_PHOTO } from '../data/publicLabPhotos';
 
 export default function PublicFilm() {
   const { t } = usePublicLocale();
   return (
+    <>
+    <PublicMobileFilm />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-page-hero--photo ps-grid">
         <p className="ps-kicker">{t('kicker.service')}</p>
@@ -36,5 +40,7 @@ export default function PublicFilm() {
         <PublicFilmIntakeForm />
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

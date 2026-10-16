@@ -46,7 +46,7 @@ export default function NavDrawer({ user, isOwner, onLogout }) {
           {NAV_GROUPS.map((group) => (
             <div key={group.id} className="apple-nav-section">
               <p className="apple-nav-section-label">{group.label}</p>
-              {group.items.map((item) => (
+              {group.items.filter((item) => !item.ownerOnly || isOwner).map((item) => (
                 <NavItem
                   key={`${group.id}-${item.label}`}
                   item={item}

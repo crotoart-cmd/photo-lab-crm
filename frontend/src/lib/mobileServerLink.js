@@ -3,6 +3,7 @@
  * JWT backup dùng riêng để đẩy hàng chờ lên server mà không phụ thuộc phiên máy.
  */
 import api from '../api/client';
+import { isMobileDataEnabled } from './mobileLocalDb';
 
 const BACKUP_JWT_KEY = 'nuocleo_server_jwt';
 
@@ -34,12 +35,10 @@ export function hasBackupSession() {
 /** Gọi API backup — không chặn thao tác trên máy nếu server không tới được. */
 export async function backupApi(config) {
   const jwt = getBackupJwt();
-  if (!jwt) return null;
+  if (!jwt && isMobileDataEnabled()) return null;
 
-  const headers = {
-    ...(config.headers || {}),
-    Authorization: `Bearer ${jwt}`,
-  };
+  const headers = { ...(config.headers || {}) };
+  if (jwt) headers.Authorization = `Bearer ${jwt}`;
 
   return api({
     ...config,

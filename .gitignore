@@ -42,6 +42,10 @@ coverage/
 # Misc
 *.log
 
+# Mobile backups (PII) — không commit
+backend/backups/
+backend/backups/**
+
 # Uploaded delivery scans (keep folder via .gitkeep)
 backend/uploads/delivery/*
 !backend/uploads/delivery/.gitkeep

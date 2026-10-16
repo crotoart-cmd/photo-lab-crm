@@ -16,16 +16,15 @@ const {
 } = require('../utils/intakeChecklist');
 const { consumeChemicalsForFilm } = require('../services/inventoryService');
 const crypto = require('crypto');
-const path = require('path');
 const multer = require('multer');
-const MulterError = multer.MulterError;
+const { DELIVERY_TYPES, uploadFilename, uploadFilter, secureUpload } = require('../lib/uploads');
 const {
   ensureDeliveryFolder,
   addUploadedFiles,
   getDeliveryDir,
-  getPublicGalleryUrl,
-  sanitizeFilename,
+  issueDeliveryAccess,
 } = require('../services/deliveryFolderService');
+const { rateLimit } = require('../middleware/rateLimit');
 const {
   isGoogleDriveConfigured,
   uploadFilmDeliveryToDrive,
@@ -39,46 +38,16 @@ const deliveryUpload = multer({
       cb(null, getDeliveryDir(req.deliverySlug));
     },
     filename: (_req, file, cb) => {
-      cb(null, `${Date.now()}-${sanitizeFilename(file.originalname)}`);
+      cb(null, uploadFilename(file));
     },
   }),
-  limits: { fileSize: 100 * 1024 * 1024, files: 40 },
-  fileFilter: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || '').toLowerCase();
-    const allowedExt = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.tif', '.tiff', '.heic', '.heif', '.pdf'];
-    const okMime =
-      /^image\//.test(file.mimetype) ||
-      file.mimetype === 'application/pdf' ||
-      file.mimetype === 'image/heic' ||
-      file.mimetype === 'image/heif';
-    const okExt =
-      allowedExt.includes(ext) &&
-      (!file.mimetype || file.mimetype === 'application/octet-stream');
-    if (okMime || okExt) {
-      cb(null, true);
-    } else {
-      cb(new Error(`Định dạng không hỗ trợ: ${file.originalname || file.mimetype}`));
-    }
-  },
+  limits: { fileSize: 40 * 1024 * 1024, files: 15, fields: 10, parts: 25, fieldSize: 32 * 1024, fieldNameSize: 100, fieldArrayIndexLimit: 20 },
+  fileFilter: uploadFilter(DELIVERY_TYPES),
 });
 
-const runDeliveryUpload = (req, res, next) => {
-  deliveryUpload.array('files', 40)(req, res, (err) => {
-    if (!err) return next();
-    if (err instanceof MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          message: 'Mỗi file tối đa 100MB — nén ảnh hoặc tách file nhỏ hơn',
-        });
-      }
-      if (err.code === 'LIMIT_FILE_COUNT') {
-        return res.status(400).json({ message: 'Tối đa 40 file mỗi lần tải' });
-      }
-      return res.status(400).json({ message: err.message });
-    }
-    return res.status(400).json({ message: err.message || 'Upload thất bại' });
-  });
-};
+const MAX_DELIVERY_BATCH_BYTES = 200 * 1024 * 1024;
+
+const runDeliveryUpload = secureUpload(deliveryUpload.array('files', 15), DELIVERY_TYPES, MAX_DELIVERY_BATCH_BYTES);
 
 const attachDeliveryFilm = async (req, res, next) => {
   try {
@@ -265,8 +234,7 @@ router.post('/batch/complete', verifyToken, async (req, res) => {
         await film.save();
         success.push({
           id,
-          deliverySlug: film.deliverySlug,
-          galleryUrl: getPublicGalleryUrl(film.deliverySlug),
+          folderReady: true,
         });
       } catch (e) {
         failed.push({ id, message: e.message });
@@ -503,13 +471,10 @@ router.put('/:id/complete', verifyToken, async (req, res) => {
     ensureDeliveryFolder(film);
     await film.save();
 
-    const galleryUrl = getPublicGalleryUrl(film.deliverySlug);
     const updated = await Film.findById(film._id).populate('customerId');
     res.json({
       message: 'Đã hoàn thành tráng — tải ảnh vào folder, sau đó gửi link cho khách',
       film: updated,
-      deliverySlug: film.deliverySlug,
-      galleryUrl,
     });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi hoàn thành tráng', error: error.message });
@@ -520,6 +485,12 @@ router.put('/:id/complete', verifyToken, async (req, res) => {
 router.post(
   '/:id/delivery-files',
   verifyToken,
+  rateLimit({
+    max: 20,
+    windowMs: 60 * 60 * 1000,
+    bucket: 'delivery-upload',
+    message: 'Tải ảnh quá nhiều. Thử lại sau.',
+  }),
   attachDeliveryFilm,
   runDeliveryUpload,
   async (req, res) => {
@@ -541,7 +512,6 @@ router.post(
       res.json({
         message: `Đã tải ${uploaded.length} file vào folder`,
         film: updated,
-        galleryUrl: getPublicGalleryUrl(film.deliverySlug),
         fileCount: film.deliveryFiles.length,
       });
     } catch (error) {
@@ -585,6 +555,19 @@ router.post('/:id/sync-drive', verifyToken, attachDeliveryFilm, async (req, res)
   }
 });
 
+router.post('/:id/delivery-link', verifyToken, attachDeliveryFilm, async (req, res) => {
+  try {
+    const issued = issueDeliveryAccess(req.film);
+    await req.film.save();
+    res.json({
+      galleryUrl: issued.url,
+      message: 'Đã tạo link mới — link cũ (nếu có) không còn dùng được',
+    });
+  } catch (_error) {
+    res.status(500).json({ message: 'Không tạo được link' });
+  }
+});
+
 // Gửi email cho khách — ưu tiên link Google Drive nếu đã cấu hình
 router.post('/:id/send-gallery-link', verifyToken, attachDeliveryFilm, async (req, res) => {
   try {
@@ -600,7 +583,9 @@ router.post('/:id/send-gallery-link', verifyToken, attachDeliveryFilm, async (re
     }
 
     const ticketLabel = film.ticketNumber || film.filmCode;
-    const galleryUrl = getPublicGalleryUrl(film.deliverySlug);
+    const issued = issueDeliveryAccess(film);
+    await film.save();
+    const galleryUrl = issued.url;
     const forceDrive = Boolean(req.body?.force);
     const driveRequired = process.env.GOOGLE_DRIVE_REQUIRED === 'true';
     const useDrive = isGoogleDriveConfigured();

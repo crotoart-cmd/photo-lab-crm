@@ -1,10 +1,11 @@
 {
-  "name": "nuoc-leo-crm-macos",
+  "name": "hdtlabx-macos",
   "version": "1.0.0",
   "description": "HDTLabx — bản cài đặt macOS (tách khỏi dev server)",
   "private": true,
   "main": "electron/main.js",
   "scripts": {
+    "test": "node --test test/*.test.js",
     "dev": "node scripts/dev.js",
     "build:frontend": "node scripts/build-frontend.js",
     "stage": "node scripts/stage.js",
@@ -44,11 +45,11 @@
     }
   },
   "devDependencies": {
-    "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "http-proxy-middleware": "^3.0.3"
+    "express": "^4.22.3",
+    "http-proxy": "^1.18.1"
   }
 }

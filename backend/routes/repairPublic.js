@@ -1,38 +1,37 @@
 const express = require('express');
-const { confirmByToken } = require('../services/customerRepairService');
+const {
+  confirmByToken,
+  findByConfirmToken,
+  isConfirmExpired,
+  mapPublicQuote,
+} = require('../services/customerRepairService');
 const { STATUS_LABELS } = require('../constants/customerRepair');
+const { rateLimit } = require('../middleware/rateLimit');
+const { noStore } = require('../middleware/security');
+const { publicError } = require('../lib/httpSafety');
 
 const router = express.Router();
+const INVALID = 'Link không hợp lệ hoặc đã hết hạn';
 
-/** Xem thông tin phiếu qua token (không lộ toàn bộ DB) */
+router.use(noStore);
+router.use(
+  rateLimit({
+    max: 40,
+    windowMs: 60 * 60 * 1000,
+    bucket: 'repair-public',
+    message: 'Quá nhiều yêu cầu. Thử lại sau.',
+  })
+);
+
 router.get('/:token', async (req, res) => {
   try {
-    const ticket = await require('../models/CustomerRepairTicket')
-      .findOne({ confirm_token: req.params.token })
-      .select(
-        'ticket_number customer_name model_name serial_number quote_amount quote_note quote_lines deposit_amount status confirm_token_expires'
-      )
-      .lean();
-
-    if (!ticket) {
-      return res.status(404).json({ message: 'Link không hợp lệ hoặc đã hết hạn' });
+    const ticket = await findByConfirmToken(req.params.token);
+    if (!ticket || isConfirmExpired(ticket)) {
+      return res.status(404).json({ message: INVALID });
     }
-
-    res.json({
-      ticket_number: ticket.ticket_number,
-      customer_name: ticket.customer_name,
-      model_name: ticket.model_name,
-      serial_number: ticket.serial_number,
-      quote_amount: ticket.quote_amount,
-      quote_note: ticket.quote_note,
-      quote_lines: ticket.quote_lines,
-      deposit_amount: ticket.deposit_amount,
-      status: ticket.status,
-      status_label: STATUS_LABELS[ticket.status],
-      expired: Boolean(ticket.confirm_token_expires && ticket.confirm_token_expires < new Date()),
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi tải phiếu', error: error.message });
+    res.json(mapPublicQuote(ticket));
+  } catch (_error) {
+    res.status(500).json({ message: 'Không tải được phiếu' });
   }
 });
 
@@ -51,11 +50,11 @@ router.post('/:token', async (req, res) => {
       message: accept
         ? 'Cảm ơn bạn — tiệm sẽ tiến hành sửa máy.'
         : 'Đã ghi nhận từ chối báo giá. Vui lòng liên hệ tiệm để nhận lại máy.',
-      ticket,
-      status_label: STATUS_LABELS[ticket.status],
+      status: ticket.status,
+      status_label: STATUS_LABELS[ticket.status] || ticket.status_label,
     });
   } catch (error) {
-    res.status(error.status || 500).json({ message: error.message || 'Lỗi xác nhận', error: error.message });
+    publicError(res, error, 'Không xác nhận được');
   }
 });
 

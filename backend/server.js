@@ -4,16 +4,38 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
+const {
+  applySecurityHeaders,
+  corsOrigin,
+  sanitizeRedirectPath,
+  assertSecurityEnv,
+  allowDemoSeed,
+  trustedProxySetting,
+  sanitizeApiErrors,
+} = require('./middleware/security');
+const { IMAGE_TYPES, uploadResponseHeaders } = require('./lib/uploads');
+const { rateLimit } = require('./middleware/rateLimit');
 
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', trustedProxySetting());
 
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '12mb' }));
-// Không parse multipart — để multer xử lý upload ảnh delivery
-app.use(express.urlencoded({ extended: true }));
+assertSecurityEnv();
+
+app.use(applySecurityHeaders);
+app.use(
+  cors({
+    origin: corsOrigin,
+    credentials: true,
+    optionsSuccessStatus: 204,
+  })
+);
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '4mb' }));
+app.use(express.urlencoded({ extended: false, limit: '32kb' }));
+app.use('/api', sanitizeApiErrors);
+app.use('/api', rateLimit({ max: 300, windowMs: 5 * 60 * 1000, bucket: 'api', message: 'Quá nhiều yêu cầu. Thử lại sau.' }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -30,7 +52,16 @@ app.use('/api/backup', require('./routes/backup'));
 app.use('/api/delivery', require('./routes/deliveryPublic'));
 app.use('/api/public', require('./routes/publicIntake'));
 app.use('/api/site-content', require('./routes/siteContent'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const uploadsRoot = path.join(__dirname, 'uploads');
+app.use(
+  '/uploads/site',
+  (req, res, next) => {
+    if (!uploadResponseHeaders(res, req.path, IMAGE_TYPES)) return res.status(404).end();
+    return next();
+  },
+  express.static(path.join(uploadsRoot, 'site'), { index: false, dotfiles: 'deny' })
+);
 
 const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');
 app.use((req, res, next) => {
@@ -54,7 +85,8 @@ app.use((req, res, next) => {
   ) {
     return next();
   }
-  return res.redirect(302, `${getAdminSiteUrl()}${req.originalUrl || req.path}`);
+  const dest = sanitizeRedirectPath(req.originalUrl || req.path);
+  return res.redirect(302, `${getAdminSiteUrl()}${dest}`);
 });
 
 // Health Check
@@ -69,19 +101,22 @@ const webDistCandidates = [
 ];
 const webDist = webDistCandidates.find((dir) => fs.existsSync(path.join(dir, 'index.html'))) || webDistCandidates[0];
 if (fs.existsSync(path.join(webDist, 'index.html'))) {
-  app.use(express.static(webDist));
+  app.use(express.static(webDist, { index: false, dotfiles: 'deny' }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
       return next();
     }
+    res.setHeader('Cache-Control', 'no-store');
     res.sendFile(path.join(webDist, 'index.html'));
   });
 }
 
-// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  console.error(err?.message || err);
+  if (res.headersSent) return next(err);
+  const requested = Number(err.status);
+  const status = Number.isInteger(requested) && requested >= 400 && requested < 500 ? requested : 500;
+  res.status(status).json({ message: status === 413 ? 'Dữ liệu vượt giới hạn cho phép' : 'Không xử lý được yêu cầu' });
 });
 
 const connectDatabase = async () => {
@@ -113,8 +148,10 @@ const afterDatabaseReady = async () => {
     const { ensureSampleRetailSales } = require('./services/ensureSampleRetailSales');
     const { OWNER_EMAIL } = require('./config/users');
     await ensureOwner();
-    await ensureSampleCustomers();
-    await ensureSampleRepairTickets();
+    if (allowDemoSeed()) {
+      await ensureSampleCustomers();
+      await ensureSampleRepairTickets();
+    }
     // Đơn bán demo (SALE-DEMO-*) chỉ nạp khi bật cờ — tránh thổi phồng
     // doanh thu/đơn trên DB thật (dashboard tính mọi RetailSale).
     if (process.env.SEED_DEMO_SALES === 'true') {
@@ -122,7 +159,11 @@ const afterDatabaseReady = async () => {
     }
     const { ensureShopWebSeed } = require('./services/ensureShopWebSeed');
     await ensureShopWebSeed();
-    console.log(`   Đăng nhập chủ: ${OWNER_EMAIL}`);
+    const { migratePlaintextConfirmTokens } = require('./services/customerRepairService');
+    await migratePlaintextConfirmTokens();
+    if (allowDemoSeed()) {
+      console.log(`   Đăng nhập chủ: ${OWNER_EMAIL}`);
+    }
 
     if (process.env.AUTO_SEED === 'true') {
       const Inventory = require('./models/Inventory');
@@ -191,7 +232,7 @@ const startDatabase = () => {
     });
 };
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, process.env.BIND_HOST || '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 API URL: http://localhost:${PORT}/api`);
   if (fs.existsSync(path.join(webDist, 'index.html'))) {
@@ -200,3 +241,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('✅ Retail: /api/retail (film/pin/máy, smart-intake, smart-sale)');
   startDatabase();
 });
+server.timeout = 30000;
+server.headersTimeout = 35000;
+server.requestTimeout = 30000;

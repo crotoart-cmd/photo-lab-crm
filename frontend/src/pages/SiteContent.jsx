@@ -121,7 +121,7 @@ export default function SiteContent({ lockType, embedded = false }) {
   const editor = (
     <>
       {!embedded ? (
-        <PageHeader title="Blog" subtitle="Bài viết trên /blog. Hàng bán web đăng trong Shop Products → Kho.">
+        <PageHeader className="lab-page-head" title="Blog" subtitle="Bài viết trên /blog. Hàng bán web đăng trong Shop Products → Kho.">
           <button type="button" className="apple-btn-primary btn-pill" onClick={openCreate}>
             Thêm bài
           </button>
@@ -152,12 +152,13 @@ export default function SiteContent({ lockType, embedded = false }) {
         </p>
       ) : null}
 
-      <ul className="mt-4 divide-y divide-[var(--color-separator,rgba(60,60,67,0.12))]">
+      <div className={embedded ? undefined : 'lab-desk'}>
+      <ul className={embedded ? 'mt-4 divide-y divide-[var(--color-separator,rgba(60,60,67,0.12))]' : 'lab-blog-list'}>
         {list.length === 0 ? (
-          <li className="py-6 text-[15px] text-[var(--color-label-secondary)]">
+          <li className="lab-table-empty">
             {type === 'accessory'
               ? 'Chưa có mục trưng bày. Bấm Thêm để gắn ảnh phụ kiện lên website.'
-              : 'Chưa có bài. Bấm Thêm để viết blog.'}
+              : 'Chưa có bài. Bấm Thêm bài để viết.'}
           </li>
         ) : (
           list.map((row) => (
@@ -184,6 +185,7 @@ export default function SiteContent({ lockType, embedded = false }) {
           ))
         )}
       </ul>
+      </div>
 
       {open ? (
       <Modal onClose={() => setOpen(false)} title={editingId ? 'Sửa mục' : 'Thêm mục'}>
@@ -263,5 +265,5 @@ export default function SiteContent({ lockType, embedded = false }) {
   );
 
   if (embedded) return editor;
-  return <LabPageShell>{editor}</LabPageShell>;
+  return <LabPageShell wide>{editor}</LabPageShell>;
 }

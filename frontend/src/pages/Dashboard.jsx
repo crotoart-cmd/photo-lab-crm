@@ -226,6 +226,7 @@ export default function Dashboard() {
         setAnalytics(res.data);
       }
     } catch (err) {
+      if (err.response?.status === 403) return;
       if (!(useMobileBridge && isAuthError(err))) {
         setError(apiErrorMessage(err, 'Không tải được phân tích'));
       }
@@ -248,6 +249,7 @@ export default function Dashboard() {
         setDayAnalytics(res.data);
       }
     } catch (err) {
+      if (err.response?.status === 403) return;
       if (useMobileBridge) {
         setDayAnalytics(mergeLocalDayAnalytics(null));
       } else if (!isAuthError(err)) {

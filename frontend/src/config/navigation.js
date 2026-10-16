@@ -74,7 +74,7 @@ export const NAV_GROUPS = [
     id: 'web',
     label: 'Website',
     items: [
-      { type: 'link', to: '/noi-dung', label: 'Blog', icon: 'article' },
+      { type: 'link', to: '/noi-dung', label: 'Blog', icon: 'article', ownerOnly: true },
     ],
   },
   {

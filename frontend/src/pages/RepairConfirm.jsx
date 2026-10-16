@@ -38,7 +38,11 @@ export default function RepairConfirm() {
     try {
       const { data } = await publicApi.post(`/repair-public/${token}`, { action });
       setDone(data.message);
-      setTicket((t) => (t ? { ...t, status: data.ticket?.status, status_label: data.status_label } : t));
+      setTicket((t) =>
+        t
+          ? { ...t, status: data.status || data.ticket?.status, status_label: data.status_label }
+          : t
+      );
     } catch (err) {
       setError(err.response?.data?.message || 'Xác nhận thất bại');
     } finally {

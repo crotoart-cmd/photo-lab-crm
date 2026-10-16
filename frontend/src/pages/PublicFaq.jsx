@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { PATH } from '../config/publicPaths';
 import { usePublicLocale } from '../components/public/PublicLocale';
+import { PublicMobileFaq } from '../components/public/PublicMobileMore';
 import PsPage from '../components/public/PsPage';
 
 const ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
@@ -8,6 +9,9 @@ const ITEMS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 export default function PublicFaq() {
   const { t } = usePublicLocale();
   return (
+    <>
+    <PublicMobileFaq />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-grid">
         <p className="ps-kicker">{t('kicker.lab')}</p>
@@ -36,5 +40,7 @@ export default function PublicFaq() {
         </section>
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

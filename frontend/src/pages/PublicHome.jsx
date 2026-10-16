@@ -11,6 +11,7 @@ import publicApi from '../api/publicClient';
 import { loadPublicContent } from '../lib/publicContent';
 import { fallbackBlogPosts, remoteBlogPosts } from '../lib/publicBlog';
 import { formatShopPublicPrice } from '../lib/shopFx';
+import PublicMobileHome from '../components/public/PublicMobileHome';
 
 const FEATURED_IDS = ['trang', 'toc-do', 'scan', 'in-analog'];
 const FEATURED = FEATURED_IDS.map((id) => SERVICE_TILES.find((tile) => tile.id === id)).filter(Boolean);
@@ -184,10 +185,41 @@ export default function PublicHome() {
     3
   );
   return (
+    <>
+    <PublicMobileHome extras={extras} />
+    <div className="ps-desk-home">
     <PsPage>
       <section className="ps-hero ps-grid">
         <PsGridFrame tone="intro" />
-        <h1>
+        <div className="ps-arrive">
+          <p className="ps-arrive-kicker">{t('home.place')}</p>
+          <h1 className="ps-arrive-title">{t('home.placeTitle')}</h1>
+          <p className="ps-arrive-line">{t('home.placeLine')}</p>
+          <div className="ps-arrive-doors">
+            <Link to="/film" className="ps-door">
+              <PsPhoto src={LAB_PHOTO.film} tone="film" className="ps-door-photo" alt="" />
+              <span className="ps-door-copy">
+                <b>{t('home.doorFilm')}</b>
+                <span>{t('home.doorFilmSub')}</span>
+              </span>
+              <span className="ps-door-go" aria-hidden>→</span>
+            </Link>
+            <Link to={PATH.repair} className="ps-door">
+              <PsPhoto src={LAB_PHOTO.repair} tone="print" className="ps-door-photo" alt="" />
+              <span className="ps-door-copy">
+                <b>{t('home.doorRepair')}</b>
+                <span>{t('home.doorRepairSub')}</span>
+              </span>
+              <span className="ps-door-go" aria-hidden>→</span>
+            </Link>
+          </div>
+          <ol className="ps-arrive-steps">
+            <li>{t('home.step1')}</li>
+            <li>{t('home.step2')}</li>
+            <li>{t('home.step3')}</li>
+          </ol>
+        </div>
+        <h1 className="ps-hero-poster">
           {t('home.h1a')}
           <br />
           {t('home.h1b')}
@@ -301,5 +333,7 @@ export default function PublicHome() {
         </div>
       </section>
     </PsPage>
+    </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { apiErrorMessage } from '../../utils/apiError';
 import { REPAIR_STATUS_LABELS, formatRepairMoney } from '../../constants/customerRepair';
 import { LabeledInput, LabeledTextarea } from '../formFields';
@@ -13,6 +14,7 @@ import {
 } from '../../lib/mobileRepairBridge';
 
 export default function RepairTicketDetail({ ticket, onUpdated, onError, onSuccess }) {
+  const { isOwner } = useAuth();
   const [busy, setBusy] = useState('');
   const [quoteForm, setQuoteForm] = useState({
     quote_amount: '',
@@ -28,7 +30,7 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
 
   if (!ticket) {
     return (
-      <div className="apple-card p-6 text-center text-sm text-[var(--color-label-secondary)]">
+      <div className="lab-detail-empty">
         Chọn phiếu để xem chi tiết
       </div>
     );
@@ -48,7 +50,7 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
   };
 
   return (
-    <div className="apple-card p-5 space-y-4">
+    <div className="lab-detail-pane">
       <header>
         <p className="text-xs text-[var(--color-label-tertiary)] font-mono">{ticket.ticket_number}</p>
         <h2 className="text-lg font-semibold text-[var(--color-label)]">{ticket.model_name}</h2>
@@ -167,15 +169,18 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
 
       {ticket.status === 'dang_sua' && (
         <section className="border-t border-[var(--color-separator)] pt-3 space-y-2">
-          <h3 className="text-sm font-semibold">Nhật ký sửa (chi phí nội bộ)</h3>
-          <p className="text-xs text-[var(--color-label-tertiary)]">
-            Đã chi: {formatRepairMoney(ticket.internal_total_cost || 0)}
-          </p>
+          <h3 className="text-sm font-semibold">Nhật ký sửa{isOwner ? ' (chi phí nội bộ)' : ''}</h3>
+          {isOwner ? (
+            <p className="text-xs text-[var(--color-label-tertiary)]">
+              Đã chi: {formatRepairMoney(ticket.internal_total_cost || 0)}
+            </p>
+          ) : null}
           <LabeledInput
             label="Mô tả công việc"
             value={workForm.description}
             onChange={(e) => setWorkForm((f) => ({ ...f, description: e.target.value }))}
           />
+          {isOwner ? (
           <div className="grid grid-cols-2 gap-2">
             <LabeledInput
               label="Linh kiện"
@@ -194,6 +199,7 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
               }
             />
           </div>
+          ) : null}
           <button
             type="button"
             disabled={busy === 'work'}

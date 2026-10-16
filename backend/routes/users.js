@@ -29,7 +29,7 @@ router.get('/', ...authWithUser, requireOwner, async (_req, res) => {
       staffSlotAvailable: users.length < MAX_USERS,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi tải danh sách', error: error.message });
+    res.status(500).json({ message: 'Lỗi tải danh sách' });
   }
 });
 
@@ -40,7 +40,7 @@ router.post(
   [
     body('name').notEmpty().withMessage('Cần họ tên nhân viên'),
     body('email').isEmail(),
-    body('password').isLength({ min: 6 }),
+    body('password').isLength({ min: 8 }),
   ],
   async (req, res) => {
     try {
@@ -92,9 +92,15 @@ router.patch(
       }
 
       const { name, email, password, status, phone } = req.body;
+      if (password !== undefined && (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72)) {
+        return res.status(400).json({ message: 'Mật khẩu cần ít nhất 8 ký tự và tối đa 72 byte' });
+      }
       if (name) user.name = String(name).trim();
       if (phone !== undefined) user.phone = phone;
-      if (status && ['active', 'inactive'].includes(status)) user.status = status;
+      if (status && ['active', 'inactive'].includes(status) && status !== user.status) {
+        user.status = status;
+        user.sessionVersion = (user.sessionVersion || 0) + 1;
+      }
       if (email) {
         const lower = email.toLowerCase();
         if (lower === OWNER_EMAIL) {

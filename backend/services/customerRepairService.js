@@ -1,6 +1,6 @@
-const crypto = require('crypto');
 const Customer = require('../models/Customer');
 const CustomerRepairTicket = require('../models/CustomerRepairTicket');
+const { issueConfirmToken, hashConfirmToken, isPlausibleConfirmToken } = require('../lib/confirmToken');
 const {
   QUOTE_ALLOWED,
   WORKLOG_ALLOWED,
@@ -24,17 +24,31 @@ function getFrontendBase() {
   return require('../config/brand').getFrontendUrl();
 }
 
-function mapTicket(ticket) {
+function mapTicket(ticket, { includeInternal = true } = {}) {
   const obj = ticket.toObject ? ticket.toObject() : ticket;
-  const internalTotal = num(obj.internal_parts_cost) + num(obj.internal_labor_cost);
-  const profitEstimate = num(obj.final_amount || obj.quote_amount) - internalTotal;
-  return {
-    ...obj,
-    status_label: STATUS_LABELS[obj.status] || obj.status,
-    internal_total_cost: internalTotal,
-    profit_estimate: profitEstimate,
-    amount_due: Math.max(0, num(obj.final_amount || obj.quote_amount) - num(obj.deposit_amount)),
+  const { confirm_token: _rawToken, confirm_token_hash: _hash, ...safe } = obj;
+  const internalTotal = num(safe.internal_parts_cost) + num(safe.internal_labor_cost);
+  const profitEstimate = num(safe.final_amount || safe.quote_amount) - internalTotal;
+  const out = {
+    ...safe,
+    status_label: STATUS_LABELS[safe.status] || safe.status,
+    amount_due: Math.max(0, num(safe.final_amount || safe.quote_amount) - num(safe.deposit_amount)),
   };
+  if (includeInternal) {
+    out.internal_total_cost = internalTotal;
+    out.profit_estimate = profitEstimate;
+  } else {
+    delete out.internal_parts_cost;
+    delete out.internal_labor_cost;
+    if (Array.isArray(out.work_logs)) {
+      out.work_logs = out.work_logs.map(({ parts_cost, labor_cost, total_cost, ...rest }) => rest);
+    }
+  }
+  return out;
+}
+
+function asStaffView(role) {
+  return { includeInternal: require('../config/users').isOwnerRole(role) };
 }
 
 async function resolveCustomerFields({ customerId, customer_name, customer_email, customer_phone }) {
@@ -178,7 +192,57 @@ async function markGoodsReceived(ticketId, userId, payload = {}) {
 }
 
 function newConfirmToken() {
-  return crypto.randomBytes(24).toString('hex');
+  return issueConfirmToken();
+}
+
+function mapPublicQuote(ticket) {
+  const obj = ticket.toObject ? ticket.toObject() : ticket;
+  return {
+    ticket_number: obj.ticket_number,
+    customer_name: obj.customer_name,
+    model_name: obj.model_name,
+    serial_number: obj.serial_number || '',
+    quote_amount: obj.quote_amount,
+    quote_note: obj.quote_note,
+    quote_lines: obj.quote_lines,
+    deposit_amount: obj.deposit_amount,
+    status: obj.status,
+    status_label: STATUS_LABELS[obj.status] || obj.status,
+  };
+}
+
+async function findByConfirmToken(rawToken) {
+  if (!isPlausibleConfirmToken(rawToken)) return null;
+  return CustomerRepairTicket.findOne({
+    confirm_token_hash: hashConfirmToken(String(rawToken).trim()),
+  });
+}
+
+async function migratePlaintextConfirmTokens() {
+  const rows = await CustomerRepairTicket.find({
+    confirm_token: { $exists: true, $nin: [null, ''] },
+  }).select('confirm_token confirm_token_hash');
+  let n = 0;
+  for (const ticket of rows) {
+    if (!ticket.confirm_token_hash) {
+      ticket.confirm_token_hash = hashConfirmToken(ticket.confirm_token);
+    }
+    ticket.confirm_token = undefined;
+    await ticket.save();
+    n += 1;
+  }
+  if (n) console.log(`🔒 Đã chuyển ${n} token báo giá sang hash, xóa bản thô`);
+  return n;
+}
+
+function isConfirmExpired(ticket) {
+  return Boolean(ticket?.confirm_token_expires && ticket.confirm_token_expires < new Date());
+}
+
+function clearConfirmToken(ticket) {
+  ticket.confirm_token = undefined;
+  ticket.confirm_token_hash = undefined;
+  ticket.confirm_token_expires = undefined;
 }
 
 async function sendQuote(ticketId, payload, userId) {
@@ -214,7 +278,9 @@ async function sendQuote(ticketId, payload, userId) {
     : [{ label: 'Sửa chữa', amount: quote_amount }];
   ticket.deposit_amount = num(payload.deposit_amount);
   ticket.final_amount = quote_amount;
-  ticket.confirm_token = newConfirmToken();
+  const issued = newConfirmToken();
+  ticket.confirm_token = undefined;
+  ticket.confirm_token_hash = issued.hash;
   ticket.confirm_token_expires = new Date(Date.now() + 7 * 86400000);
   ticket.status = 'cho_khach_xac_nhan';
   ticket.quote_sent_at = new Date();
@@ -230,7 +296,7 @@ async function sendQuote(ticketId, payload, userId) {
   const skipEmail = Boolean(payload.skipEmail);
   const emailResult = skipEmail
     ? { sent: false, skipped: true }
-    : await sendRepairQuoteEmail(ticket);
+    : await sendRepairQuoteEmail(ticket, { confirmToken: issued.raw });
   if (emailResult.sent) {
     ticket.quote_email_sent_at = Date.now();
     await ticket.save();
@@ -240,21 +306,13 @@ async function sendQuote(ticketId, payload, userId) {
 }
 
 async function confirmByToken(token, { accept }) {
-  const ticket = await CustomerRepairTicket.findOne({ confirm_token: token });
-  if (!ticket) {
-    const err = new Error('Link xác nhận không hợp lệ hoặc đã hết hạn');
-    err.status = 404;
-    throw err;
-  }
-  if (ticket.confirm_token_expires && ticket.confirm_token_expires < new Date()) {
-    const err = new Error('Link xác nhận đã hết hạn — liên hệ tiệm');
-    err.status = 410;
-    throw err;
-  }
-  if (ticket.status !== 'cho_khach_xac_nhan') {
-    const err = new Error('Phiếu đã được xử lý trước đó');
-    err.status = 400;
-    throw err;
+  const generic = new Error('Link không hợp lệ hoặc đã hết hạn');
+  generic.status = 404;
+  generic.publicMessage = 'Link không hợp lệ hoặc đã hết hạn';
+
+  const ticket = await findByConfirmToken(token);
+  if (!ticket || isConfirmExpired(ticket) || ticket.status !== 'cho_khach_xac_nhan') {
+    throw generic;
   }
 
   if (accept) {
@@ -262,17 +320,17 @@ async function confirmByToken(token, { accept }) {
     ticket.confirmed_at = new Date();
     ticket.confirmed_via = 'email_link';
     ticket.repair_started_at = new Date();
-    ticket.confirm_token = undefined;
+    clearConfirmToken(ticket);
     pushRepairStatusHistory(ticket, 'dang_sua', 'Khách xác nhận qua email', null);
   } else {
     ticket.status = 'khach_tu_choi';
     ticket.rejected_at = new Date();
-    ticket.confirm_token = undefined;
+    clearConfirmToken(ticket);
     pushRepairStatusHistory(ticket, 'khach_tu_choi', 'Khách từ chối báo giá qua email', null);
   }
 
   await ticket.save();
-  return mapTicket(ticket);
+  return mapPublicQuote(ticket);
 }
 
 async function confirmAtCounter(ticketId, userId) {
@@ -291,13 +349,13 @@ async function confirmAtCounter(ticketId, userId) {
   ticket.confirmed_at = new Date();
   ticket.confirmed_via = 'counter';
   ticket.repair_started_at = new Date();
-  ticket.confirm_token = undefined;
+  clearConfirmToken(ticket);
   pushRepairStatusHistory(ticket, 'dang_sua', 'Xác nhận tại quầy', userId);
   await ticket.save();
   return mapTicket(ticket);
 }
 
-async function addWorkLog(ticketId, payload, userId) {
+async function addWorkLog(ticketId, payload, userId, role) {
   const ticket = await CustomerRepairTicket.findById(ticketId);
   if (!ticket) {
     const err = new Error('Không tìm thấy phiếu');
@@ -317,8 +375,9 @@ async function addWorkLog(ticketId, payload, userId) {
     throw err;
   }
 
-  const parts = num(payload.parts_cost);
-  const labor = num(payload.labor_cost);
+  const owner = require('../config/users').isOwnerRole(role);
+  const parts = owner ? num(payload.parts_cost) : 0;
+  const labor = owner ? num(payload.labor_cost) : 0;
   const total = parts + labor;
 
   ticket.work_logs.push({
@@ -404,6 +463,7 @@ async function cancelTicket(ticketId, note, userId) {
     throw err;
   }
   ticket.status = 'da_huy';
+  clearConfirmToken(ticket);
   pushRepairStatusHistory(ticket, 'da_huy', note || 'Hủy phiếu', userId);
   await ticket.save();
   return mapTicket(ticket);
@@ -444,6 +504,17 @@ async function getOpsSummary() {
   return { counts, pipeline: sortRepairTickets(tickets).slice(0, 12).map(mapTicket) };
 }
 
+function redactOpsSummary(summary, role) {
+  if (require('../config/users').isOwnerRole(role)) return summary;
+  const counts = { ...summary.counts };
+  delete counts.cost_month;
+  delete counts.profit_month;
+  return {
+    counts,
+    pipeline: (summary.pipeline || []).map((t) => mapTicket(t, { includeInternal: false })),
+  };
+}
+
 module.exports = {
   listTickets,
   getTicketById,
@@ -459,4 +530,10 @@ module.exports = {
   getOpsSummary,
   getFrontendBase,
   mapTicket,
+  mapPublicQuote,
+  findByConfirmToken,
+  isConfirmExpired,
+  migratePlaintextConfirmTokens,
+  asStaffView,
+  redactOpsSummary,
 };

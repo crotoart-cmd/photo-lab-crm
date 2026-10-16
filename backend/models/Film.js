@@ -110,6 +110,7 @@ const filmSchema = new mongoose.Schema({
     },
   ],
   deliverySlug: { type: String, unique: true, sparse: true, index: true },
+  delivery_token_hash: { type: String, unique: true, sparse: true, index: true },
   deliveryFiles: [
     {
       filename: String,

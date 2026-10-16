@@ -1,6 +1,7 @@
 const express = require('express');
 const Customer = require('../models/Customer');
 const { verifyToken } = require('./auth');
+const { authWithUser, requireOwner } = require('../middleware/authz');
 const { validateCustomerInput } = require('../utils/customerNormalize');
 const {
   getEnrichedCustomers,
@@ -137,7 +138,7 @@ router.get('/care-tasks', verifyToken, async (req, res) => {
 });
 
 // Gộp khách trùng
-router.post('/merge', verifyToken, async (req, res) => {
+router.post('/merge', ...authWithUser, requireOwner, async (req, res) => {
   try {
     const { keepId, removeId } = req.body;
     if (!keepId || !removeId) {
@@ -182,7 +183,7 @@ router.get('/analytics', verifyToken, async (req, res) => {
 });
 
 // Gán mã KH cho khách cũ (chưa có mã)
-router.post('/backfill-codes', verifyToken, async (req, res) => {
+router.post('/backfill-codes', ...authWithUser, requireOwner, async (req, res) => {
   try {
     const missing = await Customer.find({ $or: [{ customerCode: null }, { customerCode: '' }] });
     let count = 0;
@@ -242,12 +243,12 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 // Delete customer
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', ...authWithUser, requireOwner, async (req, res) => {
   try {
     await Customer.findByIdAndDelete(req.params.id);
     res.json({ message: 'Customer deleted' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting customer', error: error.message });
+  } catch (_error) {
+    res.status(500).json({ message: 'Không xóa được khách' });
   }
 });
 

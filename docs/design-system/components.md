@@ -35,6 +35,7 @@ Bảng tra nhanh — **dùng lại** trước khi tạo mới.
 | Quét + ô mã | `retail/ProductScanSearchRow.jsx` |
 | Danh mục kho (3 ô) | `retail-group-btn` trong `SmartIntakePanel` |
 | Tồn kho list | `retail/IntakeStockList.jsx` |
+| Shop list + pane chi tiết | `retail/ShopProductList.jsx` + `ShopListingSheet.jsx` (list/grid, chọn nhiều Web) |
 | Tồn máy ảnh | `retail/MobileCameraStockPanel.jsx` |
 | Giỏ mobile | `retail/MobileCartCard.jsx` |
 | In tem mã quầy | `utils/printCameraCounterLabel.js` |
@@ -56,7 +57,9 @@ Bảng tra nhanh — **dùng lại** trước khi tạo mới.
 |----|------|
 | Khách mobile | `customers/CustomerMobileCard.jsx`, `pages/Customers.jsx` |
 | Tìm khách | `CustomerSearchPicker.jsx` |
-| Phiếu film | `pages/Films.jsx`, `TicketSlip.jsx` |
+| Phiếu film | `pages/Films.jsx` + `LabMasterDetail` (bảng + pane, Shift chọn nhiều) |
+| Sửa máy khách | `pages/Repairs.jsx` + `LabStatusRail` (folder trạng thái) |
+| Lab desk frame | `lab/LabMasterDetail.jsx` + `lab-ios.css` |
 | Checklist tiếp nhận | `IntakeChecklistForm.jsx` |
 
 ## Feedback

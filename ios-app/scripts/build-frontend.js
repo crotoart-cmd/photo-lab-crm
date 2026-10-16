@@ -5,28 +5,6 @@ const fs = require('fs');
 const frontendDir = path.join(__dirname, '..', '..', 'frontend');
 const wwwDir = path.join(__dirname, '..', 'www');
 const viteBin = path.join(frontendDir, 'node_modules', 'vite', 'bin', 'vite.js');
-const backendEnvPath = path.join(__dirname, '..', '..', 'backend', '.env');
-
-function readBackendSmtp() {
-  if (!fs.existsSync(backendEnvPath)) return {};
-  const out = {};
-  for (const line of fs.readFileSync(backendEnvPath, 'utf8').split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq < 0) continue;
-    const key = trimmed.slice(0, eq).trim();
-    let val = trimmed.slice(eq + 1).trim();
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1);
-    }
-    if (key === 'EMAIL_USER' || key === 'EMAIL_PASSWORD') out[key] = val;
-  }
-  return out;
-}
 
 if (!fs.existsSync(viteBin)) {
   console.error('Chưa có frontend/node_modules — chạy: cd frontend && npm install');
@@ -49,15 +27,9 @@ const lanIp =
     return 'http://localhost:5001/api';
   })();
 
-const smtp = readBackendSmtp();
-const smtpEmail = process.env.VITE_DEVICE_SMTP_EMAIL || smtp.EMAIL_USER || '';
-const smtpPass = process.env.VITE_DEVICE_SMTP_PASSWORD || smtp.EMAIL_PASSWORD || '';
-
-if (smtpEmail && smtpPass) {
-  console.log('📧 SMTP thiết bị: tự cấu hình Gmail cho', smtpEmail);
-} else {
-  console.warn('⚠️  Thiếu EMAIL_USER/EMAIL_PASSWORD trong backend/.env — SMTP trên máy cần nhập tay');
-}
+const buildEnv = { ...process.env };
+delete buildEnv.VITE_DEVICE_SMTP_EMAIL;
+delete buildEnv.VITE_DEVICE_SMTP_PASSWORD;
 
 const result = spawnSync(
   node,
@@ -66,12 +38,10 @@ const result = spawnSync(
     cwd: frontendDir,
     stdio: 'inherit',
     env: {
-      ...process.env,
+      ...buildEnv,
       ELECTRON_RUN_AS_NODE: '1',
       VITE_MOBILE_APP: 'true',
       VITE_API_URL: process.env.VITE_API_URL || lanIp,
-      VITE_DEVICE_SMTP_EMAIL: smtpEmail,
-      VITE_DEVICE_SMTP_PASSWORD: smtpPass,
     },
   }
 );

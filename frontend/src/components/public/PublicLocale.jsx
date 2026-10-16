@@ -15,7 +15,15 @@ export function usePublicLocale() {
 }
 
 export function PublicLocaleProvider({ children }) {
-  const [lang, setLangState] = useState(readPublicLang);
+  const [lang, setLangState] = useState(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('lang');
+      if (PUBLIC_LANGS.some((l) => l.id === q)) return q;
+    } catch {
+      /* ignore */
+    }
+    return readPublicLang();
+  });
 
   const setLang = (id) => {
     if (!PUBLIC_LANGS.some((l) => l.id === id)) return;

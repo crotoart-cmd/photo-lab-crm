@@ -42,5 +42,16 @@ export function useShopCatalog() {
     return res;
   }, []);
 
-  return { items, online: items !== null, byKey, reload, save };
+  const setWeb = useCallback(
+    async (rows, showOnWeb) => {
+      let last = null;
+      for (const row of rows) {
+        last = await save(row, { showOnWeb });
+      }
+      return last;
+    },
+    [save]
+  );
+
+  return { items, online: items !== null, byKey, reload, save, setWeb };
 }

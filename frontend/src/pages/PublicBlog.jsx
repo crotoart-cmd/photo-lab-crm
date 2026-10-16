@@ -5,6 +5,7 @@ import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
 import { loadPublicContent } from '../lib/publicContent';
 import { fallbackBlogPosts, remoteBlogPosts } from '../lib/publicBlog';
+import { PublicMobileBlog } from '../components/public/PublicMobileMore';
 
 export default function PublicBlog() {
   const { t, lang } = usePublicLocale();
@@ -24,6 +25,9 @@ export default function PublicBlog() {
   const items = filter === 'all' ? posts : posts.filter((p) => p.kind === filter);
 
   return (
+    <>
+    <PublicMobileBlog posts={items} filter={filter} setFilter={setFilter} kinds={kinds} />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-index">
         <header className="ps-index-head ps-grid">
@@ -68,5 +72,7 @@ export default function PublicBlog() {
         </div>
       </section>
     </PsPage>
+    </div>
+    </>
   );
 }

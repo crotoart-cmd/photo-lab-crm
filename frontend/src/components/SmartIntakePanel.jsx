@@ -1289,9 +1289,29 @@ export default function SmartIntakePanel({
           onKind={setKind}
           webOnly={webOnly}
           onToggleWebOnly={() => setWebOnly((v) => !v)}
+          selected={listingCard}
           onOpen={setListingCard}
           onAdd={() => setPickerOpen(true)}
           onSeedTestCameras={onSeedTestCameras}
+          onBulkWeb={async (cards, show) => {
+            await web.setWeb(cards, show);
+            reportSuccess(show ? `Đã hiện ${cards.length} món trên Shop` : `Đã ẩn ${cards.length} món khỏi Shop`);
+          }}
+          detail={
+            <ShopListingSheet
+              key={listingCard ? `${listingCard.source}:${listingCard.id}` : 'empty'}
+              card={listingCard}
+              onClose={() => setListingCard(null)}
+              onSave={web.save}
+              onSuccess={reportSuccess}
+              onOpenProfile={(card) => {
+                setListingCard(null);
+                setDetailCameraId(card.id);
+                setDetailOpen(true);
+              }}
+              onRestock={restockFromCard}
+            />
+          }
         />
       </div>
 
@@ -1334,22 +1354,6 @@ export default function SmartIntakePanel({
         onClose={() => setDetailOpen(false)}
         onUpdated={onSaved}
       />
-
-      {listingCard ? (
-        <ShopListingSheet
-          key={`${listingCard.source}:${listingCard.id}`}
-          card={listingCard}
-          onClose={() => setListingCard(null)}
-          onSave={web.save}
-          onSuccess={reportSuccess}
-          onOpenProfile={(card) => {
-            setListingCard(null);
-            setDetailCameraId(card.id);
-            setDetailOpen(true);
-          }}
-          onRestock={restockFromCard}
-        />
-      ) : null}
 
       {pickerOpen ? (
         <Modal title="Thêm sản phẩm" onClose={() => setPickerOpen(false)} compact>

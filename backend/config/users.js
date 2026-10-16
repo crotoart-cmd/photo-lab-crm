@@ -3,7 +3,7 @@
 const MAX_USERS = 2;
 
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || 'crotoart@gmail.com').toLowerCase();
-const OWNER_PASSWORD = process.env.OWNER_PASSWORD || '123456';
+const OWNER_PASSWORD = process.env.OWNER_PASSWORD || '';
 const OWNER_NAME = process.env.OWNER_NAME || 'Crotoart Admin';
 
 const isOwnerRole = (role) => role === 'owner' || role === 'admin';

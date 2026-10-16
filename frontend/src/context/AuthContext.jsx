@@ -9,7 +9,8 @@ import {
   restoreOfflineSessionFromSavedUser,
 } from '../lib/mobileOfflineAuth';
 import { rememberServerJwt, clearBackupJwt } from '../lib/mobileServerLink';
-import { clearStaleServerAuth } from '../utils/authToken';
+import { clearStaleServerAuth, getServerAuthToken } from '../utils/authToken';
+import { isCrmHost } from '../config/siteHosts';
 
 const AuthContext = createContext(null);
 const MOBILE_LOGIN_TIMEOUT_MS = 2000;
@@ -19,6 +20,16 @@ function isOfflineAuthError(err) {
   if (err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED') return true;
   const status = err.response?.status;
   return status >= 502 && status <= 504;
+}
+
+function persistServerUser(user, token) {
+  localStorage.setItem('user', JSON.stringify(user));
+  if (isMobileDataEnabled() && token) {
+    localStorage.setItem('token', token);
+    rememberServerJwt(token);
+  } else {
+    localStorage.removeItem('token');
+  }
 }
 
 function applyOfflineSession(setUser, setOfflineSession, user, token) {
@@ -38,16 +49,29 @@ export const AuthProvider = ({ children }) => {
 
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
+    persistServerUser(data.user, data.token || localStorage.getItem('token'));
     setUser(data.user);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    const token = localStorage.getItem('token');
-    if (token) rememberServerJwt(token);
     setOfflineSession(false);
     return data.user;
   };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    if (!isCrmHost()) {
+      setLoading(false);
+      return;
+    }
+    if (!token && !isMobileDataEnabled()) {
+      refreshUser()
+        .catch((err) => {
+          if (err.response?.status === 401) {
+            localStorage.removeItem('user');
+            setUser(null);
+          }
+        })
+        .finally(() => setLoading(false));
+      return;
+    }
     if (!token) {
       setLoading(false);
       return;
@@ -114,11 +138,13 @@ export const AuthProvider = ({ children }) => {
 
   const tryUpgradeServerSession = (normalizedEmail, password) => {
     api
-      .post('/auth/login', { email: normalizedEmail, password }, { timeout: MOBILE_LOGIN_TIMEOUT_MS })
+      .post(
+        '/auth/login',
+        { email: normalizedEmail, password, client: 'mobile' },
+        { timeout: MOBILE_LOGIN_TIMEOUT_MS }
+      )
       .then(async ({ data }) => {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        rememberServerJwt(data.token);
+        persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
         await saveOfflineCredentials(normalizedEmail, password, data.user);
@@ -155,12 +181,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const { data } = await api.post(
           '/auth/login',
-          { email: normalizedEmail, password },
+          { email: normalizedEmail, password, client: 'mobile' },
           { timeout: MOBILE_LOGIN_TIMEOUT_MS }
         );
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        rememberServerJwt(data.token);
+        persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
         await saveOfflineCredentials(normalizedEmail, password, data.user);
@@ -172,9 +196,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const { data } = await api.post('/auth/login', { email: normalizedEmail, password });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    rememberServerJwt(data.token);
+    persistServerUser(data.user, data.token);
     setUser(data.user);
     setOfflineSession(false);
     return data;
@@ -219,9 +241,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const serverToken = getServerAuthToken();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     clearBackupJwt();
+    api.post('/auth/logout', {}, {
+      headers: serverToken ? { Authorization: `Bearer ${serverToken}` } : {},
+    }).catch(() => {});
     setUser(null);
     setOfflineSession(false);
   };

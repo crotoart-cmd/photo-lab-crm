@@ -1,5 +1,4 @@
 import { formatShopAdminPrice } from '../../lib/shopFx';
-import Modal from '../Modal';
 import { apiErrorMessage } from '../../utils/apiError';
 import ShopListingFields, { useShopListingDraft } from './ShopListingFields';
 import { useState } from 'react';
@@ -28,12 +27,21 @@ export function WebPill({ card, online, onOpen }) {
   );
 }
 
+export function ShopListingEmpty() {
+  return (
+    <div className="shop-listing-empty-pane">
+      <p>Chọn sản phẩm</p>
+      <small>Ảnh, mô tả và đăng web hiện bên đây.</small>
+    </div>
+  );
+}
+
 export default function ShopListingSheet({ card, onClose, onSave, onSuccess, onOpenProfile, onRestock }) {
   const draft = useShopListingDraft(card);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  if (!card) return null;
+  if (!card) return <ShopListingEmpty />;
 
   const expiry =
     card.source === 'film' && card.expiry
@@ -46,14 +54,18 @@ export default function ShopListingSheet({ card, onClose, onSave, onSuccess, onO
     card.source === 'film'
       ? 'Bật riêng từng lô — lô sắp hết hạn có thể tắt.'
       : 'Khách đặt trên web, lab xác nhận ở tab Đơn.';
+  const cover = card.image || draft.slots[0]?.src;
 
   const submit = async () => {
     setSaving(true);
     setError('');
     try {
-      await onSave(card, draft.payload());
+      const res = await onSave(card, draft.payload());
+      const next = Array.isArray(res?.items)
+        ? res.items.find((row) => row.source === card.source && String(row.id) === String(card.id))
+        : null;
+      if (next) draft.reset(next);
       onSuccess?.(draft.showOnWeb ? 'Đã đăng lên Shop' : 'Đã ẩn khỏi Shop');
-      onClose();
     } catch (err) {
       setError(apiErrorMessage(err, 'Không lưu được'));
     } finally {
@@ -62,67 +74,67 @@ export default function ShopListingSheet({ card, onClose, onSave, onSuccess, onO
   };
 
   return (
-    <Modal
-      title={card.title || 'Sản phẩm'}
-      onClose={onClose}
-      footer={
-        <div className="shop-listing-footer">
-          <div className="shop-listing-footer-extra">
-            {card.source === 'camera' && onOpenProfile ? (
-              <button type="button" className="apple-btn-secondary btn-pill" onClick={() => onOpenProfile(card)}>
-                Hồ sơ máy
-              </button>
-            ) : null}
-            {onRestock && (card.source === 'film' || card.source === 'battery' || card.source === 'camera') ? (
-              <button type="button" className="apple-btn-secondary btn-pill" onClick={() => onRestock(card)}>
-                {card.source === 'camera' ? 'Thêm máy cùng model' : 'Nhập thêm'}
-              </button>
-            ) : null}
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button type="button" className="apple-btn-secondary btn-pill" onClick={onClose}>
-              Hủy
-            </button>
-            <button type="button" className="apple-btn-primary btn-pill" disabled={saving} onClick={submit}>
-              {saving ? 'Đang lưu…' : 'Lưu'}
-            </button>
-          </div>
-        </div>
-      }
-    >
-      <div className="shop-listing">
-        <ShopListingFields draft={draft} hint={hint} />
+    <div className="shop-listing shop-listing--pane">
+      {onClose ? (
+        <button type="button" className="shop-listing-back" onClick={onClose}>
+          ← Kho
+        </button>
+      ) : null}
 
-        <div className="shop-listing-head">
-          <p className="shop-listing-brand">{card.brand}</p>
-          <p className="shop-listing-meta">
-            {formatShopAdminPrice(card.price)} · còn {card.quantity}
-            {card.serial ? ` · SN ${card.serial}` : ''}
-          </p>
-          {expiry ? (
-            <p
-              className={`shop-listing-meta${
-                card.daysLeft < 0 ? ' is-dead' : card.daysLeft <= 60 ? ' is-warn' : ''
-              }`}
-            >
-              {expiry}
-            </p>
-          ) : null}
-        </div>
+      <div className="shop-listing-hero">
+        {cover ? <img src={cover} alt="" /> : <span className="shop-listing-hero-empty" aria-hidden="true" />}
+      </div>
 
-        {held > 0 ? (
-          <p className="shop-listing-held">
-            {held} đang giữ cho đơn web{card.reservedCodes?.length ? ` ${card.reservedCodes.join(', ')}` : ''} —
-            xác nhận ở tab Đơn.
-          </p>
-        ) : null}
-
-        {error ? (
-          <p className="text-[13px] text-[var(--color-red)]" role="alert">
-            {error}
+      <div className="shop-listing-head">
+        {card.brand ? <p className="shop-listing-brand">{card.brand}</p> : null}
+        <h2 className="shop-listing-title">{card.title || 'Sản phẩm'}</h2>
+        <p className="shop-listing-meta">
+          {formatShopAdminPrice(card.price)} · còn {card.quantity}
+          {card.serial ? ` · SN ${card.serial}` : ''}
+        </p>
+        {expiry ? (
+          <p
+            className={`shop-listing-meta${
+              card.daysLeft < 0 ? ' is-dead' : card.daysLeft <= 60 ? ' is-warn' : ''
+            }`}
+          >
+            {expiry}
           </p>
         ) : null}
       </div>
-    </Modal>
+
+      <ShopListingFields draft={draft} hint={hint} />
+
+      {held > 0 ? (
+        <p className="shop-listing-held">
+          {held} đang giữ cho đơn web{card.reservedCodes?.length ? ` ${card.reservedCodes.join(', ')}` : ''} —
+          xác nhận ở tab Đơn.
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className="text-[13px] text-[var(--color-red)]" role="alert">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="shop-listing-footer">
+        <div className="shop-listing-footer-extra">
+          {card.source === 'camera' && onOpenProfile ? (
+            <button type="button" className="btn-pill btn-pill--36 btn-pill--lv4" onClick={() => onOpenProfile(card)}>
+              Hồ sơ máy
+            </button>
+          ) : null}
+          {onRestock && (card.source === 'film' || card.source === 'battery' || card.source === 'camera') ? (
+            <button type="button" className="btn-pill btn-pill--36 btn-pill--lv4" onClick={() => onRestock(card)}>
+              Nhập thêm
+            </button>
+          ) : null}
+        </div>
+        <button type="button" className="btn-pill btn-pill--36 btn-pill--lv1" disabled={saving} onClick={submit}>
+          {saving ? 'Đang lưu…' : 'Lưu'}
+        </button>
+      </div>
+    </div>
   );
 }

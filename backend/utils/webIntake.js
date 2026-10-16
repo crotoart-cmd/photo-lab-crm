@@ -16,27 +16,7 @@ const {
   ORIGINAL_RETURN,
 } = require('../data/intakeOptions');
 
-const hitsByIp = new Map();
-
-function clientIp(req) {
-  const forwarded = String(req.headers['x-forwarded-for'] || '')
-    .split(',')[0]
-    .trim();
-  return forwarded || req.ip || 'unknown';
-}
-
-function tooManyRequests(req, max = 8, windowMs = 60 * 60 * 1000) {
-  const ip = clientIp(req);
-  const now = Date.now();
-  const next = (hitsByIp.get(ip) || []).filter((t) => now - t < windowMs);
-  if (next.length >= max) {
-    hitsByIp.set(ip, next);
-    return true;
-  }
-  next.push(now);
-  hitsByIp.set(ip, next);
-  return false;
-}
+const { tooManyRequests } = require('../middleware/rateLimit');
 
 function isHoneypot(body) {
   return Boolean(String(body?.website || '').trim());

@@ -67,7 +67,7 @@ export default function TicketDetailPanel({ film, onUpdated, onClose, focusDeliv
     });
 
   return (
-    <div className="apple-card p-5 h-full flex flex-col">
+    <div className="lab-detail-pane">
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="text-xs text-[var(--color-label-secondary)]">Mã phiếu</p>
@@ -79,7 +79,7 @@ export default function TicketDetailPanel({ film, onUpdated, onClose, focusDeliv
           </StatusPill>
         </div>
         {onClose && (
-          <button type="button" onClick={onClose} className="apple-btn-ghost !p-2">
+          <button type="button" onClick={onClose} className="apple-btn-ghost lab-detail-close !p-2">
             <span className="material-symbols-outlined">close</span>
           </button>
         )}

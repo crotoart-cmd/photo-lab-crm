@@ -2,19 +2,14 @@ import { useRef, useState } from 'react';
 import api from '../api/client';
 import { ticketCode } from '../utils/filmLabels';
 
-const galleryUrl = (film) => {
-  if (film.galleryUrl) return film.galleryUrl;
-  if (film.deliverySlug) return `${window.location.origin}/delivery/${film.deliverySlug}`;
-  return '';
-};
-
 export default function DeliveryUploadPanel({ film, onUpdated, onMessage, onError }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [issuedUrl, setIssuedUrl] = useState('');
   const fileCount = film.deliveryFiles?.length || 0;
-  const webLink = galleryUrl(film);
+  const webLink = issuedUrl || film.galleryUrl || '';
   const driveLink = film.driveWebViewLink || null;
 
   const uploadFiles = async (fileList) => {
@@ -61,6 +56,7 @@ export default function DeliveryUploadPanel({ film, onUpdated, onMessage, onErro
     onError?.('');
     try {
       const { data } = await api.post(`/films/${film._id}/send-gallery-link`);
+      if (data.galleryUrl) setIssuedUrl(data.galleryUrl);
       onMessage?.(data.message);
       if (data.driveError) {
         onError?.(`Drive: ${data.driveError} — đã gửi link web dự phòng (nếu có).`);
@@ -84,9 +80,9 @@ export default function DeliveryUploadPanel({ film, onUpdated, onMessage, onErro
           <p className="text-sm font-semibold">Album ảnh scan</p>
           <p className="text-xs text-[var(--color-label-secondary)] mt-0.5">
             Phiếu {ticketCode(film)} · {fileCount} file
-            {film.deliverySlug && (
-              <span className="font-mono block mt-1">{film.deliverySlug}</span>
-            )}
+            {webLink ? (
+              <span className="font-mono block mt-1 break-all">{webLink}</span>
+            ) : null}
           </p>
         </div>
       </div>
@@ -125,7 +121,7 @@ export default function DeliveryUploadPanel({ film, onUpdated, onMessage, onErro
         </span>
         <span className="text-sm font-medium">Tải ảnh scan lên server lab</span>
         <span className="text-xs text-[var(--color-label-secondary)] text-center">
-          JPG, PNG, WEBP, HEIC, TIFF, PDF — tối đa 100MB/file, 40 file/lần
+          JPG, PNG, WEBP, HEIC, TIFF, PDF — tối đa 40MB/file, 15 file/lần, 200MB tổng
         </span>
         <input
           ref={inputRef}
@@ -147,6 +143,35 @@ export default function DeliveryUploadPanel({ film, onUpdated, onMessage, onErro
           ))}
         </ul>
       )}
+
+      <button
+        type="button"
+        disabled={busy || fileCount === 0}
+        onClick={async () => {
+          setSending(true);
+          onError?.('');
+          try {
+            const { data } = await api.post(`/films/${film._id}/delivery-link`);
+            if (data.galleryUrl) {
+              setIssuedUrl(data.galleryUrl);
+              try {
+                await navigator.clipboard.writeText(data.galleryUrl);
+              } catch {
+                /* ignore */
+              }
+            }
+            onMessage?.(data.message);
+          } catch (err) {
+            onError?.(err.response?.data?.message || 'Không tạo được link');
+          } finally {
+            setSending(false);
+          }
+        }}
+        className="apple-btn-secondary w-full flex items-center justify-center gap-2 text-sm"
+      >
+        <span className="material-symbols-outlined text-[20px]">link</span>
+        Tạo link web (thu hồi link cũ)
+      </button>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <button

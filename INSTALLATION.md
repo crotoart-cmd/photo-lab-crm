@@ -11,8 +11,8 @@ Site production: https://hdtlabx.com
 ## 1. Clone & cấu hình
 
 ```bash
-git clone https://github.com/crotoart-cmd/photo-lab-crm.git
-cd photo-lab-crm
+git clone https://github.com/crotoart-cmd/photo-lab-crm.git HDTLABX
+cd HDTLABX
 ```
 
 ### Backend

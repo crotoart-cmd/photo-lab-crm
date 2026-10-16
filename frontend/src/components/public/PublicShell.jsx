@@ -4,6 +4,7 @@ import { BRAND_NAME, LOGO_SRC } from '../../config/brand';
 import { PATH } from '../../config/publicPaths';
 import PsGridFrame from './PsGridFrame';
 import { PsLangSwitch, PublicLocaleProvider, usePublicLocale } from './PublicLocale';
+import PublicMobileTabs from './PublicMobileTabs';
 
 const DEV_SCAN_NAV = [
   { to: '/film', key: 'nav.film' },
@@ -119,6 +120,8 @@ function NavItems({ onPick, className, drawer }) {
 
 function PublicShellInner() {
   const { t } = usePublicLocale();
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerOn, setHeaderOn] = useState(false);
 
@@ -157,7 +160,7 @@ function PublicShellInner() {
   const close = () => setMenuOpen(false);
 
   return (
-    <div className="public-site">
+    <div className={`public-site public-site--mobile${isHome ? ' public-site--mhome' : ''}`}>
       <header className={`ps-header-bar${headerOn ? ' is-on' : ''}`}>
         <div className="ps-header ps-grid">
           <PsBrand onClick={close} />
@@ -320,6 +323,7 @@ function PublicShellInner() {
           </div>
         </div>
       </footer>
+      <PublicMobileTabs />
     </div>
   );
 }

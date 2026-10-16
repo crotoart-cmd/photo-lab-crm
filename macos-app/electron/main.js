@@ -2,8 +2,8 @@ const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createUiApp } = require('./uiServer');
+const { loadDesktopSecurity } = require('./securityConfig');
 
 const BACKEND_PORT = 59101;
 const UI_PORT = 59102;
@@ -54,6 +54,7 @@ function waitForHealth(port, attempts = 60) {
 
 function startBackend(backendDir) {
   return new Promise((resolve, reject) => {
+    const security = loadDesktopSecurity(app.getPath('userData'));
     const serverPath = path.join(backendDir, 'server.js');
     backendProcess = spawn(process.execPath, [serverPath], {
       cwd: backendDir,
@@ -63,6 +64,12 @@ function startBackend(backendDir) {
         USE_MEMORY_DB: 'true',
         PORT: String(BACKEND_PORT),
         NODE_ENV: 'production',
+        DESKTOP_LOCAL: 'true',
+        BIND_HOST: '127.0.0.1',
+        TRUST_PROXY: 'loopback',
+        JWT_SECRET: security.jwtSecret,
+        OWNER_PASSWORD: security.ownerPassword,
+        JWT_EXPIRE: '7d',
         FRONTEND_URL: `http://127.0.0.1:${UI_PORT}`,
       },
       stdio: isPackaged ? 'ignore' : 'inherit',
@@ -81,25 +88,7 @@ function startBackend(backendDir) {
 
 function startUiServer(frontendDir) {
   return new Promise((resolve, reject) => {
-    const ui = express();
-    ui.use(
-      '/api',
-      createProxyMiddleware({
-        target: `http://127.0.0.1:${BACKEND_PORT}`,
-        changeOrigin: true,
-      })
-    );
-    ui.use(
-      '/uploads',
-      createProxyMiddleware({
-        target: `http://127.0.0.1:${BACKEND_PORT}`,
-        changeOrigin: true,
-      })
-    );
-    ui.use(express.static(frontendDir));
-    ui.get('*', (_req, res) => {
-      res.sendFile(path.join(frontendDir, 'index.html'));
-    });
+    const ui = createUiApp(frontendDir, `http://127.0.0.1:${BACKEND_PORT}`);
 
     uiServer = ui.listen(UI_PORT, '127.0.0.1', () => resolve());
     uiServer.on('error', reject);

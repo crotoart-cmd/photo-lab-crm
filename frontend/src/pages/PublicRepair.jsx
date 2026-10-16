@@ -3,6 +3,7 @@ import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
 import PublicRepairIntakeForm from '../components/public/PublicRepairIntakeForm';
+import PublicMobileRepair from '../components/public/PublicMobileRepair';
 import { LAB_PHOTO } from '../data/publicLabPhotos';
 
 export default function PublicRepair() {
@@ -20,6 +21,9 @@ export default function PublicRepair() {
   ];
 
   return (
+    <>
+    <PublicMobileRepair />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-page-hero--photo ps-grid">
         <p className="ps-kicker">{t('kicker.service')}</p>
@@ -67,5 +71,7 @@ export default function PublicRepair() {
         <PublicRepairIntakeForm />
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

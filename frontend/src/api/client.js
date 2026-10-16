@@ -2,13 +2,16 @@ import axios from 'axios';
 import { getApiBaseUrl } from '../config/apiBase';
 import { isMobileDataEnabled } from '../lib/mobileLocalDb';
 import { clearStaleServerAuth, getServerAuthToken } from '../utils/authToken';
-import { adminAbsoluteUrl, isCrmHost } from '../config/siteHosts';
+import { isCrmHost } from '../config/siteHosts';
+import { rememberServerJwt } from '../lib/mobileServerLink';
+import { saveOfflineCredentials } from '../lib/mobileOfflineAuth';
 
 const API_TIMEOUT_MS = isMobileDataEnabled() ? 8000 : 30000;
 
 const api = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: API_TIMEOUT_MS,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -21,14 +24,30 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    if (isMobileDataEnabled() && response.data?.token && /\/auth\/(login|profile)$/.test(response.config.url || '')) {
+      localStorage.setItem('token', response.data.token);
+      rememberServerJwt(response.data.token);
+      if (/\/auth\/profile$/.test(response.config.url || '')) {
+        const request = typeof response.config.data === 'string' ? JSON.parse(response.config.data) : response.config.data;
+        if (request?.password && response.data.user) {
+          try {
+            await saveOfflineCredentials(response.data.user.email, request.password, response.data.user);
+          } catch (_error) {
+            localStorage.removeItem('nuocleo_offline_cred');
+          }
+        }
+      }
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       clearStaleServerAuth();
-      if (!isMobileDataEnabled()) {
+      if (!isMobileDataEnabled() && isCrmHost()) {
         localStorage.removeItem('user');
         if (window.location.pathname !== '/login') {
-          window.location.href = isCrmHost() ? '/login' : adminAbsoluteUrl('/login');
+          window.location.href = '/login';
         }
       }
     }

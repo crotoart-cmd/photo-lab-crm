@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
     enum: ['active', 'inactive'],
     default: 'active',
   },
+  sessionVersion: { type: Number, default: 0 },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -40,6 +41,7 @@ userSchema.pre('save', async function(next) {
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    if (!this.isNew) this.sessionVersion = (this.sessionVersion || 0) + 1;
     next();
   } catch (error) {
     next(error);

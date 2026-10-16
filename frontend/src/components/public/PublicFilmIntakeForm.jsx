@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import publicApi from '../../api/publicClient';
 import {
   CANISTER_CONDITIONS,
@@ -18,7 +18,9 @@ import {
 } from '../../utils/intakeOptions';
 import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot, SelectOptions } from './PublicIntakeFields';
+import { PublicMobileChips } from './PublicMobilePage';
 import { pingWebInbox } from '../../lib/webInboxPing';
+import PublicMobileIcon from './PublicMobileIcon';
 
 const PUBLIC_FILM_STUCK = FILM_STUCK.filter((o) => o.value !== 'yes_found_on_inspection');
 
@@ -32,7 +34,7 @@ const emptyCustomer = {
   postalCode: '',
 };
 
-export default function PublicFilmIntakeForm() {
+export default function PublicFilmIntakeForm({ compact = false }) {
   const { t } = usePublicLocale();
   const [customer, setCustomer] = useState(emptyCustomer);
   const [quantity, setQuantity] = useState(1);
@@ -42,6 +44,20 @@ export default function PublicFilmIntakeForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
+  const [step, setStep] = useState(1);
+  const mobileForm = useRef(null);
+  const mobileStepTitle = useRef(null);
+  const mobileStatus = useRef(null);
+  const previousStep = useRef(step);
+
+  useEffect(() => {
+    if (compact && previousStep.current !== step) mobileStepTitle.current?.focus();
+    previousStep.current = step;
+  }, [compact, step]);
+
+  useEffect(() => {
+    if (compact && done) mobileStatus.current?.focus();
+  }, [compact, done]);
 
   const set = (key, value) => setChecklist((prev) => ({ ...prev, [key]: value }));
 
@@ -77,12 +93,273 @@ export default function PublicFilmIntakeForm() {
       setQuantity(1);
       setChecklist(defaultIntakeChecklist());
       setReceptionNotes('');
+      setStep(1);
     } catch (err) {
       setError(err.response?.data?.message || t('form.err.film'));
     } finally {
       setSaving(false);
     }
   };
+
+  const goNext = () => {
+    if (step === 2) {
+      if (!mobileForm.current?.reportValidity()) return;
+      const ok = [customer.firstName, customer.lastName, customer.email, customer.phone].every((v) =>
+        String(v || '').trim()
+      );
+      if (!ok) {
+        setError(t('mpage.need'));
+        [...mobileForm.current.querySelectorAll('input[required]')].find((input) => !input.value.trim())?.focus();
+        return;
+      }
+    }
+    setError('');
+    setStep((s) => Math.min(3, s + 1));
+  };
+
+  if (compact) {
+    const steps = ['exp.filmStep', 'mpage.contactStep', 'exp.reviewStep'];
+    const kinds = [
+      { value: 'color_negative', label: 'C-41' },
+      { value: 'black_white', label: 'B&W' },
+      { value: 'slide_e6', label: 'E-6' },
+    ];
+    const formats = [
+      { value: '35mm', label: '135', hint: '35mm' },
+      { value: '120', label: '120', hint: t('exp.mediumFormat') },
+    ];
+    const scans = SCAN_RESOLUTIONS.filter((o) => o.value !== 'custom').map((o) => ({
+      value: o.value,
+      label: t(`opt.scanRes.${o.value}`),
+      hint: t(`exp.scan.${o.value}`),
+    }));
+    const returns = [
+      { value: 'pickup_at_lab', label: t('mpage.ret.lab') },
+      { value: 'ship_home', label: t('mpage.ret.ship') },
+      { value: 'discard', label: t('mpage.ret.drop') },
+    ];
+    return (
+      <section className="ps-mform pm-film-form" id="mobile-film-intake" aria-labelledby="mobile-film-title">
+        <h2 className="ps-msection-title" id="mobile-film-title">{t('form.film.h2')}</h2>
+        {error ? <p className="ps-mform-err" role="alert">{error}</p> : null}
+        {done ? <p ref={mobileStatus} tabIndex={-1} className="ps-mform-ok" role="status">{done}</p> : null}
+        <form
+          ref={mobileForm}
+          aria-busy={saving}
+          onSubmit={(e) => {
+            if (saving) {
+              e.preventDefault();
+              return;
+            }
+            if (step < 3) {
+              e.preventDefault();
+              goNext();
+              return;
+            }
+            if (checklist.originalFilmReturn === 'ship_home' && !String(checklist.shippingAddress || customer.address || '').trim()) {
+              e.preventDefault();
+              setError(t('mpage.need'));
+              return;
+            }
+            handleSubmit(e);
+          }}
+        >
+          <Honeypot />
+          <input
+            className="ps-hp"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+          <ol className="ps-mprogress" aria-label={t('form.film.h2')}>
+            {steps.map((key, index) => (
+              <li key={key} className={step >= index + 1 ? 'is-on' : ''} aria-current={step === index + 1 ? 'step' : undefined}>
+                <span>{String(index + 1).padStart(2, '0')}</span>{t(key)}
+              </li>
+            ))}
+          </ol>
+          <h3 className="ps-mstep-title" key={step} ref={mobileStepTitle} tabIndex={-1}>{t(steps[step - 1])}</h3>
+          {step === 2 ? (
+            <>
+              <div className="ps-mpro-group">
+                <Field label={t('form.last')} required>
+                  <input
+                    required
+                    placeholder={t('form.ph.last')}
+                    value={customer.firstName}
+                    onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
+                    autoComplete="family-name"
+                  />
+                </Field>
+                <Field label={t('form.first')} required>
+                  <input
+                    required
+                    placeholder={t('form.ph.first')}
+                    value={customer.lastName}
+                    onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
+                    autoComplete="given-name"
+                  />
+                </Field>
+                <Field label={t('form.email')} required>
+                  <input
+                    required
+                    type="email"
+                    placeholder="email@example.com"
+                    value={customer.email}
+                    onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                    autoComplete="email"
+                  />
+                </Field>
+                <Field label={t('form.phone')} required>
+                  <input
+                    required
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="0901234567"
+                    value={customer.phone}
+                    onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                    autoComplete="tel"
+                  />
+                </Field>
+              </div>
+            </>
+          ) : null}
+          {step === 1 ? (
+            <>
+              <div className="ps-mpro-group">
+                <div className="ps-mqty">
+                  <b>{t('mpage.qty')}</b>
+                  <div className="ps-mqty-ctrl">
+                    <button
+                      type="button"
+                      aria-label={t('mpage.less')}
+                      disabled={quantity <= 1}
+                      onClick={() => setQuantity((n) => Math.max(1, n - 1))}
+                    >
+                      −
+                    </button>
+                    <output aria-live="polite">{quantity}</output>
+                    <button
+                      type="button"
+                      aria-label={t('mpage.add')}
+                      disabled={quantity >= 20}
+                      onClick={() => setQuantity((n) => Math.min(20, n + 1))}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p className="ps-msection-h" id="m-kind">
+                {t('mpage.kind')}
+              </p>
+              <div className="ps-mpro-group ps-mpro-group--pad">
+                <PublicMobileChips
+                  labelledBy="m-kind"
+                  value={checklist.filmTypeDetail}
+                  onChange={onFilmTypeDetailChange}
+                  options={kinds}
+                />
+              </div>
+              <p className="ps-msection-h" id="m-fmt">
+                {t('mpage.format')}
+              </p>
+              <div className="ps-mpro-group ps-mpro-group--pad">
+                <PublicMobileChips
+                  labelledBy="m-fmt"
+                  value={checklist.filmFormat}
+                  onChange={(v) => set('filmFormat', v)}
+                  options={formats}
+                />
+              </div>
+              <p className="ps-msection-h" id="m-scan">
+                {t('mpage.scan')}
+              </p>
+              <div className="ps-mpro-group ps-mpro-group--pad">
+                <PublicMobileChips
+                  labelledBy="m-scan"
+                  value={checklist.scanResolution}
+                  onChange={(v) => set('scanResolution', v)}
+                  options={scans}
+                />
+              </div>
+              <p className="ps-msection-h" id="m-file-format">{t('exp.fileFormat')}</p>
+              <PublicMobileChips labelledBy="m-file-format" value={checklist.scanFileFormat} onChange={(value) => set('scanFileFormat', value)} options={SCAN_FORMATS.map((option) => ({ value: option.value, label: option.value === 'both' ? 'JPEG + TIFF' : option.value.toUpperCase() }))} />
+            </>
+          ) : null}
+          {step === 3 ? (
+            <>
+              <div className="pm-order-review">
+                <div className="pm-order-review-title"><b>{quantity} × {checklist.filmFormat} / {kinds.find((item) => item.value === checklist.filmTypeDetail)?.label}</b><button type="button" className="pm-icon-button" aria-label={t('exp.editFilm')} title={t('exp.editFilm')} onClick={() => setStep(1)} disabled={saving}><PublicMobileIcon name="edit" /></button></div>
+                <p>{scans.find((item) => item.value === checklist.scanResolution)?.label} · {checklist.scanFileFormat.toUpperCase()}</p>
+                <div className="pm-order-customer"><b>{customer.firstName} {customer.lastName}</b><span>{customer.email}</span><span>{customer.phone}</span></div>
+              </div>
+              <p className="ps-msection-h" id="m-ret">
+                {t('form.film.original')}
+              </p>
+              <div className="ps-mpro-group ps-mpro-group--pad">
+                <PublicMobileChips
+                  labelledBy="m-ret"
+                  value={checklist.originalFilmReturn}
+                  onChange={(v) => set('originalFilmReturn', v)}
+                  options={returns}
+                />
+              </div>
+              {checklist.originalFilmReturn === 'ship_home' ? (
+                <div className="ps-mpro-group">
+                  <Field label={t('form.address')} required>
+                    <input
+                      required
+                      placeholder={t('form.ph.address')}
+                      value={checklist.shippingAddress}
+                      onChange={(e) => set('shippingAddress', e.target.value)}
+                      autoComplete="street-address"
+                    />
+                  </Field>
+                </div>
+              ) : null}
+              <div className="ps-mpro-group">
+                <Field label={t('form.film.labNote')}>
+                  <textarea
+                    rows={3}
+                    placeholder={t('form.ph.labNotes')}
+                    value={receptionNotes}
+                    onChange={(e) => setReceptionNotes(e.target.value)}
+                  />
+                </Field>
+              </div>
+            </>
+          ) : null}
+          <div className="ps-mform-nav">
+            {step > 1 ? (
+              <button
+                type="button"
+                disabled={saving}
+                className="ps-mcta ps-mcta--ghost"
+                onClick={() => {
+                  setError('');
+                  setStep((s) => s - 1);
+                }}
+              >
+                {t('mpage.prev')}
+              </button>
+            ) : null}
+            {step < 3 ? (
+              <button key="next-step" type="button" className="ps-mcta ps-mcta--fill" onClick={goNext}>
+                {t('mpage.next')}
+              </button>
+            ) : (
+              <button key="send-order" type="submit" className="ps-mcta ps-mcta--fill" disabled={saving}>
+                {saving ? t('form.sending') : t('mpage.send')}
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+    );
+  }
 
   return (
     <section id="gui-don" className="ps-section">

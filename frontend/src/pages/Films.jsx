@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import Modal from '../components/Modal';
@@ -9,7 +9,8 @@ import StatusPill from '../components/StatusPill';
 import SubNavBar from '../components/SubNavBar';
 import AppleSegmentedControl from '../components/AppleSegmentedControl';
 import LabPageShell from '../components/lab/LabPageShell';
-import LabMasterDetail, { LabDetailEmpty } from '../components/lab/LabMasterDetail';
+import LabMasterDetail, { LabDetailEmpty, LabRowMark } from '../components/lab/LabMasterDetail';
+import LabStatusRail, { LabPager } from '../components/lab/LabStatusRail';
 import TicketSlip from '../components/TicketSlip';
 import TicketDetailPanel from '../components/TicketDetailPanel';
 import BatchDeliverModal from '../components/BatchDeliverModal';
@@ -19,10 +20,12 @@ import {
   FILM_STATUS_PILL,
   customerName,
   customerPhone,
+  filmTypeLabel,
   ticketCode,
 } from '../utils/filmLabels';
+import { LAB_PAGE_SIZE, formatLabRelative, ticketMark } from '../utils/labFormat';
 import { filmTypeFromDetail } from '../utils/intakeOptions';
-import { inputClass, labelClass, LabeledTextarea } from '../components/formFields';
+import { LabeledTextarea } from '../components/formFields';
 import { isMobileDataEnabled } from '../lib/mobileLocalDb';
 import { isAuthError } from '../utils/apiError';
 import {
@@ -47,6 +50,12 @@ const TRACKING_FILTERS = [
   { id: 'received', label: STATUS_LABELS.received },
   { id: 'processing', label: STATUS_LABELS.processing },
   { id: 'completed', label: STATUS_LABELS.completed },
+];
+
+const RECEIVE_FILTERS = [
+  { id: '', label: 'Tất cả' },
+  { id: 'web_order', label: STATUS_LABELS.web_order },
+  { id: 'received', label: STATUS_LABELS.received },
 ];
 
 export default function Films() {
@@ -74,8 +83,65 @@ export default function Films() {
   const [batchCompleteNotes, setBatchCompleteNotes] = useState('');
   const [filterOpen, setFilterOpen] = useState(false);
   const [emailSmtp, setEmailSmtp] = useState(null);
+  const [page, setPage] = useState(1);
+  const lastIndexRef = useRef(null);
 
-  const displayList = searchResults !== null ? searchResults : films;
+  const folderDefs = activeTab === 'receive' ? RECEIVE_FILTERS : activeTab === 'tracking' ? TRACKING_FILTERS : null;
+
+  const tabBase = useMemo(() => {
+    if (activeTab === 'receive') {
+      return films.filter((f) => f.status === 'web_order' || f.status === 'received');
+    }
+    if (activeTab === 'delivery') return films.filter((f) => f.status === 'completed');
+    return films.filter((f) => f.status !== 'delivered' && f.status !== 'cancelled');
+  }, [films, activeTab]);
+
+  const workflowItems = useMemo(
+    () => [
+      {
+        id: 'receive',
+        label: 'Nhận cuộn',
+        count: films.filter((f) => f.status === 'web_order' || f.status === 'received').length,
+      },
+      {
+        id: 'tracking',
+        label: 'Theo dõi tráng',
+        count: films.filter((f) => f.status !== 'delivered' && f.status !== 'cancelled').length,
+      },
+      {
+        id: 'delivery',
+        label: 'Trả ảnh',
+        count: films.filter((f) => f.status === 'completed').length,
+      },
+    ],
+    [films]
+  );
+
+  const folderItems = useMemo(() => {
+    if (!folderDefs) return null;
+    const counts = {};
+    tabBase.forEach((f) => {
+      counts[f.status] = (counts[f.status] || 0) + 1;
+    });
+    return folderDefs.map((tab) => ({
+      ...tab,
+      count: tab.id === '' ? tabBase.length : counts[tab.id] || 0,
+    }));
+  }, [folderDefs, tabBase]);
+
+  const displayList = useMemo(() => {
+    if (searchResults !== null) return searchResults;
+    if (activeTab === 'delivery' || !statusFilter) return tabBase;
+    return tabBase.filter((f) => f.status === statusFilter);
+  }, [searchResults, tabBase, statusFilter, activeTab]);
+
+  const pageCount = Math.max(1, Math.ceil(displayList.length / LAB_PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageRows = displayList.slice((safePage - 1) * LAB_PAGE_SIZE, safePage * LAB_PAGE_SIZE);
+  const rangeFrom = displayList.length ? (safePage - 1) * LAB_PAGE_SIZE + 1 : 0;
+  const rangeTo = Math.min(safePage * LAB_PAGE_SIZE, displayList.length);
+
+  const canCheck = activeTab === 'tracking' || activeTab === 'delivery';
 
   const canSelectForBatch = (film) => {
     if (activeTab === 'tracking') {
@@ -91,9 +157,33 @@ export default function Films() {
   const selectedReceived = selectedFilms.filter((f) => f.status === 'received');
   const selectedProcessing = selectedFilms.filter((f) => f.status === 'processing');
   const selectedCompleted = selectedFilms.filter((f) => f.status === 'completed');
+  const pageEligible = pageRows.filter(canSelectForBatch);
+  const allChecked = pageEligible.length > 0 && pageEligible.every((film) => selectedIds.has(film._id));
 
-  const toggleSelect = (id, film) => {
+  const selectRange = (toIndex) => {
+    if (toIndex < 0) return;
+    const from = lastIndexRef.current;
+    if (from == null) {
+      lastIndexRef.current = toIndex;
+      const film = pageRows[toIndex];
+      if (film && canSelectForBatch(film)) setSelectedIds(new Set([film._id]));
+      return;
+    }
+    const start = Math.min(from, toIndex);
+    const end = Math.max(from, toIndex);
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      for (let i = start; i <= end; i += 1) {
+        const film = pageRows[i];
+        if (film && canSelectForBatch(film)) next.add(film._id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelect = (id, film, index) => {
     if (!canSelectForBatch(film)) return;
+    lastIndexRef.current = index;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -103,22 +193,35 @@ export default function Films() {
   };
 
   const selectAllEligible = () => {
-    setSelectedIds(new Set(displayList.filter(canSelectForBatch).map((f) => f._id)));
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      pageEligible.forEach((film) => next.add(film._id));
+      return next;
+    });
+    lastIndexRef.current = 0;
   };
 
-  const clearSelection = () => setSelectedIds(new Set());
+  const clearPageEligible = () => {
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      pageEligible.forEach((film) => next.delete(film._id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    lastIndexRef.current = null;
+  };
+
   const selectedFilm = displayList.find((f) => f._id === selectedId) || null;
 
   const loadFilms = useCallback(() => {
-    const params = {};
-    if (activeTab === 'receive') params.status = 'web_order,received';
-    if (activeTab === 'tracking' && statusFilter) params.status = statusFilter;
-    if (activeTab === 'delivery') params.status = 'completed';
-    return loadFilmsBridge(params).then(({ films }) => {
-      setFilms(films);
-      return films;
+    return loadFilmsBridge({}).then(({ films: rows }) => {
+      setFilms(rows);
+      return rows;
     });
-  }, [activeTab, statusFilter]);
+  }, []);
 
   useEffect(() => {
     loadEnrichedCustomers()
@@ -128,7 +231,6 @@ export default function Films() {
           api.get('/customers').then((res) => setCustomers(res.data)).catch(() => {});
         }
       });
-    // Mobile native: không spam banner Mac SMTP (Y700/offline). Gửi mail = DeviceSmtp trên máy.
     if (isMobileDataEnabled()) {
       setEmailSmtp(null);
       return;
@@ -153,14 +255,15 @@ export default function Films() {
   }, [searchParams]);
 
   useEffect(() => {
+    setPage(1);
+  }, [activeTab, statusFilter, searchQuery]);
+
+  useEffect(() => {
     setSearchResults(null);
     if (!searchParams.get('id')) setSelectedId(null);
     clearSelection();
-    if (activeTab === 'delivery') {
-      setStatusFilter('completed');
-    } else if (activeTab === 'tracking') {
-      setStatusFilter('');
-    }
+    if (activeTab === 'delivery') setStatusFilter('completed');
+    else setStatusFilter('');
     loadFilms().catch((err) => {
       if (isMobileDataEnabled()) {
         setFilms([]);
@@ -173,7 +276,7 @@ export default function Films() {
       }
       setError('Không tải được danh sách phiếu');
     });
-  }, [activeTab, statusFilter, loadFilms, searchParams]);
+  }, [activeTab, loadFilms, searchParams]);
 
   useEffect(() => {
     const onChanged = () => {
@@ -296,7 +399,7 @@ export default function Films() {
           ? `${data.message}. Lỗi: ${data.failed.map((x) => x.message).join('; ')}`
           : ''
       );
-      if (data.failedCount === 0) alert(data.message);
+      if (data.failedCount === 0) setSuccess(data.message);
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Batch tráng thất bại');
     } finally {
@@ -320,7 +423,7 @@ export default function Films() {
       if (data.failedCount > 0) {
         setError(`${data.message}. ${data.failed.length} phiếu lỗi.`);
       } else {
-        alert(data.message);
+        setSuccess(data.message);
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Batch hoàn thành thất bại');
@@ -371,19 +474,14 @@ export default function Films() {
         : 'Danh sách phiếu';
 
   return (
-    <LabPageShell>
+    <LabPageShell wide>
       <div className="max-md:hidden">
-        <PageHeader title="Phiếu film">
-          {films.some((f) => f.status === 'web_order') ? (
-            <span className="text-sm font-medium text-amber-700">
-              {films.filter((f) => f.status === 'web_order').length} đơn web chờ nhận cuộn
-            </span>
-          ) : null}
-          {activeTab === 'receive' && (
-            <button type="button" onClick={() => setShowReceive(true)} className="apple-btn-primary">
-              + Phiếu tiếp nhận
+        <PageHeader className="lab-page-head" title="Phiếu film" subtitle={listTitle}>
+          {activeTab === 'receive' ? (
+            <button type="button" className="btn-pill btn-pill--36 btn-pill--lv1" onClick={() => setShowReceive(true)}>
+              Tiếp nhận cuộn
             </button>
-          )}
+          ) : null}
         </PageHeader>
       </div>
 
@@ -392,9 +490,9 @@ export default function Films() {
         mobileOnly
         sticky
         title={TABS.find((t) => t.id === activeTab)?.label || 'Phiếu film'}
-        filter={activeTab === 'tracking'}
-        filterActive={Boolean(statusFilter)}
-        filterVariant={activeTab === 'tracking' ? 'icon' : 'button'}
+        filter={activeTab === 'tracking' || activeTab === 'receive'}
+        filterActive={Boolean(statusFilter && activeTab !== 'delivery')}
+        filterVariant={activeTab === 'tracking' || activeTab === 'receive' ? 'icon' : 'button'}
         filterLabel="Lọc"
         onFilterClick={() => setFilterOpen((v) => !v)}
         rightAction={
@@ -416,10 +514,10 @@ export default function Films() {
         centered={false}
       />
 
-      {activeTab === 'tracking' && filterOpen && (
+      {folderItems && filterOpen && (
         <div className="md:hidden relative z-10 -mt-1 mb-3">
           <AppleSegmentedControl
-            items={TRACKING_FILTERS}
+            items={folderItems.map(({ id, label }) => ({ id, label }))}
             value={statusFilter}
             onChange={(id) => {
               setStatusFilter(id);
@@ -444,39 +542,6 @@ export default function Films() {
         </FeedbackBanner>
       )}
 
-      <div className="mb-4">
-        <SearchField
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Email, SĐT, mã phiếu PH-..."
-          loading={searchLoading}
-          aria-label="Tìm phiếu hoặc khách hàng"
-        />
-      </div>
-
-      <AppleSegmentedControl
-        className="mb-4"
-        items={TABS}
-        value={activeTab}
-        onChange={(id) => {
-          setActiveTab(id);
-          setSearchQuery('');
-          setSearchResults(null);
-          setSelectedId(null);
-          setFilterOpen(false);
-          clearSelection();
-        }}
-      />
-
-      {activeTab === 'tracking' && (
-        <AppleSegmentedControl
-          className="mb-4 max-md:hidden"
-          items={TRACKING_FILTERS}
-          value={statusFilter}
-          onChange={setStatusFilter}
-        />
-      )}
-
       {error && (
         <div className="mb-4">
           <FeedbackBanner variant="error" onDismiss={() => setError('')}>
@@ -485,127 +550,166 @@ export default function Films() {
         </div>
       )}
 
-      {(activeTab === 'tracking' || activeTab === 'delivery') && (
-        <div className="lab-toolbar">
-          <span>
-            Đã chọn: <strong className="text-[var(--color-label)]">{selectedIds.size}</strong> phiếu
-          </span>
-          <button type="button" onClick={selectAllEligible} className="apple-btn-ghost text-xs !py-1">
-            Chọn tất cả (hợp lệ)
-          </button>
-          {selectedIds.size > 0 && (
-            <button type="button" onClick={clearSelection} className="text-xs text-[var(--color-label-tertiary)] hover:underline">
-              Bỏ chọn
-            </button>
-          )}
-          {activeTab === 'tracking' && selectedReceived.length > 0 && (
-            <button
-              type="button"
-              disabled={batchLoading}
-              onClick={handleBatchStart}
-              className="apple-btn-secondary ml-auto text-sm disabled:opacity-60"
-            >
-              Bắt đầu tráng ({selectedReceived.length})
-            </button>
-          )}
-          {activeTab === 'tracking' && selectedProcessing.length > 0 && (
-            <>
-              <div className="max-w-[220px]">
-                <label className={`${labelClass} text-[10px]`}>Ghi chú hoàn thành</label>
-                <input
-                  type="text"
-                  value={batchCompleteNotes}
-                  onChange={(e) => setBatchCompleteNotes(e.target.value)}
-                  placeholder="Ghi chú chung..."
-                  className={`${inputClass} text-xs py-2`}
-                />
-              </div>
-              <button
-                type="button"
-                disabled={batchLoading}
-                onClick={handleBatchComplete}
-                className="apple-btn-primary !py-1.5 !px-3 text-sm disabled:opacity-60"
-              >
-                Hoàn thành & tạo folder ({selectedProcessing.length})
-              </button>
-            </>
-          )}
-          {activeTab === 'delivery' && selectedCompleted.length > 0 && (
-            <button
-              type="button"
-              disabled={batchLoading}
-              onClick={() => setShowBatchDeliver(true)}
-              className="apple-btn-primary ml-auto !py-1.5 !px-3 text-sm disabled:opacity-60"
-            >
-              Xác nhận trả ảnh ({selectedCompleted.length})
-            </button>
-          )}
-        </div>
-      )}
+      <div className="max-md:hidden">
+        <LabStatusRail
+          label="Công đoạn"
+          items={workflowItems}
+          value={activeTab}
+          onChange={(id) => {
+            setActiveTab(id);
+            setSearchQuery('');
+            setSearchResults(null);
+            setSelectedId(null);
+            setFilterOpen(false);
+            clearSelection();
+          }}
+        />
+      </div>
 
       <LabMasterDetail
-        listHidden={Boolean(selectedId)}
-        detailHidden={!selectedId}
+        selected={Boolean(selectedFilm)}
+        listHidden={Boolean(selectedFilm)}
+        detailHidden={!selectedFilm}
         onBack={() => setSelectedId(null)}
         backLabel="← Danh sách phiếu"
-        list={
-          <div className="lab-list-panel">
-            <div className="lab-list-panel__header">
-              <span>{listTitle}</span>
-              {(activeTab === 'tracking' || activeTab === 'delivery') && (
-                <span>Chọn nhiều phiếu</span>
-              )}
+        toolbar={
+          <>
+            <div className="lab-desk__mobile-tabs md:hidden">
+              <AppleSegmentedControl
+                items={TABS}
+                value={activeTab}
+                onChange={(id) => {
+                  setActiveTab(id);
+                  setSearchQuery('');
+                  setSearchResults(null);
+                  setSelectedId(null);
+                  setFilterOpen(false);
+                  clearSelection();
+                }}
+              />
             </div>
-            <ul className="lab-list-panel__body divide-y divide-[var(--color-separator)]">
-              {displayList.length === 0 && (
-                <li className="p-6 text-center text-sm text-[var(--color-label-secondary)]">
-                  Không có phiếu
-                </li>
-              )}
-              {displayList.map((film) => {
-                const selectable = canSelectForBatch(film);
-                return (
-                  <li key={film._id} className="flex items-stretch">
-                    {(activeTab === 'tracking' || activeTab === 'delivery') && (
-                      <label
-                        className={`lab-list-row__check ${
-                          selectable ? 'cursor-pointer' : 'opacity-30 cursor-not-allowed'
-                        }`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(film._id)}
-                          disabled={!selectable}
-                          onChange={() => toggleSelect(film._id, film)}
-                          className="w-4 h-4 rounded border-[var(--color-separator)] accent-[var(--color-blue)]"
-                        />
-                      </label>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(film._id)}
-                      className={`lab-list-row flex-1 ${
-                        selectedId === film._id ? 'lab-list-row--selected' : ''
-                      }`}
-                    >
-                      <div className="lab-list-row__main">
-                        <div className="flex justify-between items-start gap-2">
-                          <span className="font-mono text-sm font-semibold text-[var(--color-blue)]">
-                            {ticketCode(film)}
-                          </span>
-                          <StatusPill variant={FILM_STATUS_PILL[film.status] || 'active'}>
-                            {STATUS_LABELS[film.status]}
-                          </StatusPill>
-                        </div>
-                        <p className="text-sm mt-1 text-[var(--color-label)]">{customerName(film)}</p>
-                        <p className="text-xs text-[var(--color-label-secondary)]">{customerPhone(film)}</p>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="lab-desk__toolbar-search">
+              <SearchField
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm phiếu"
+                loading={searchLoading}
+                aria-label="Tìm phiếu hoặc khách hàng"
+              />
+            </div>
+            {folderItems ? (
+              <div className="lab-status-chips max-md:hidden">
+                {folderItems.map((item) => (
+                  <button
+                    key={item.id || 'all'}
+                    type="button"
+                    className={statusFilter === item.id ? 'is-on' : ''}
+                    onClick={() => setStatusFilter(item.id)}
+                  >
+                    {item.label}
+                    <span className="lab-filter-count">{item.count}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <span className="lab-desk__count">
+              {displayList.length
+                ? `Đang hiện ${rangeFrom}–${rangeTo} / ${displayList.length}`
+                : '0 phiếu'}
+            </span>
+          </>
+        }
+        footer={pageCount > 1 ? <LabPager page={safePage} pageCount={pageCount} onChange={setPage} /> : null}
+        list={
+          <div className={`lab-table lab-table--film${canCheck ? ' lab-table--check' : ''}`}>
+            <div className="lab-table-head">
+              {canCheck ? (
+                <input
+                  type="checkbox"
+                  className="shop-check"
+                  checked={allChecked}
+                  disabled={pageEligible.length === 0}
+                  onChange={() => (allChecked ? clearPageEligible() : selectAllEligible())}
+                  aria-label="Chọn tất cả phiếu hợp lệ"
+                />
+              ) : null}
+              <span>Phiếu</span>
+              <span>Liên hệ</span>
+              <span className="lab-col-extra">Loại</span>
+              <span>Trạng thái</span>
+              <span className="lab-col-extra">Cập nhật</span>
+            </div>
+            {displayList.length === 0 && <div className="lab-table-empty">Không có phiếu</div>}
+            {pageRows.map((film, index) => {
+              const selectable = canSelectForBatch(film);
+              const active = selectedId === film._id;
+              const checked = selectedIds.has(film._id);
+              const code = ticketCode(film);
+              return (
+                <div
+                  key={film._id}
+                  role="option"
+                  tabIndex={0}
+                  aria-selected={active}
+                  className={`lab-table-row${active ? ' is-selected' : ''}${checked ? ' is-checked' : ''}`}
+                  onClick={(e) => {
+                    if (e.shiftKey && canCheck) {
+                      e.preventDefault();
+                      selectRange(index);
+                      return;
+                    }
+                    setSelectedId(film._id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedId(film._id);
+                    }
+                  }}
+                >
+                  {canCheck ? (
+                    <input
+                      type="checkbox"
+                      className="shop-check"
+                      checked={checked}
+                      disabled={!selectable}
+                      aria-label={`Chọn ${code}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!e.shiftKey) return;
+                        e.preventDefault();
+                        selectRange(index);
+                      }}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        if (e.nativeEvent.shiftKey) return;
+                        toggleSelect(film._id, film, index);
+                      }}
+                    />
+                  ) : null}
+                  <span className="lab-table-name">
+                    <LabRowMark>{ticketMark(code)}</LabRowMark>
+                    <span className="lab-table-copy">
+                      <span className="lab-table-code">{code}</span>
+                      <span className="lab-table-title">{customerName(film)}</span>
+                      <span className="lab-table-meta">{customerPhone(film)}</span>
+                    </span>
+                  </span>
+                  <span className="lab-table-cell">{customerPhone(film)}</span>
+                  <span className="lab-table-cell lab-col-extra">
+                    {filmTypeLabel(film.filmType)} · {film.quantity || 1}
+                  </span>
+                  <span className="lab-table-status">
+                    <StatusPill variant={FILM_STATUS_PILL[film.status] || 'active'}>
+                      {STATUS_LABELS[film.status]}
+                    </StatusPill>
+                  </span>
+                  <span className="lab-table-cell lab-col-extra">
+                    {formatLabRelative(film.updatedAt || film.createdAt)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         }
         detail={
@@ -619,12 +723,60 @@ export default function Films() {
           ) : (
             <LabDetailEmpty>
               {activeTab === 'delivery'
-                ? 'Chọn phiếu sẵn sàng trả — bấm Xác nhận đã trả ảnh (gửi email khách)'
-                : 'Chọn một phiếu trong danh sách hoặc tìm kiếm bên trên'}
+                ? 'Chọn phiếu sẵn sàng trả — tick nhiều phiếu để trả hàng loạt'
+                : 'Chọn phiếu bên trái để xem tiến độ và bước tiếp theo'}
             </LabDetailEmpty>
           )
         }
       />
+
+      {selectedIds.size > 0 && (
+        <div className="shop-bulk-bar" role="toolbar" aria-label="Thao tác hàng loạt">
+          <span className="shop-bulk-count">{selectedIds.size} phiếu</span>
+          <button type="button" className="shop-product-tool" onClick={clearSelection}>
+            Bỏ chọn
+          </button>
+          {activeTab === 'tracking' && selectedReceived.length > 0 && (
+            <button
+              type="button"
+              disabled={batchLoading}
+              onClick={handleBatchStart}
+              className="btn-pill btn-pill--36 btn-pill--lv2"
+            >
+              Bắt đầu tráng ({selectedReceived.length})
+            </button>
+          )}
+          {activeTab === 'tracking' && selectedProcessing.length > 0 && (
+            <>
+              <input
+                type="text"
+                className="lab-bulk-note"
+                value={batchCompleteNotes}
+                onChange={(e) => setBatchCompleteNotes(e.target.value)}
+                placeholder="Ghi chú hoàn thành"
+              />
+              <button
+                type="button"
+                disabled={batchLoading}
+                onClick={handleBatchComplete}
+                className="btn-pill btn-pill--36 btn-pill--lv1"
+              >
+                Hoàn thành ({selectedProcessing.length})
+              </button>
+            </>
+          )}
+          {activeTab === 'delivery' && selectedCompleted.length > 0 && (
+            <button
+              type="button"
+              disabled={batchLoading}
+              onClick={() => setShowBatchDeliver(true)}
+              className="btn-pill btn-pill--36 btn-pill--lv1"
+            >
+              Trả ảnh ({selectedCompleted.length})
+            </button>
+          )}
+        </div>
+      )}
 
       {showReceive && (
         <Modal

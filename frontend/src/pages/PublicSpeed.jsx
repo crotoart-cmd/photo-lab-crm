@@ -1,6 +1,7 @@
 import { usePublicLocale } from '../components/public/PublicLocale';
 import PsPage from '../components/public/PsPage';
 import PsPhoto from '../components/public/PsPhoto';
+import { PublicMobileSpeed } from '../components/public/PublicMobileService';
 import { LAB_PHOTO } from '../data/publicLabPhotos';
 import { SPEED_STANDARD } from '../data/publicLabServices';
 
@@ -12,6 +13,9 @@ export default function PublicSpeed() {
   const { t } = usePublicLocale();
   const time = (raw) => t(TIME_KEY[raw] || raw);
   return (
+    <>
+    <PublicMobileSpeed />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-page-hero--photo ps-grid">
         <p className="ps-kicker">{t('kicker.service')}</p>
@@ -62,5 +66,7 @@ export default function PublicSpeed() {
         </section>
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

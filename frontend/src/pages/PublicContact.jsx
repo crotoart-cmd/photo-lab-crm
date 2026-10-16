@@ -1,11 +1,15 @@
 import { Link } from 'react-router-dom';
 import { PATH } from '../config/publicPaths';
 import { usePublicLocale } from '../components/public/PublicLocale';
+import { PublicMobileContact } from '../components/public/PublicMobileMore';
 import PsPage from '../components/public/PsPage';
 
 export default function PublicContact() {
   const { t } = usePublicLocale();
   return (
+    <>
+    <PublicMobileContact />
+    <div className="ps-desk">
     <PsPage>
       <section className="ps-page-hero ps-grid">
         <p className="ps-kicker">{t('kicker.lab')}</p>
@@ -41,5 +45,7 @@ export default function PublicContact() {
         </section>
       </div>
     </PsPage>
+    </div>
+    </>
   );
 }

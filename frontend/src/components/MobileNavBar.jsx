@@ -54,7 +54,7 @@ export default function MobileNavBar({ user, isOwner, onLogout, open, onOpenChan
               {NAV_GROUPS.map((group) => (
                 <div key={group.id} className="mb-4">
                   <p className="apple-nav-section-label">{group.label}</p>
-                  {group.items.map((item) => {
+                  {group.items.filter((item) => !item.ownerOnly || isOwner).map((item) => {
                     const active = isNavItemActive(item, location);
                     const cls = [
                       'apple-nav-item',

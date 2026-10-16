@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { hashConfirmToken } = require('../lib/confirmToken');
 const Customer = require('../models/Customer');
 const CustomerRepairTicket = require('../models/CustomerRepairTicket');
 const { SAMPLE_CUSTOMERS } = require('./ensureSampleCustomers');
@@ -57,7 +58,10 @@ async function ensureSampleRepairTickets() {
       quote_email_sent_at: row.quote_email_sent_at,
       ready_email_sent_at: row.ready_email_sent_at,
       work_logs: row.work_logs,
-      confirm_token: row.needs_confirm_token ? crypto.randomBytes(24).toString('hex') : undefined,
+      confirm_token: undefined,
+      confirm_token_hash: row.needs_confirm_token
+        ? hashConfirmToken(crypto.randomBytes(32).toString('hex'))
+        : undefined,
       confirm_token_expires: row.needs_confirm_token
         ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         : undefined,

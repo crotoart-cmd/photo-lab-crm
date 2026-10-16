@@ -51,6 +51,13 @@ function PrivateRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
+function OwnerRoute({ children }) {
+  const { isOwner, loading } = useAuth();
+  if (loading) return null;
+  if (!isOwner) return <Navigate to="/" replace />;
+  return children;
+}
+
 export default function App() {
   if (!isCrmHost()) {
     return (
@@ -95,7 +102,14 @@ export default function App() {
         <Route path="films" element={<Films />} />
         <Route path="repairs" element={<Repairs />} />
         <Route path="inventory" element={<Inventory />} />
-        <Route path="noi-dung" element={<SiteContent />} />
+        <Route
+          path="noi-dung"
+          element={
+            <OwnerRoute>
+              <SiteContent />
+            </OwnerRoute>
+          }
+        />
         <Route path="retail" element={<Retail />} />
         <Route path="profile" element={<Profile />} />
       </Route>

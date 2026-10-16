@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import publicApi from '../../api/publicClient';
 import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot } from './PublicIntakeFields';
 import { pingWebInbox } from '../../lib/webInboxPing';
+import PublicMobileRepairIntake from './PublicMobileRepairIntake';
 
 const empty = {
   firstName: '',
@@ -17,32 +18,40 @@ const empty = {
   intake_note: '',
 };
 
-export default function PublicRepairIntakeForm() {
+export default function PublicRepairIntakeForm({ compact = false }) {
   const { t } = usePublicLocale();
   const [form, setForm] = useState(empty);
   const [website, setWebsite] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
+  const submitting = useRef(false);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, payload = form) => {
     e.preventDefault();
+    if (compact && submitting.current) return;
+    submitting.current = true;
     setError('');
     setDone('');
     setSaving(true);
     try {
-      const { data } = await publicApi.post('/public/repair', { ...form, website });
+      const { data } = await publicApi.post('/public/repair', { ...payload, website });
       pingWebInbox();
       setDone(data.message || `${t('form.ok.repair')} ${data.ticketNumber || ''}`.trim());
       setForm(empty);
     } catch (err) {
       setError(err.response?.data?.message || t('form.err.repair'));
     } finally {
+      submitting.current = false;
       setSaving(false);
     }
   };
+
+  if (compact) {
+    return <PublicMobileRepairIntake form={form} setForm={setForm} website={website} setWebsite={setWebsite} saving={saving} error={error} done={done} onSubmit={handleSubmit} clearError={() => setError('')} onReset={() => { setForm(empty); setWebsite(''); setDone(''); }} />;
+  }
 
   return (
     <section id="gui-don" className="ps-section">

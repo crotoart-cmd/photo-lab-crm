@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cài Nước Lèo CRM + 35Daylight — double-click install-both-iphones.command
+# Cài HDTLABX + 35Daylight — double-click install-both-iphones.command
 # USB hoặc Wi‑Fi (sau khi pair Xcode 1 lần). Cài đè → giữ data local.
 set -euo pipefail
 
@@ -62,7 +62,7 @@ echo "📱 $DEVICE_NAME · $DEVICE_VIA · $DEVICE_ID"
 echo ""
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "1/2 · Nước Lèo CRM"
+echo "1/2 · HDTLABX"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 bash "$PHOTO_LAB_IOS" "$DEVICE_ID"
 

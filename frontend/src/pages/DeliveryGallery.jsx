@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { BRAND_NAME } from '../config/brand';
 import BrandLogo from '../components/BrandLogo';
+import PublicMobileDeliveryGallery from '../components/public/PublicMobileDeliveryGallery';
+import { PublicLocaleProvider } from '../components/public/PublicLocale';
 
 const publicApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -12,13 +14,30 @@ export default function DeliveryGallery() {
   const { slug } = useParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
 
   useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobile(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setData(null);
+    setError('');
     publicApi
       .get(`/delivery/${slug}`)
-      .then((res) => setData(res.data))
-      .catch((err) => setError(err.response?.data?.message || 'Không tải được ảnh'));
-  }, [slug]);
+      .then((res) => { if (!cancelled) setData(res.data); })
+      .catch((err) => { if (!cancelled) setError(err.response?.data?.message || 'Không tải được ảnh'); });
+    return () => { cancelled = true; };
+  }, [slug, retry]);
+
+  if (mobile) {
+    return <PublicLocaleProvider><PublicMobileDeliveryGallery key={slug} data={data} error={error} onRetry={() => setRetry((value) => value + 1)} /></PublicLocaleProvider>;
+  }
 
   if (error) {
     return (

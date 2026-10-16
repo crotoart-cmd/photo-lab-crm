@@ -12,10 +12,14 @@ function safeFileName(value) {
 
 router.post('/mobile', verifyToken, async (req, res) => {
   try {
-    const reason = req.body?.reason || 'manual';
+    const reason = String(req.body?.reason || 'manual').slice(0, 80);
     const payload = req.body?.payload;
     if (!payload || typeof payload !== 'object') {
       return res.status(400).json({ message: 'Thiếu dữ liệu backup' });
+    }
+    const encoded = JSON.stringify(payload);
+    if (encoded.length > 2 * 1024 * 1024) {
+      return res.status(413).json({ message: 'Backup quá lớn' });
     }
 
     fs.mkdirSync(backupDir, { recursive: true });
@@ -48,8 +52,8 @@ router.post('/mobile', verifyToken, async (req, res) => {
         file: path.basename(filePath),
       },
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Backup thất bại', error: error.message });
+  } catch (_error) {
+    res.status(500).json({ message: 'Backup thất bại' });
   }
 });
 

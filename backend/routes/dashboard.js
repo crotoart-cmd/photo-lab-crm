@@ -10,6 +10,7 @@ const CustomerRepairTicket = require('../models/CustomerRepairTicket');
 const ShopOrder = require('../models/ShopOrder');
 const { expireStaleOrders } = require('../services/shopReservations');
 const { verifyToken } = require('./auth');
+const { authWithUser, requireOwner } = require('../middleware/authz');
 const { buildDashboardAnalytics } = require('../services/dashboardAnalyticsService');
 const { ensureSampleRetailSales } = require('../services/ensureSampleRetailSales');
 
@@ -238,7 +239,7 @@ router.get('/repair-ops', verifyToken, async (req, res) => {
   }
 });
 
-router.get('/analytics', verifyToken, async (req, res) => {
+router.get('/analytics', ...authWithUser, requireOwner, async (req, res) => {
   try {
     const period = [
       'day',
@@ -263,8 +264,11 @@ router.get('/analytics', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/seed-demo-retail', verifyToken, async (req, res) => {
+router.post('/seed-demo-retail', ...authWithUser, requireOwner, async (req, res) => {
   try {
+    if (process.env.NODE_ENV === 'production' && process.env.SEED_DEMO_SALES !== 'true') {
+      return res.status(403).json({ message: 'Không nạp demo trên production' });
+    }
     const result = await ensureSampleRetailSales({ force: Boolean(req.body?.force) });
     res.json({
       message:
@@ -273,8 +277,8 @@ router.post('/seed-demo-retail', verifyToken, async (req, res) => {
           : 'Đơn demo đã có sẵn — không thêm mới',
       ...result,
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Không nạp được dữ liệu demo', error: error.message });
+  } catch (_error) {
+    res.status(500).json({ message: 'Không nạp được dữ liệu demo' });
   }
 });
 

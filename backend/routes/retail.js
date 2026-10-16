@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { IMAGE_TYPES, uploadFilename, uploadFilter, secureUpload } = require('../lib/uploads');
 const { verifyToken } = require('./auth');
 const FilmStock = require('../models/FilmStock');
 const BatteryStock = require('../models/BatteryStock');
@@ -33,11 +34,11 @@ const shopUpload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, SHOP_UPLOAD_DIR),
     filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname || '') || '.jpg';
-      cb(null, `shop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext.toLowerCase()}`);
+      cb(null, uploadFilename(file));
     },
   }),
-  limits: { fileSize: 12 * 1024 * 1024, files: 9 },
+  limits: { fileSize: 12 * 1024 * 1024, files: 9, fields: 20, parts: 29, fieldSize: 32 * 1024, fieldNameSize: 100, fieldArrayIndexLimit: 20 },
+  fileFilter: uploadFilter(IMAGE_TYPES),
 });
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -79,7 +80,7 @@ const dbErrorMessage = (error, fallback) => {
       .map((e) => e.message)
       .join('; ');
   }
-  return error.message || fallback;
+  return fallback;
 };
 
 const pushCostHistory = (row, cost) => {
@@ -610,7 +611,7 @@ router.get('/shop-catalog', verifyToken, async (_req, res) => {
   }
 });
 
-router.patch('/shop-catalog/:source/:id', verifyToken, shopUpload.array('images', 9), async (req, res) => {
+router.patch('/shop-catalog/:source/:id', verifyToken, secureUpload(shopUpload.array('images', 9), IMAGE_TYPES, 108 * 1024 * 1024), async (req, res) => {
   try {
     const uploaded = (req.files || []).map((file) => `/uploads/site/${file.filename}`);
     let images;

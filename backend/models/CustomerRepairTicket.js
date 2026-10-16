@@ -64,6 +64,7 @@ const customerRepairTicketSchema = new mongoose.Schema({
   internal_labor_cost: { type: Number, default: 0, min: 0 },
 
   confirm_token: { type: String, unique: true, sparse: true, index: true },
+  confirm_token_hash: { type: String, unique: true, sparse: true, index: true },
   confirm_token_expires: Date,
   confirmed_at: Date,
   confirmed_via: { type: String, enum: ['email_link', 'counter', null], default: null },

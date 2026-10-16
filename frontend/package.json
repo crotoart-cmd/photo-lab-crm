@@ -2,8 +2,10 @@
   "name": "crm-frontend",
   "version": "1.0.0",
   "private": true,
+  "engines": { "node": "^20.19.0 || >=22.12.0" },
   "type": "module",
   "scripts": {
+    "test:security": "node --test test/authSession.test.mjs",
     "sync:catalog": "node ../scripts/sync-master-catalog.cjs",
     "dev": "npm run sync:catalog && vite",
     "start": "npm run sync:catalog && vite",
@@ -12,17 +14,18 @@
   },
   "dependencies": {
     "@capacitor/core": "^6.2.0",
-    "axios": "^1.6.8",
+    "axios": "^1.20.0",
     "capacitor-device-smtp": "file:../ios-app/plugins/capacitor-device-smtp",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3"
+    "react-router-dom": "^7.18.4",
+    "yet-another-react-lightbox": "3.32.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "vite": "^5.2.8"
+    "vite": "^7.3.7"
   }
 }

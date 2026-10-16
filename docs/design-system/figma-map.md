@@ -50,6 +50,8 @@ Frame wrapper: `icons/Icon32.jsx` + `styles/icon-32.css`
 | Pipeline donut | `DonutChart.jsx` + `LabFilmCharts.jsx` | _điền_ |
 | Phân tích theo kỳ | `PeriodRangeSelect.jsx` | _điền_ |
 | Nhập — Danh mục kho | `SmartIntakePanel` + `retail-group-btn` | _điền_ |
+| Kho — list + pane chi tiết | `ShopProductList` + `ShopListingSheet` | MyCloud-style master/detail, không popup |
+| Film / Sửa — bảng + pane | `LabMasterDetail` + `LabStatusRail` | CloudStorage table + right details |
 | Nhập — Phiếu máy ảnh | `SmartIntakePanel` detected form | _điền_ |
 | Nhập — Footer In + Duyệt | `intake-form-actions.css` | _điền_ |
 | Bán POS | `SmartSalePanel.jsx` | _điền_ |

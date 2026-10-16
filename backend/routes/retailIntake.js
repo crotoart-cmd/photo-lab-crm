@@ -17,7 +17,7 @@ router.post('/scan', verifyToken, async (req, res) => {
     const detected = await scanBarcode(String(code).trim());
     res.json({ detected, ai_mode: detected.source });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi quét mã', error: error.message });
+    res.status(500).json({ message: 'Lỗi quét mã' });
   }
 });
 
@@ -34,7 +34,7 @@ router.post('/vision', verifyToken, async (req, res) => {
       openai_configured: Boolean(process.env.OPENAI_API_KEY),
     });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi AI Vision', error: error.message });
+    res.status(500).json({ message: 'Lỗi AI Vision' });
   }
 });
 

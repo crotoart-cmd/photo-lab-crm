@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import FeedbackBanner from '../components/FeedbackBanner';
@@ -7,10 +7,11 @@ import StatusPill from '../components/StatusPill';
 import Modal from '../components/Modal';
 import CustomerSearchPicker from '../components/CustomerSearchPicker';
 import RepairTicketDetail from '../components/repair/RepairTicketDetail';
-import AppleSegmentedControl from '../components/AppleSegmentedControl';
 import LabPageShell from '../components/lab/LabPageShell';
-import LabMasterDetail, { LabDetailEmpty } from '../components/lab/LabMasterDetail';
+import LabMasterDetail, { LabRowMark } from '../components/lab/LabMasterDetail';
+import LabStatusRail, { LabPager } from '../components/lab/LabStatusRail';
 import { apiErrorMessage } from '../utils/apiError';
+import { LAB_PAGE_SIZE, formatLabRelative, ticketMark } from '../utils/labFormat';
 import {
   REPAIR_TABS,
   REPAIR_STATUS_LABELS,
@@ -49,17 +50,48 @@ export default function Repairs() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const selected = tickets.find((t) => t._id === selectedId) || null;
+  const railItems = useMemo(() => {
+    const counts = {};
+    tickets.forEach((t) => {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+    });
+    return REPAIR_TABS.map((tab) => ({
+      ...tab,
+      count: tab.id === '' ? tickets.length : counts[tab.id] || 0,
+    }));
+  }, [tickets]);
+
+  const visible = useMemo(() => {
+    const q = searchQ.trim().toLowerCase();
+    return tickets.filter((t) => {
+      if (statusFilter && t.status !== statusFilter) return false;
+      if (!q) return true;
+      const hay = [t.ticket_number, t.model_name, t.brand, t.serial_number, t.customer_name, t.symptom]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [tickets, statusFilter, searchQ]);
+
+  const pageCount = Math.max(1, Math.ceil(visible.length / LAB_PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageRows = visible.slice((safePage - 1) * LAB_PAGE_SIZE, safePage * LAB_PAGE_SIZE);
+  const rangeFrom = visible.length ? (safePage - 1) * LAB_PAGE_SIZE + 1 : 0;
+  const rangeTo = Math.min(safePage * LAB_PAGE_SIZE, visible.length);
+  const selected = visible.find((t) => t._id === selectedId) || null;
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchQ]);
 
   const loadTickets = useCallback(async () => {
-    const params = {};
-    if (statusFilter) params.status = statusFilter;
-    if (searchQ.trim()) params.q = searchQ.trim();
-    const { tickets } = await loadRepairsBridge(params);
-    setTickets(sortRepairTickets(tickets));
-    return tickets;
-  }, [statusFilter, searchQ]);
+    const { tickets: rows } = await loadRepairsBridge({});
+    setTickets(sortRepairTickets(rows));
+    return rows;
+  }, []);
 
   useEffect(() => {
     const status = searchParams.get('status');
@@ -95,7 +127,10 @@ export default function Repairs() {
       setForm(EMPTY_FORM);
       setSelectedCustomer(null);
       await loadTickets();
-      if (data.ticket?._id) setSelectedId(data.ticket._id);
+      if (data.ticket?._id) {
+        setStatusFilter('');
+        setSelectedId(data.ticket._id);
+      }
     } catch (err) {
       setError(apiErrorMessage(err, 'Tạo phiếu thất bại'));
     } finally {
@@ -115,57 +150,69 @@ export default function Repairs() {
   };
 
   const listPanel = (
-    <div className="lab-list-panel">
-      <div className="lab-list-panel__header">
-        <span>Danh sách phiếu</span>
-        <span>{tickets.length} phiếu</span>
+    <div className="lab-table">
+      <div className="lab-table-head">
+        <span>Máy</span>
+        <span>Khách</span>
+        <span className="lab-col-extra">Triệu chứng</span>
+        <span>Trạng thái</span>
+        <span className="lab-col-extra">Cập nhật</span>
       </div>
-      <ul className="lab-list-panel__body divide-y divide-[var(--color-separator)]">
-        {tickets.length === 0 && (
-          <li className="p-6 text-center text-sm text-[var(--color-label-secondary)]">
-            Chưa có phiếu — bấm Tiếp nhận máy
-          </li>
-        )}
-        {tickets.map((t) => (
-          <li key={t._id}>
-            <button
-              type="button"
-              onClick={() => setSelectedId(t._id)}
-              className={`lab-list-row w-full ${selectedId === t._id ? 'lab-list-row--selected' : ''}`}
-            >
-              <div className="lab-list-row__main">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-mono text-xs text-[var(--color-label-tertiary)]">
-                    {t.ticket_number}
-                  </span>
-                  <StatusPill variant={REPAIR_STATUS_PILL[t.status] || 'active'}>
-                    {REPAIR_STATUS_LABELS[t.status]}
-                  </StatusPill>
-                </div>
-                <p className="font-semibold text-[var(--color-label)] mt-1">{t.model_name}</p>
-                <p className="text-sm text-[var(--color-label-secondary)] truncate">{t.customer_name}</p>
-                <p className="text-xs text-[var(--color-label-tertiary)] mt-1 line-clamp-2">{t.symptom}</p>
-              </div>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {visible.length === 0 && (
+        <div className="lab-table-empty">
+          {tickets.length === 0 ? 'Chưa có phiếu — bấm Tiếp nhận máy' : 'Không khớp bộ lọc'}
+        </div>
+      )}
+      {pageRows.map((t) => {
+        const active = selectedId === t._id;
+        return (
+          <div
+            key={t._id}
+            role="option"
+            tabIndex={0}
+            aria-selected={active}
+            className={`lab-table-row${active ? ' is-selected' : ''}`}
+            onClick={() => setSelectedId(t._id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedId(t._id);
+              }
+            }}
+          >
+            <span className="lab-table-name">
+              <LabRowMark>{ticketMark(t.ticket_number)}</LabRowMark>
+              <span className="lab-table-copy">
+                <span className="lab-table-code">{t.ticket_number}</span>
+                <span className="lab-table-title">{t.model_name}</span>
+                <span className="lab-table-meta">
+                  {t.customer_name}
+                  {t.serial_number ? ` · SN ${t.serial_number}` : ''}
+                </span>
+              </span>
+            </span>
+            <span className="lab-table-cell">{t.customer_name || '—'}</span>
+            <span className="lab-table-cell lab-col-extra">{t.symptom || '—'}</span>
+            <span className="lab-table-status">
+              <StatusPill variant={REPAIR_STATUS_PILL[t.status] || 'active'}>
+                {REPAIR_STATUS_LABELS[t.status]}
+              </StatusPill>
+            </span>
+            <span className="lab-table-cell lab-col-extra">{formatLabRelative(t.updatedAt || t.createdAt)}</span>
+          </div>
+        );
+      })}
     </div>
   );
 
   return (
-    <LabPageShell>
-      <PageHeader title="Sửa máy khách">
-        {tickets.some((t) => t.status === 'don_web') ? (
-          <span className="text-sm font-medium text-amber-700">
-            {tickets.filter((t) => t.status === 'don_web').length} đơn web chờ nhận máy
-          </span>
-        ) : null}
-        <button
-          type="button"
-          className="apple-btn-primary w-full sm:w-auto"
-          onClick={() => setShowCreate(true)}
-        >
+    <LabPageShell wide>
+      <PageHeader
+        className="lab-page-head"
+        title="Sửa máy khách"
+        subtitle={tickets.length ? `${tickets.length} phiếu trong lab` : 'Tiếp nhận và theo dõi sửa máy'}
+      >
+        <button type="button" className="btn-pill btn-pill--36 btn-pill--lv1" onClick={() => setShowCreate(true)}>
           Tiếp nhận máy
         </button>
       </PageHeader>
@@ -183,30 +230,32 @@ export default function Repairs() {
         </div>
       )}
 
-      <AppleSegmentedControl
-        className="mb-4"
-        items={REPAIR_TABS}
-        value={statusFilter}
-        onChange={(id) => {
-          setStatusFilter(id);
-          setSelectedId(null);
-        }}
-      />
-
-      <div className="mb-4">
-        <SearchField
-          placeholder="Tìm mã phiếu, khách, model, sê-ri…"
-          value={searchQ}
-          onChange={(e) => setSearchQ(e.target.value)}
-        />
+      <div className={selected ? 'max-lg:hidden' : ''}>
+        <LabStatusRail items={railItems} value={statusFilter} onChange={setStatusFilter} />
       </div>
 
       <LabMasterDetail
-        listHidden={Boolean(selectedId)}
-        detailHidden={!selectedId}
+        selected={Boolean(selected)}
+        listHidden={Boolean(selected)}
+        detailHidden={!selected}
         onBack={() => setSelectedId(null)}
         backLabel="← Danh sách phiếu"
+        toolbar={
+          <>
+            <div className="lab-desk__toolbar-search">
+              <SearchField
+                placeholder="Tìm phiếu"
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+              />
+            </div>
+            <span className="lab-desk__count">
+              {visible.length ? `Đang hiện ${rangeFrom}–${rangeTo} / ${visible.length}` : '0 phiếu'}
+            </span>
+          </>
+        }
         list={listPanel}
+        footer={pageCount > 1 ? <LabPager page={safePage} pageCount={pageCount} onChange={setPage} /> : null}
         detail={
           selected ? (
             <RepairTicketDetail
@@ -219,9 +268,7 @@ export default function Repairs() {
               onError={setError}
               onSuccess={setSuccess}
             />
-          ) : (
-            <LabDetailEmpty>Chọn phiếu để xem chi tiết</LabDetailEmpty>
-          )
+          ) : null
         }
       />
 
@@ -299,7 +346,7 @@ export default function Repairs() {
             </p>
             <button
               type="button"
-              className="apple-btn-primary w-full"
+              className="btn-pill btn-pill--48 btn-pill--lv1 btn-pill--block"
               disabled={saving}
               onClick={handleCreate}
             >
