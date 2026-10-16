@@ -6,6 +6,7 @@ import Download from 'yet-another-react-lightbox/plugins/download';
 import 'yet-another-react-lightbox/styles.css';
 import 'yet-another-react-lightbox/plugins/counter.css';
 import { usePublicLocale } from './PublicLocale';
+import PublicMobileIcon from './PublicMobileIcon';
 
 const VIEW_PLUGINS = [Zoom, Counter];
 const DOWNLOAD_PLUGINS = [Zoom, Counter, Download];
@@ -48,6 +49,14 @@ export default function PublicMobilePhotoViewer({ open, slides, index, onClose, 
         saveAs(await response.blob(), slide.filename || 'HDTLabx.jpg');
       } catch { setDownloadError(true); }
     } }}
-    render={{ slideFooter: ({ slide }) => <div className="pm-viewer-caption"><span>{slide.alt}</span>{downloadError ? <span role="alert">{t('exp.downloadError')}</span> : null}</div> }}
+    render={{
+      iconPrev: () => <PublicMobileIcon name="chevron_left" />,
+      iconNext: () => <PublicMobileIcon name="chevron_right" />,
+      iconClose: () => <PublicMobileIcon name="close" />,
+      iconDownload: () => <PublicMobileIcon name="download" />,
+      iconZoomIn: () => <PublicMobileIcon name="zoom_in" />,
+      iconZoomOut: () => <PublicMobileIcon name="zoom_out" />,
+      slideFooter: ({ slide }) => <div className="pm-viewer-caption"><span>{slide.alt}</span>{downloadError ? <span role="alert">{t('exp.downloadError')}</span> : null}</div>,
+    }}
   />;
 }

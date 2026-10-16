@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import PsPhoto from './PsPhoto';
 import { PsLangSwitch, usePublicLocale } from './PublicLocale';
 import PublicMobileBrand from './PublicMobileBrand';
+import PublicMobileIcon from './PublicMobileIcon';
 
 export function PublicMobilePage({ back, children }) {
   const { t } = usePublicLocale();
@@ -10,7 +11,7 @@ export function PublicMobilePage({ back, children }) {
       <header className="ps-mpro-nav">
         {back != null ? (
           <Link to={back} className="ps-mback" aria-label={t('mhome.back')}>
-            ‹
+            <PublicMobileIcon name="arrow_back" />
           </Link>
         ) : (
           <PublicMobileBrand />
@@ -67,7 +68,7 @@ export function PublicMobileRowLink({ to, title, hint }) {
         <b>{title}</b>
         {hint ? <i>{hint}</i> : null}
       </span>
-      <em aria-hidden>›</em>
+      <PublicMobileIcon name="chevron_right" />
     </Link>
   );
 }

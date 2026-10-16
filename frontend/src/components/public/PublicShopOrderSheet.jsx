@@ -4,6 +4,7 @@ import publicApi from '../../api/publicClient';
 import { usePublicLocale } from './PublicLocale';
 import { Field } from './PublicIntakeFields';
 import { pingWebInbox } from '../../lib/webInboxPing';
+import PublicMobileIcon from './PublicMobileIcon';
 
 const empty = {
   firstName: '',
@@ -84,7 +85,8 @@ export default function PublicShopOrderSheet({ item, priceLabel, onClose, onOrde
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className="ps-sheet-close" aria-label={t('acc.close')} onClick={onClose}>
-          ×
+          <span className="pm-sheet-close-legacy" aria-hidden="true">×</span>
+          <span className="pm-sheet-close-vector" hidden><PublicMobileIcon name="close" /></span>
         </button>
 
         <div className="ps-sheet-product">

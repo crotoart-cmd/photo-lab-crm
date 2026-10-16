@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PsPhoto from './PsPhoto';
 import { usePublicLocale } from './PublicLocale';
 import { PublicMobilePage, PublicMobileTitle } from './PublicMobilePage';
+import PublicMobileIcon from './PublicMobileIcon';
 
 export default function PublicMobileShop({ kinds, kind, setKind, items, onBuy, kindLabel, empty, priceOf }) {
   const { t } = usePublicLocale();
@@ -15,7 +16,7 @@ export default function PublicMobileShop({ kinds, kind, setKind, items, onBuy, k
       <div className="ps-msearch" role="search">
         <label className="sr-only" htmlFor="mobile-shop-search">{t('mpage.search')}</label>
         <input id="mobile-shop-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('mpage.search')} autoComplete="off" />
-        {query ? <button type="button" className="ps-micon-button" aria-label={t('mpage.clearSearch')} title={t('mpage.clearSearch')} onClick={() => { setQuery(''); document.getElementById('mobile-shop-search')?.focus(); }}>×</button> : null}
+        {query ? <button type="button" className="ps-micon-button" aria-label={t('mpage.clearSearch')} title={t('mpage.clearSearch')} onClick={() => { setQuery(''); document.getElementById('mobile-shop-search')?.focus(); }}><PublicMobileIcon name="close" /></button> : null}
       </div>
       <div className="ps-mchips ps-mchips--scroll" role="group" aria-label={t('acc.filter')}>
         {kinds.map((item) => (
@@ -56,7 +57,7 @@ export default function PublicMobileShop({ kinds, kind, setKind, items, onBuy, k
                     {label ? ` · ${label}` : ''}
                   </i>
                 </span>
-                <em aria-hidden>›</em>
+                <PublicMobileIcon name="chevron_right" />
               </button>
             );
           })}

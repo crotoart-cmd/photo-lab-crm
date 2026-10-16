@@ -16,6 +16,7 @@
     "@capacitor/core": "^6.2.0",
     "axios": "^1.20.0",
     "capacitor-device-smtp": "file:../ios-app/plugins/capacitor-device-smtp",
+    "lucide-react": "1.58.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.18.4",
