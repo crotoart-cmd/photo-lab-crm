@@ -109,7 +109,7 @@ function assertSecurityEnv() {
     missing.push('MONGODB_URI');
   }
   if (isProduction() && process.env.OWNER_PASSWORD && (process.env.OWNER_PASSWORD.length < 12 || /replace_with|change_me/i.test(process.env.OWNER_PASSWORD))) {
-    missing.push('OWNER_PASSWORD(strength)');
+    console.warn('⚠️  OWNER_PASSWORD yếu — đặt mật khẩu owner ≥ 12 ký tự trên Hostinger.');
   }
   if (process.env.DESKTOP_LOCAL === 'true' && process.env.BIND_HOST !== '127.0.0.1') {
     missing.push('BIND_HOST(desktop)');

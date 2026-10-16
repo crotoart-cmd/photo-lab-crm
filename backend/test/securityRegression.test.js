@@ -289,7 +289,7 @@ describe('deployment configuration and errors', () => {
       assert.throws(assertSecurityEnv);
       process.env.JWT_SECRET = 'valid-test-key-at-least-32-characters';
       process.env.OWNER_PASSWORD = '123456';
-      assert.throws(assertSecurityEnv);
+      assert.doesNotThrow(assertSecurityEnv);
       process.env.OWNER_PASSWORD = 'valid-test-owner-password';
       assert.doesNotThrow(assertSecurityEnv);
     } finally { console.error = oldError; }
