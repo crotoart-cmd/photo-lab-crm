@@ -64,27 +64,11 @@ app.use(
 );
 
 const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');
+const { stayOnPublicHost, mountPublicSeo } = require('./lib/publicSeo');
+mountPublicSeo(app);
 app.use((req, res, next) => {
   if (!isPublicWebHost(req.hostname)) return next();
-  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
-  if (
-    req.path === '/' ||
-    req.path.startsWith('/film') ||
-    req.path.startsWith('/toc-do') ||
-    req.path.startsWith('/in-analog') ||
-    req.path.startsWith('/scan') ||
-    req.path.startsWith('/sua-may') ||
-    req.path.startsWith('/phu-kien') ||
-    req.path.startsWith('/blog') ||
-    req.path.startsWith('/lien-he') ||
-    req.path.startsWith('/faq') ||
-    req.path.startsWith('/delivery') ||
-    req.path.startsWith('/repair') ||
-    req.path.startsWith('/shop') ||
-    req.path.startsWith('/contact')
-  ) {
-    return next();
-  }
+  if (stayOnPublicHost(req.path)) return next();
   const dest = sanitizeRedirectPath(req.originalUrl || req.path);
   return res.redirect(302, `${getAdminSiteUrl()}${dest}`);
 });
@@ -102,6 +86,7 @@ const webDistCandidates = [
 const webDist = webDistCandidates.find((dir) => fs.existsSync(path.join(dir, 'index.html'))) || webDistCandidates[0];
 if (fs.existsSync(path.join(webDist, 'index.html'))) {
   app.use(express.static(webDist, { index: false, dotfiles: 'deny' }));
+  app.get(/^\/google[A-Za-z0-9_-]+\.html$/i, (_req, res) => res.status(404).type('text/plain').send('Not found'));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
       return next();
