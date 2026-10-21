@@ -4,32 +4,7 @@ import { MOBILE_COPY } from './publicI18nMobile';
 import { PRINT_COPY } from './publicI18nPrint';
 import { SCAN_COPY } from './publicI18nScan';
 
-export const PUBLIC_LANGS = [
-  { id: 'en', code: 'EN', html: 'en', native: 'English' },
-  { id: 'vi', code: 'VI', html: 'vi', native: 'Tiếng Việt' },
-  { id: 'de', code: 'DE', html: 'de', native: 'Deutsch' },
-  { id: 'es', code: 'ES', html: 'es', native: 'Español' },
-];
-
-export const PUBLIC_LANG_KEY = 'hdtlabx.publicLang';
-
-export function readPublicLang() {
-  try {
-    const saved = localStorage.getItem(PUBLIC_LANG_KEY);
-    if (PUBLIC_LANGS.some((l) => l.id === saved)) return saved;
-  } catch {
-    /* ignore */
-  }
-  return 'en';
-}
-
-export function writePublicLang(id) {
-  try {
-    localStorage.setItem(PUBLIC_LANG_KEY, id);
-  } catch {
-    /* ignore */
-  }
-}
+export { PUBLIC_LANGS, PUBLIC_LANG_KEY, readPublicLang, writePublicLang } from './publicLanguage';
 
 const vi = {
   'lang.label': 'Ngôn ngữ',

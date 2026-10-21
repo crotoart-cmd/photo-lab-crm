@@ -5,7 +5,7 @@ function canonicalPublicOrigin() {
   if (fromEnv) {
     try {
       const url = new URL(fromEnv);
-      if (url.protocol === 'https:' && isPublicWebHost(url.hostname) && !url.username && !url.password && url.pathname === '/' && !url.search && !url.hash) return url.origin;
+      if (url.protocol === 'https:' && url.hostname === PRODUCTION_SITE_HOST && !url.port && !url.username && !url.password && url.pathname === '/' && !url.search && !url.hash) return url.origin;
     } catch {}
   }
   return `https://${PRODUCTION_SITE_HOST}`;
@@ -128,6 +128,12 @@ function injectGoogleSiteVerification(html) {
 }
 
 function mountPublicSeo(app) {
+  app.use((req, res, next) => {
+    if (req.hostname !== `www.${PRODUCTION_SITE_HOST}` || !['GET', 'HEAD'].includes(req.method) || req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next();
+    const target = req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//') ? req.originalUrl : '/';
+    return res.redirect(308, `https://${PRODUCTION_SITE_HOST}${target}`);
+  });
+
   app.use((req, res, next) => {
     const privateLink = req.path === '/delivery' || req.path.startsWith('/delivery/') || req.path === '/repair/confirm' || req.path.startsWith('/repair/confirm/');
     if (req.hostname === PRODUCTION_ADMIN_HOST || privateLink) res.setHeader('X-Robots-Tag', 'noindex, nofollow');

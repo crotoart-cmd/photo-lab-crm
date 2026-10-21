@@ -112,7 +112,7 @@ describe('robots and sitemap', () => {
     const app = express();
     mountPublicSeo(app);
     await withServer(app, async (port) => {
-      for (const host of ['hdtlabx.com', 'www.hdtlabx.com']) {
+      for (const host of ['hdtlabx.com']) {
         const robots = await get(port, '/robots.txt', { Host: host });
         assert.equal(robots.status, 200);
         assert.match(robots.headers['content-type'], /^text\/plain/);
@@ -125,6 +125,24 @@ describe('robots and sitemap', () => {
         assert.equal(sitemap.body.match(/<url>/g).length, 10);
         assert.doesNotMatch(sitemap.body, /admin\.hdtlabx/);
       }
+    });
+  });
+
+  it('permanently consolidates www pages while preserving paths and language queries', async () => {
+    const app = express();
+    mountPublicSeo(app);
+    app.all('*', (_req, res) => res.send('ok'));
+    await withServer(app, async (port) => {
+      for (const path of ['/', '/repair?lang=vi&utm_source=test', '/sitemap.xml']) {
+        const response = await get(port, path, { Host: 'www.hdtlabx.com' });
+        assert.equal(response.status, 308);
+        assert.equal(response.headers.location, `https://hdtlabx.com${path}`);
+      }
+      for (const path of ['/api/health', '/uploads/site/image.png']) {
+        assert.equal((await get(port, path, { Host: 'www.hdtlabx.com' })).status, 200);
+      }
+      const response = await get(port, '//evil.example/repair', { Host: 'www.hdtlabx.com' });
+      assert.equal(response.headers.location, 'https://hdtlabx.com/');
     });
   });
 

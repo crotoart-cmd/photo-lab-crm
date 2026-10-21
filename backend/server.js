@@ -65,6 +65,7 @@ app.use(
 
 const { isPublicWebHost, getAdminSiteUrl } = require('./config/hosts');
 const { stayOnPublicHost, mountPublicSeo } = require('./lib/publicSeo');
+const { renderPublicSeo } = require('./lib/publicSeoMetadata');
 mountPublicSeo(app);
 app.use((req, res, next) => {
   if (!isPublicWebHost(req.hostname)) return next();
@@ -85,6 +86,7 @@ const webDistCandidates = [
 ];
 const webDist = webDistCandidates.find((dir) => fs.existsSync(path.join(dir, 'index.html'))) || webDistCandidates[0];
 if (fs.existsSync(path.join(webDist, 'index.html'))) {
+  const webHtml = fs.readFileSync(path.join(webDist, 'index.html'), 'utf8');
   app.use(express.static(webDist, { index: false, dotfiles: 'deny' }));
   app.get(/^\/google[A-Za-z0-9_-]+\.html$/i, (_req, res) => res.status(404).type('text/plain').send('Not found'));
   app.get('*', (req, res, next) => {
@@ -92,7 +94,7 @@ if (fs.existsSync(path.join(webDist, 'index.html'))) {
       return next();
     }
     res.setHeader('Cache-Control', 'no-store');
-    res.sendFile(path.join(webDist, 'index.html'));
+    res.type('html').send(renderPublicSeo(webHtml, { hostname: req.hostname, pathname: req.path, language: req.query.lang }));
   });
 }
 

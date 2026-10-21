@@ -1,0 +1,50 @@
+{
+  "en": {
+    "/": ["HDTLabx | Film Lab, Scanning & Camera Repair", "Film developing, high-resolution scanning, analog printing and camera repair at HDTLabx. Explore the shop, read the journal and send a service request online."],
+    "/film": ["Film Developing & Scanning | HDTLabx", "Develop your 35mm and medium-format film at HDTLabx. Explore C-41, black-and-white, ECN-2 and E-6 processing and send your rolls with an online request."],
+    "/toc-do": ["Film Processing Turnaround | HDTLabx", "Plan your film drop-off with HDTLabx. Read about processing batches, scan delivery, negative storage and current turnaround times."],
+    "/in-analog": ["Analog Photo Printing | HDTLabx", "Explore analog photo printing at HDTLabx. Send a print request and discuss your negatives, paper and print sizes with the lab."],
+    "/scan": ["Film Scanning | HDTLabx", "Digitize film with HDTLabx. Explore batch and high-resolution scanning for 35mm and medium-format negatives and send your scanning request online."],
+    "/repair": ["Camera & Lens Repair | HDTLabx", "Request camera and lens repair at HDTLabx. Share the model, symptoms and condition photos or video; the lab inspects the equipment before quoting repairs."],
+    "/shop": ["Film Cameras & Accessories | HDTLabx Shop", "Explore cameras, film and photography accessories listed by HDTLabx. View available products and send an order request to the lab."],
+    "/contact": ["Contact the Film Lab | HDTLabx", "Contact HDTLabx about film developing, scanning, analog prints, camera repairs and product enquiries. Find the lab's current contact information."],
+    "/blog": ["Film Photography Journal | HDTLabx", "Read the HDTLabx journal: film developing, scanning, negatives and notes from the camera repair bench."],
+    "/faq": ["Film Lab & Camera Repair FAQ | HDTLabx", "Find answers about sending film, scan delivery, negatives, analog prints and camera repair requests at HDTLabx."]
+  },
+  "vi": {
+    "/": ["HDTLabx | Tráng film, Scan & Sửa chữa máy ảnh", "HDTLabx cung cấp dịch vụ tráng film, scan, in ảnh analog và sửa chữa máy ảnh. Xem sản phẩm, đọc blog và gửi yêu cầu dịch vụ trực tuyến."],
+    "/film": ["Tráng film & Scan | HDTLabx", "Tráng film 35mm và medium format tại HDTLabx. Tìm hiểu quy trình C-41, đen trắng, ECN-2, E-6 và gửi yêu cầu tráng film trực tuyến."],
+    "/toc-do": ["Thời gian tráng film & Trả ảnh | HDTLabx", "Tìm hiểu thời gian xử lý film tại HDTLabx, cách gom mẻ, trả file scan và lưu giữ negative để lên lịch gửi cuộn."],
+    "/in-analog": ["In ảnh analog | HDTLabx", "Tìm hiểu dịch vụ in ảnh analog tại HDTLabx. Gửi yêu cầu và trao đổi với lab về negative, giấy ảnh và kích thước bản in."],
+    "/scan": ["Scan film | HDTLabx", "Số hóa film tại HDTLabx. Tìm hiểu scan hàng loạt và độ phân giải cao cho negative 35mm, medium format; gửi yêu cầu scan trực tuyến."],
+    "/repair": ["Sửa máy ảnh & Ống kính | HDTLabx", "Gửi yêu cầu sửa máy ảnh, ống kính tại HDTLabx. Cung cấp model, mô tả lỗi, ảnh hoặc video tình trạng máy; lab kiểm tra trước khi báo giá."],
+    "/shop": ["Máy ảnh film & Phụ kiện | HDTLabx Shop", "Khám phá máy ảnh, film và phụ kiện nhiếp ảnh được đăng bán tại HDTLabx. Xem sản phẩm và gửi yêu cầu đặt hàng đến lab."],
+    "/contact": ["Liên hệ lab ảnh film | HDTLabx", "Liên hệ HDTLabx về tráng film, scan, in ảnh analog, sửa máy ảnh và sản phẩm. Xem thông tin liên hệ hiện tại của lab."],
+    "/blog": ["Blog nhiếp ảnh film | HDTLabx", "Đọc blog HDTLabx về tráng film, scan, negative và những ghi chép từ bàn sửa máy ảnh."],
+    "/faq": ["Câu hỏi về tráng film & Sửa máy | HDTLabx", "Giải đáp về gửi film, nhận file scan, negative, in ảnh analog và yêu cầu sửa máy ảnh tại HDTLabx."]
+  },
+  "de": {
+    "/": ["HDTLabx | Filmlabor, Scans & Kamerareparatur", "Filmentwicklung, hochauflösende Scans, analoge Abzüge und Kamerareparatur bei HDTLabx. Entdecken Sie den Shop, das Journal und unsere Online-Serviceanfragen."],
+    "/film": ["Filmentwicklung & Scans | HDTLabx", "Entwickeln Sie Kleinbild- und Mittelformatfilme bei HDTLabx. Informationen zu C-41, Schwarzweiß, ECN-2 und E-6 sowie Online-Aufträge für Ihre Filme."],
+    "/toc-do": ["Bearbeitungszeiten im Filmlabor | HDTLabx", "Planen Sie die Filmabgabe bei HDTLabx. Informationen zu Entwicklungschargen, Scans, Negativaufbewahrung und aktuellen Bearbeitungszeiten."],
+    "/in-analog": ["Analoge Fotoabzüge | HDTLabx", "Entdecken Sie analoge Fotoabzüge bei HDTLabx. Senden Sie eine Anfrage und besprechen Sie Negative, Fotopapier und Bildformate mit dem Labor."],
+    "/scan": ["Filmscans | HDTLabx", "Digitalisieren Sie Filme bei HDTLabx. Serien- und hochauflösende Scans für Kleinbild- und Mittelformatnegative mit Online-Anfrage."],
+    "/repair": ["Kamera- & Objektivreparatur | HDTLabx", "Fragen Sie eine Kamera- oder Objektivreparatur bei HDTLabx an. Beschreiben Sie Modell, Fehler und Zustand; das Labor prüft das Gerät vor dem Angebot."],
+    "/shop": ["Analogkameras & Zubehör | HDTLabx Shop", "Entdecken Sie Kameras, Filme und Fotozubehör im HDTLabx Shop. Sehen Sie verfügbare Produkte an und senden Sie eine Bestellanfrage."],
+    "/contact": ["Kontakt zum Filmlabor | HDTLabx", "Kontaktieren Sie HDTLabx zu Filmentwicklung, Scans, analogen Abzügen, Kamerareparaturen und Produkten. Hier finden Sie die aktuellen Kontaktdaten."],
+    "/blog": ["Journal zur Filmfotografie | HDTLabx", "Lesen Sie das HDTLabx Journal über Filmentwicklung, Scans, Negative und Notizen von der Kamerawerkbank."],
+    "/faq": ["Filmlabor & Kamerareparatur: FAQ | HDTLabx", "Antworten zu Filmabgabe, Scans, Negativen, analogen Abzügen und Reparaturanfragen bei HDTLabx."]
+  },
+  "es": {
+    "/": ["HDTLabx | Laboratorio de película, Escaneado y Reparación", "Revelado de película, escaneado de alta resolución, copias analógicas y reparación de cámaras en HDTLabx. Descubre la tienda, el blog y las solicitudes en línea."],
+    "/film": ["Revelado y Escaneado de película | HDTLabx", "Revela película de 35mm y formato medio en HDTLabx. Consulta los procesos C-41, blanco y negro, ECN-2 y E-6 y envía una solicitud en línea."],
+    "/toc-do": ["Plazos de Revelado de película | HDTLabx", "Planifica la entrega de película en HDTLabx. Consulta los lotes de revelado, la entrega de escaneos, la conservación de negativos y los plazos actuales."],
+    "/in-analog": ["Copias Fotográficas analógicas | HDTLabx", "Descubre las copias analógicas de HDTLabx. Envía una solicitud y consulta con el laboratorio sobre negativos, papel y tamaños de copia."],
+    "/scan": ["Escaneado de película | HDTLabx", "Digitaliza película con HDTLabx. Escaneado por lotes y de alta resolución para negativos de 35mm y formato medio con solicitud en línea."],
+    "/repair": ["Reparación de Cámaras y Objetivos | HDTLabx", "Solicita una reparación en HDTLabx. Comparte el modelo, los síntomas y fotos o vídeos del estado; el laboratorio revisa el equipo antes de presupuestar."],
+    "/shop": ["Cámaras analógicas y Accesorios | HDTLabx Shop", "Descubre cámaras, película y accesorios fotográficos de HDTLabx. Consulta los productos disponibles y envía una solicitud de pedido."],
+    "/contact": ["Contacta con el Laboratorio | HDTLabx", "Contacta con HDTLabx sobre revelado, escaneado, copias analógicas, reparación de cámaras y productos. Consulta los datos actuales del laboratorio."],
+    "/blog": ["Blog de Fotografía analógica | HDTLabx", "Lee el blog de HDTLabx sobre revelado, escaneado, negativos y notas del banco de reparación de cámaras."],
+    "/faq": ["Preguntas sobre Película y Reparaciones | HDTLabx", "Respuestas sobre entrega de película, escaneos, negativos, copias analógicas y solicitudes de reparación de cámaras en HDTLabx."]
+  }
+}

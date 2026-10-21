@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { StaticRouter } from 'react-router-dom';
 import { build } from 'esbuild';
 import postcss from 'postcss';
 import { REPAIR_MEDIA_COPY } from '../src/lib/repairMediaI18n.js';
@@ -77,10 +78,10 @@ test('default presentation retains desktop copy and its existing grid', () => {
 
 test('mobile wizard keeps condition fields optional without hiding the attachment action', () => {
   const empty = { model_name: '', brand: '', serial_number: '', symptom: '', condition_at_intake: '', firstName: '', lastName: '', email: '', phone: '', intake_note: '' };
-  const html = renderToStaticMarkup(React.createElement(PublicLocaleProvider, null, React.createElement(Wizard, {
+  const html = renderToStaticMarkup(React.createElement(StaticRouter, { location: '/repair' }, React.createElement(PublicLocaleProvider, null, React.createElement(Wizard, {
     form: empty, setForm() {}, website: '', setWebsite() {}, saving: false, error: '', done: '', onSubmit() {}, onReset() {}, clearError() {},
     mediaFiles: [], onMediaChange() {}, mediaAcknowledged: false, onMediaAcknowledged() {},
-  })));
+  }))));
   assert.ok(html.includes('<details class="pm-repair-extra pm-repair-condition">'));
   assert.ok(html.includes('name="serial_number"'));
   assert.ok(html.includes('name="condition_at_intake"'));

@@ -1,4 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { localizedPublicSearch, supportedPublicLang } from '../../lib/publicLanguage';
+import { updatePublicMetadata } from '../../lib/publicSeo';
 import {
   PUBLIC_LANGS,
   publicT,
@@ -15,10 +18,12 @@ export function usePublicLocale() {
 }
 
 export function PublicLocaleProvider({ children }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [lang, setLangState] = useState(() => {
     try {
       const q = new URLSearchParams(window.location.search).get('lang');
-      if (PUBLIC_LANGS.some((l) => l.id === q)) return q;
+      return readPublicLang(q);
     } catch {
       /* ignore */
     }
@@ -29,12 +34,23 @@ export function PublicLocaleProvider({ children }) {
     if (!PUBLIC_LANGS.some((l) => l.id === id)) return;
     setLangState(id);
     writePublicLang(id);
+    navigate({ pathname: location.pathname, search: localizedPublicSearch(location.search, id), hash: location.hash }, { replace: true });
   };
+
+  useEffect(() => {
+    const query = supportedPublicLang(new URLSearchParams(location.search).get('lang'));
+    if (query) {
+      setLangState(query);
+    } else {
+      navigate({ pathname: location.pathname, search: localizedPublicSearch(location.search, lang), hash: location.hash }, { replace: true });
+    }
+  }, [location.pathname, location.search, location.hash, navigate]);
 
   useEffect(() => {
     const meta = PUBLIC_LANGS.find((l) => l.id === lang);
     document.documentElement.lang = meta?.html || 'en';
-  }, [lang]);
+    updatePublicMetadata(location.pathname, lang);
+  }, [lang, location.pathname]);
 
   const value = useMemo(
     () => ({
@@ -43,7 +59,7 @@ export function PublicLocaleProvider({ children }) {
       langs: PUBLIC_LANGS,
       t: (key) => publicT(lang, key),
     }),
-    [lang],
+    [lang, location.pathname, location.search, location.hash, navigate],
   );
 
   return <PublicLocaleContext.Provider value={value}>{children}</PublicLocaleContext.Provider>;
