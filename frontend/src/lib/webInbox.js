@@ -45,6 +45,9 @@ export function buildLocalWebInbox() {
   return {
     filmCount: films.length,
     repairCount: repairs.length,
+    shopCount: 0,
+    printCount: 0,
+    scanCount: 0,
     total: films.length + repairs.length,
     items,
   };
@@ -58,7 +61,7 @@ export async function fetchWebInbox() {
     /* fallback local */
   }
   if (isMobileDataEnabled()) return buildLocalWebInbox();
-  return { filmCount: 0, repairCount: 0, total: 0, items: [] };
+  return { filmCount: 0, repairCount: 0, shopCount: 0, printCount: 0, scanCount: 0, total: 0, items: [] };
 }
 
 export function subscribeWebInboxRefresh(onRefresh) {

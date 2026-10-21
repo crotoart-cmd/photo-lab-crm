@@ -46,6 +46,9 @@ coverage/
 backend/backups/
 backend/backups/**
 
+# Private repair evidence (customer originals; never deploy as public assets)
+backend/private/
+
 # Uploaded delivery scans (keep folder via .gitkeep)
 backend/uploads/delivery/*
 !backend/uploads/delivery/.gitkeep

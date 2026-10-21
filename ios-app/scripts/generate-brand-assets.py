@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Sinh icon iOS + logo nền trắng từ nuoc-leo-logo.png gốc."""
+"""Sinh icon iOS + logo nền trắng từ hdt-labx-logo.png gốc."""
 from pathlib import Path
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "frontend/public/nuoc-leo-logo.png"
-ARCHIVE = ROOT / "frontend/public/nuoc-leo-logo-original.png"
+SRC = ROOT / "frontend/public/hdt-labx-logo.png"
+ARCHIVE = ROOT / "frontend/public/hdt-labx-logo-original.png"
 
-OUT_LOGO = ROOT / "frontend/public/nuoc-leo-logo.png"
+OUT_LOGO = ROOT / "frontend/public/hdt-labx-logo.png"
 OUT_ICON = ROOT / "ios-app/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
 ANDROID_RES = ROOT / "ios-app/android/app/src/main/res"
 OUT_SPLASH_DIR = ROOT / "ios-app/ios/App/App/Assets.xcassets/Splash.imageset"
-OUT_BACKEND = ROOT / "backend/assets/nuoc-leo-logo.png"
-OUT_BACKEND_EMAIL = ROOT / "backend/assets/nuoc-leo-logo-email.png"
+OUT_BACKEND = ROOT / "backend/assets/hdt-labx-logo.png"
+OUT_BACKEND_EMAIL = ROOT / "backend/assets/hdt-labx-logo-email.png"
 
 
 def flatten_dark_bg(img: Image.Image, threshold: int = 48) -> Image.Image:

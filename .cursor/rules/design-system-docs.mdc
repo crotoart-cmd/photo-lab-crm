@@ -1,0 +1,17 @@
+---
+description: Tra cứu design system docs — components & Figma map
+globs: docs/design-system/**/*
+alwaysApply: false
+---
+
+# Design system docs
+
+Khi user hoặc task nhắc Figma / UI / component:
+
+1. `docs/design-system/components.md` — component nào đã có
+2. `docs/design-system/figma-map.md` — tên Figma → file code (link user điền dần)
+3. `docs/design-system/README.md` — tokens & kế thừa mobile → desktop
+
+**Không** vẽ icon mới từ CSS Figma dump — cập nhật SVG trong `icons/` hoặc yêu cầu user export SVG / node link.
+
+Sau khi thêm component/icon mới: cập nhật 1 dòng trong `components.md` và `figma-map.md`.

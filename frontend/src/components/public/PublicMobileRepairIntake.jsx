@@ -4,9 +4,11 @@ import { composeRepairSymptom, REPAIR_SYMPTOMS, repairStepIssue, toggleRepairSym
 import { Field, Honeypot } from './PublicIntakeFields';
 import { usePublicLocale } from './PublicLocale';
 import PublicMobileIcon from './PublicMobileIcon';
+import RepairMediaPicker, { RepairMediaAcknowledgment, RepairUploadStatus } from './RepairMediaPicker';
 
-export default function PublicMobileRepairIntake({ form, setForm, website, setWebsite, saving, error, done, onSubmit, onReset, clearError }) {
-  const { t } = usePublicLocale();
+export default function PublicMobileRepairIntake({ form, setForm, website, setWebsite, saving, error, done, onSubmit, onReset, clearError,
+  mediaFiles, onMediaChange, mediaAcknowledged, onMediaAcknowledged, uploadProgress, onCancelUpload }) {
+  const { t, lang } = usePublicLocale();
   const [step, setStep] = useState(1);
   const [selected, setSelected] = useState([]);
   const [validation, setValidation] = useState('');
@@ -28,12 +30,14 @@ export default function PublicMobileRepairIntake({ form, setForm, website, setWe
   useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
 
   const goTo = (next) => {
+    if (saving) return;
     setValidation('');
     clearError();
     setStep(next);
   };
 
   const goNext = () => {
+    if (saving) return;
     if (!formRef.current.reportValidity()) return;
     const issue = repairStepIssue(form, symptom, step);
     if (issue) {
@@ -85,10 +89,14 @@ export default function PublicMobileRepairIntake({ form, setForm, website, setWe
             </div>
             <Field label={t('rp.describe')} required={!selected.length}><textarea name="symptom" required={!selected.length} maxLength={600} rows={3} placeholder={t('rp.describePlaceholder')} value={form.symptom} onChange={set('symptom')} /></Field>
             <p className="pm-repair-caption">{t('rp.checkFirst')}</p>
-            <details className="pm-repair-extra"><summary>{t('rp.extra')}<PublicMobileIcon name="expand_more" /></summary><div>
+            <details className="pm-repair-extra pm-repair-condition">
+              <summary>{t('rp.extra')}<PublicMobileIcon name="expand_more" /></summary>
+              <div className="pm-repair-condition-fields">
               <Field label={t('form.repair.serial')}><input name="serial_number" maxLength={80} value={form.serial_number} onChange={set('serial_number')} /></Field>
-              <Field label={t('form.repair.condition')}><textarea name="condition_at_intake" maxLength={800} rows={3} placeholder={t('form.ph.condition')} value={form.condition_at_intake} onChange={set('condition_at_intake')} /></Field>
-            </div></details>
+              <Field label={t('form.repair.condition')}><textarea name="condition_at_intake" maxLength={800} rows={2} placeholder={t('form.ph.condition')} value={form.condition_at_intake} onChange={set('condition_at_intake')} /></Field>
+              </div>
+            </details>
+            <RepairMediaPicker files={mediaFiles} onChange={onMediaChange} lang={lang} disabled={saving} compact />
           </> : step === 2 ? <div className="ps-mpro-group">
             <Field label={t('form.last')} required><input name="firstName" required maxLength={100} autoComplete="family-name" placeholder={t('form.ph.last')} value={form.firstName} onChange={set('firstName')} /></Field>
             <Field label={t('form.first')} required><input name="lastName" required maxLength={100} autoComplete="given-name" placeholder={t('form.ph.first')} value={form.lastName} onChange={set('lastName')} /></Field>
@@ -103,13 +111,16 @@ export default function PublicMobileRepairIntake({ form, setForm, website, setWe
               <div className="pm-order-review-title pm-repair-contact-review"><span><small>{t('form.customer')}</small><b>{form.firstName} {form.lastName}</b></span><button type="button" className="pm-icon-button" aria-label={t('rp.editContact')} title={t('rp.editContact')} onClick={() => goTo(2)}><PublicMobileIcon name="edit" /></button></div>
               <div className="pm-order-customer"><span>{form.email}</span><span>{form.phone}</span></div>
             </div>
+            <RepairMediaPicker files={mediaFiles} lang={lang} disabled={saving} review compact />
             <Field label={t('form.repair.note')}><textarea name="intake_note" maxLength={800} rows={3} value={form.intake_note} onChange={set('intake_note')} /></Field>
+            <RepairMediaAcknowledgment files={mediaFiles} acknowledged={mediaAcknowledged} onChange={onMediaAcknowledged} lang={lang} disabled={saving} />
             <div className="pm-repair-consent"><PublicMobileIcon name="mark_email_read" /><p>{t('rp.beforeSend')}</p></div>
           </>}
         </fieldset>
+        <RepairUploadStatus saving={saving} hasMedia={mediaFiles.length > 0} progress={uploadProgress} lang={lang} onCancel={onCancelUpload} />
         <div className="ps-mform-nav">
           {step > 1 ? <button type="button" disabled={saving} className="ps-mcta ps-mcta--ghost" onClick={() => goTo(step - 1)}>{t('mpage.prev')}</button> : null}
-          {step < 3 ? <button key="next-repair-step" type="button" className="ps-mcta ps-mcta--fill" onClick={goNext}>{t('mpage.next')}<PublicMobileIcon name="arrow_forward" /></button> : <button key="submit-repair" type="submit" className="ps-mcta ps-mcta--fill" disabled={saving}>{saving ? t('form.sending') : t('rp.request')}<PublicMobileIcon name={saving ? 'hourglass_top' : 'arrow_forward'} /></button>}
+          {step < 3 ? <button key="next-repair-step" type="button" disabled={saving} className="ps-mcta ps-mcta--fill" onClick={goNext}>{t('mpage.next')}<PublicMobileIcon name="arrow_forward" /></button> : <button key="submit-repair" type="submit" className="ps-mcta ps-mcta--fill" disabled={saving}>{saving ? t('form.sending') : t('rp.request')}<PublicMobileIcon name={saving ? 'hourglass_top' : 'arrow_forward'} /></button>}
         </div>
       </form>
     </>}

@@ -13,7 +13,7 @@
     "pack:dir": "npm run build:frontend && npm run stage && electron-builder --mac dir"
   },
   "build": {
-    "appId": "com.nuocleo.crm",
+    "appId": "com.hdtlabx.crm",
     "productName": "HDTLabx",
     "directories": {
       "output": "release"

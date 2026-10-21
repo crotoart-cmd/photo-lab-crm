@@ -1,0 +1,33 @@
+---
+description: React patterns — imports, state, mobile bridges
+globs: frontend/src/**/*.{jsx,js}
+alwaysApply: false
+---
+
+# Frontend React
+
+## Cấu trúc
+- Pages: `frontend/src/pages/`
+- Feature UI: `frontend/src/components/` (+ `dashboard/`, `retail/`, `icons/`)
+- API client: `frontend/src/api/client`
+- Mobile offline: `mobileRetailBridge`, `mobileSync`, `mobileLocalDb`
+
+## Quy ước
+- Functional components + hooks; không class components mới.
+- Money: `formatMoney` / `formatVnd` từ `utils/formatMoney.js`
+- Lỗi API: `apiErrorMessage`, `isApiRouteMissing` (`utils/apiError.js`)
+- Catalog: `masterCatalogClient.js` + JSON trong `data/`
+
+## Retail page
+- Tab: `Retail.jsx` — `?tab=intake|sale`, group `?group=camera|film|battery`
+- POS mobile: `SmartSalePanel`; nhập: `SmartIntakePanel`
+
+## Style
+- Ưu tiên class có sẵn trong `styles/*.css`; tránh inline style trừ dynamic.
+- Import global CSS qua `index.css` — thêm file mới phải `@import` ở đó.
+
+## Build
+```bash
+export PATH=".tools/node/bin:$PATH"
+cd frontend && npm run build
+```

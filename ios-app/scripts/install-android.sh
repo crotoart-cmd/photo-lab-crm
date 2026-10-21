@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build + cài Nước Lèo CRM lên thiết bị Android (Lenovo Y700…)
+# Build + cài HDTLabx lên thiết bị Android (Lenovo Y700…)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IOS_APP="$ROOT/ios-app"
@@ -107,9 +107,9 @@ if [ "$DEVICE_COUNT" -ge 1 ]; then
   echo "📲 Cài lên thiết bị..."
   "$ADB" install -r "$APK"
   # Launch
-  "$ADB" shell am start -n com.nuocleo.crm/.MainActivity 2>/dev/null || \
-    "$ADB" shell monkey -p com.nuocleo.crm -c android.intent.category.LAUNCHER 1
-  echo "✅ Đã cài & mở Nước Lèo CRM trên Android"
+  "$ADB" shell am start -n com.hdtlabx.crm/.MainActivity 2>/dev/null || \
+    "$ADB" shell monkey -p com.hdtlabx.crm -c android.intent.category.LAUNCHER 1
+  echo "✅ Đã cài & mở HDTLabx trên Android"
 else
   echo "ℹ️  Khi Y700 đã kết nối: adb install -r $APK"
 fi

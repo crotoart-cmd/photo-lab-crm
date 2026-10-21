@@ -4,7 +4,7 @@
  */
 import { isMobileDataEnabled } from './mobileLocalDb';
 
-const CRED_KEY = 'nuocleo_offline_cred';
+const CRED_KEY = 'hdtlabx_offline_cred';
 const PBKDF2_ITERATIONS = 120000;
 
 function toBase64(bytes) {

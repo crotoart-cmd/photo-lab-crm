@@ -7,8 +7,10 @@ import { ToastProvider } from './context/ToastContext';
 import { initIosShell } from './lib/iosDevice';
 import { initMobileAutoSync } from './lib/mobileSync';
 import { bootstrapDeviceSmtpFromBuild } from './lib/mobileDeviceEmail';
+import { migrateLegacyStorageKeys } from './lib/migrateLegacyStorage';
 import './index.css';
 
+migrateLegacyStorageKeys();
 initIosShell();
 
 if (import.meta.env.VITE_MOBILE_APP === 'true' || window.Capacitor?.isNativePlatform?.()) {

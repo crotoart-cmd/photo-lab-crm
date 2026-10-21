@@ -12,7 +12,7 @@ const { buildFilmReceiptEmailHtml } = require('../templates/filmReceiptEmail');
 const filmId = process.argv[2];
 
 const run = async () => {
-  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/nuocleo-crm');
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/hdtlabx-crm');
   let film;
   if (filmId) {
     film = await Film.findById(filmId).populate('customerId');

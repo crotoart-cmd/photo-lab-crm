@@ -32,6 +32,7 @@
     height: 22px;
   }
 
+  /* Bản gốc 5 tab + nhãn; chỉ thu padding trên/dưới (Claude Bridge hướng). */
   .public-site--mobile .ps-mtabs {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -41,7 +42,7 @@
     bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     width: auto;
     max-width: 480px;
-    height: 82px;
+    height: 68px;
     margin: 0 auto;
     padding: 0 3px;
     border: 1px solid #e6e6e6;
@@ -52,13 +53,14 @@
   }
 
   .public-site--mobile .ps-mtabs :is(a, button) {
+    position: relative;
     flex-direction: column;
-    gap: 7px;
+    gap: 5px;
     width: 100%;
     min-width: 44px;
-    min-height: 80px;
-    height: 80px;
-    padding: 12px 1px 16px;
+    min-height: 64px;
+    height: 64px;
+    padding: 8px 1px 10px;
     border-radius: 8px;
     background: transparent;
     color: #757575;
@@ -150,7 +152,6 @@
     .public-site--mobile .ps-mtabs :is(a, button)::after,
     .public-site--mobile .ps-mtabs .ps-mtab-symbol {
       transition: none;
-      animation: none;
     }
   }
 
@@ -344,6 +345,72 @@
     width: 18px;
     height: 18px;
     font-size: 18px;
+  }
+
+  .pm-film-services {
+    margin: 24px 0;
+    color: #242424;
+  }
+
+  .pm-film-services .pm-section-heading {
+    margin-bottom: 8px;
+  }
+
+  .pm-film-services nav {
+    border-bottom: 1px solid #dedede;
+  }
+
+  .pm-film-service {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 12px;
+    min-height: 68px;
+    padding: 14px 0;
+    border-top: 1px solid #dedede;
+    color: inherit;
+    transition: color 150ms ease, background-color 150ms ease;
+  }
+
+  .pm-film-service:hover,
+  .pm-film-service:active {
+    background: #f7f7f7;
+    color: #000;
+  }
+
+  .pm-film-service:focus-visible,
+  .pm-film-services .pm-section-more:focus-visible {
+    outline: 2px solid #242424;
+    outline-offset: 3px;
+  }
+
+  .pm-film-service > .pm-icon:first-child {
+    color: #747474;
+  }
+
+  .pm-film-service > .pm-icon:last-child {
+    width: 20px;
+    height: 20px;
+  }
+
+  .pm-film-service-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .pm-film-service-copy b {
+    font-size: 15px;
+    font-weight: 550;
+    line-height: 1.35;
+  }
+
+  .pm-film-service-copy small {
+    color: #747474;
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .pm-lab-window {
@@ -1147,6 +1214,7 @@
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .pm-home *,
+  .pm-film-services *,
   .pm-gallery *,
   .pm-dialog *,
   .pm-film-form * {

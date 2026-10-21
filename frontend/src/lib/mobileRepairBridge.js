@@ -21,8 +21,8 @@ import {
 import { resolveCustomerIdForServer } from './mobileCustomerBridge';
 import { isLocalCustomerId } from './mobileCustomerLocal';
 
-export const REPAIR_DATA_CHANGED = 'nuocleo-repair-data-changed';
-const ID_MAP_KEY = 'nuocleo_repair_id_map';
+export const REPAIR_DATA_CHANGED = 'hdtlabx-repair-data-changed';
+const ID_MAP_KEY = 'hdtlabx_repair_id_map';
 const TIMEOUT_MS = 1200;
 
 const num = (v, fb = 0) => {
@@ -105,7 +105,7 @@ function rewriteSyncQueueRepairIds(localId, serverId) {
     return { ...item, payload: p };
   });
   if (changed) {
-    localStorage.setItem('nuocleo_local_sync_queue', JSON.stringify(next));
+    localStorage.setItem('hdtlabx_local_sync_queue', JSON.stringify(next));
   }
 }
 

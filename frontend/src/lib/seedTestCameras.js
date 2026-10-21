@@ -50,7 +50,7 @@ export function ensureLocalTestCameras() {
   return { seeded: true, ...seedLocalTestCameras() };
 }
 
-export const RETAIL_DATA_CHANGED = 'nuocleo-retail-data-changed';
+export const RETAIL_DATA_CHANGED = 'hdtlabx-retail-data-changed';
 
 export function notifyRetailDataChanged() {
   if (typeof window !== 'undefined') {

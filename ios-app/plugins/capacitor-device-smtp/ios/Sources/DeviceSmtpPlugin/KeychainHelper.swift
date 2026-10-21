@@ -2,26 +2,49 @@ import Foundation
 import Security
 
 enum KeychainHelper {
-    private static let service = "com.nuocleo.crm.device-smtp"
+    private static let service = "com.hdtlabx.crm.device-smtp"
+    private static let legacyService = "com.nuocleo.crm.device-smtp"
     private static let accountEmail = "smtp_email"
     private static let accountPassword = "smtp_app_password"
 
     static func save(email: String, appPassword: String) throws {
-        try saveItem(account: accountEmail, value: email)
-        try saveItem(account: accountPassword, value: appPassword)
+        try saveItem(service: service, account: accountEmail, value: email)
+        try saveItem(service: service, account: accountPassword, value: appPassword)
+        deleteItem(service: legacyService, account: accountEmail)
+        deleteItem(service: legacyService, account: accountPassword)
     }
 
     static func clear() {
-        deleteItem(account: accountEmail)
-        deleteItem(account: accountPassword)
+        deleteItem(service: service, account: accountEmail)
+        deleteItem(service: service, account: accountPassword)
+        deleteItem(service: legacyService, account: accountEmail)
+        deleteItem(service: legacyService, account: accountPassword)
     }
 
     static func loadEmail() -> String? {
-        loadItem(account: accountEmail)
+        if let value = loadItem(service: service, account: accountEmail) {
+            return value
+        }
+        guard let legacy = loadItem(service: legacyService, account: accountEmail) else {
+            return nil
+        }
+        if let pass = loadItem(service: legacyService, account: accountPassword) {
+            try? save(email: legacy, appPassword: pass)
+        }
+        return legacy
     }
 
     static func loadPassword() -> String? {
-        loadItem(account: accountPassword)
+        if let value = loadItem(service: service, account: accountPassword) {
+            return value
+        }
+        guard let legacy = loadItem(service: legacyService, account: accountPassword) else {
+            return nil
+        }
+        if let email = loadItem(service: legacyService, account: accountEmail) {
+            try? save(email: email, appPassword: legacy)
+        }
+        return legacy
     }
 
     static var isConfigured: Bool {
@@ -32,8 +55,8 @@ enum KeychainHelper {
         return true
     }
 
-    private static func saveItem(account: String, value: String) throws {
-        deleteItem(account: account)
+    private static func saveItem(service: String, account: String, value: String) throws {
+        deleteItem(service: service, account: account)
         guard let data = value.data(using: .utf8) else {
             throw NSError(domain: "KeychainHelper", code: 1, userInfo: [NSLocalizedDescriptionKey: "UTF-8 encode failed"])
         }
@@ -50,7 +73,7 @@ enum KeychainHelper {
         }
     }
 
-    private static func loadItem(account: String) -> String? {
+    private static func loadItem(service: String, account: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -64,7 +87,7 @@ enum KeychainHelper {
         return String(data: data, encoding: .utf8)
     }
 
-    private static func deleteItem(account: String) {
+    private static func deleteItem(service: String, account: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

@@ -1,4 +1,7 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const CustomerRepairTicket = require('../models/CustomerRepairTicket');
+const { mediaPath, TYPES } = require('../lib/repairMedia');
 const { verifyToken } = require('./auth');
 const { formatEmailNote } = require('../services/emailService');
 const {
@@ -23,6 +26,35 @@ function ticketFor(req, ticket) {
 }
 
 const router = express.Router();
+
+router.get('/:id/media/:mediaId', verifyToken, async (req, res, next) => {
+  try {
+    if (!['owner', 'admin', 'staff'].includes(req.userRole)) return res.status(403).json({ message: 'Không có quyền xem đính kèm' });
+    if (!mongoose.isValidObjectId(req.params.id) || !/^[a-f0-9]{32}$/.test(req.params.mediaId)) {
+      return res.status(404).json({ message: 'Không tìm thấy file' });
+    }
+    const ticket = await CustomerRepairTicket.findById(req.params.id).select('intake_media');
+    const file = ticket?.intake_media?.find((item) => item.id === req.params.mediaId);
+    if (!file || !Object.values(TYPES).some((mime) => mime === file.mime_type || mime.startsWith('image/hei') && file.mime_type?.startsWith('image/hei'))) {
+      return res.status(404).json({ message: 'Không tìm thấy file' });
+    }
+    const filename = mediaPath(file.storage_key);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox; frame-ancestors 'none'");
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('X-Content-SHA256', file.sha256);
+    res.type(file.mime_type);
+    if (req.query.download === '1') res.attachment(file.original_name);
+    res.sendFile(filename, { dotfiles: 'deny', cacheControl: false }, (error) => {
+      if (!error) return;
+      if (res.headersSent) return next(error);
+      res.status(error.status === 404 || error.code === 'ENOENT' ? 404 : 500).json({ message: 'Không tải được file' });
+    });
+  } catch (_error) {
+    if (!res.headersSent) res.status(404).json({ message: 'Không tìm thấy file' });
+  }
+});
 
 router.get('/summary', verifyToken, async (req, res) => {
   try {

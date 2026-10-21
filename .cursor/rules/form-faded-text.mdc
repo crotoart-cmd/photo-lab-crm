@@ -1,0 +1,40 @@
+---
+description: Chuẩn chữ mờ (placeholder / disabled / hint) cho form toàn dự án
+globs: frontend/src/**/*.css,frontend/src/components/**/*.jsx,frontend/src/pages/**/*.jsx
+alwaysApply: false
+---
+
+# Chuẩn chữ mờ (placeholder / disabled / hint)
+
+Áp dụng cho MỌI ô nhập (input, textarea, select, searchable-select) toàn trang.
+Mục tiêu: chữ mờ nhìn **đồng nhất 1 chuẩn**, không lộn xộn.
+
+## Token bắt buộc (dùng biến, không hardcode)
+- **Cỡ chữ:** `var(--font-input)` (≈16px). Giữ 16px trên mobile để iOS **không auto-zoom** khi focus — không đặt nhỏ hơn cho input thật.
+- **Màu:** `var(--color-label-tertiary)`.
+- **Weight:** `400`.
+- **Font family:** `var(--font-sans)` — placeholder **luôn sans**, kể cả trong ô `font-mono`.
+- **Trạng thái disabled:** thêm `opacity: 0.45` trên wrapper, KHÔNG đổi cỡ/màu token.
+
+## Quy tắc mono
+Ô mã/serial/SKU: **giá trị gõ vào** giữ `font-mono` để dễ đọc, nhưng **placeholder về sans**:
+
+```css
+/* ✅ ĐÚNG — đã có sẵn trong text-field.css */
+.text-field__input.font-mono::placeholder,
+.form-input.font-mono::placeholder {
+  font-family: var(--font-sans);
+  font-size: var(--font-input);
+  letter-spacing: normal;
+  font-variant-numeric: normal;
+}
+```
+
+```css
+/* ❌ SAI — placeholder thừa kế mono → nhìn to/khác các ô khác */
+.text-field__input.font-mono::placeholder { /* không reset font-family */ }
+```
+
+## Trước khi thêm rule placeholder mới
+- Kế thừa `.text-field__input::placeholder`, `.form-input::placeholder`, `.searchable-select__input::placeholder` đã chuẩn — **không** tạo cỡ chữ riêng.
+- Không đặt `font-size` px cứng cho placeholder; dùng `var(--font-input)`.

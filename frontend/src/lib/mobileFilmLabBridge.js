@@ -29,8 +29,8 @@ import {
 import { resolveCustomerIdForServer } from './mobileCustomerBridge';
 import { isLocalCustomerId } from './mobileCustomerLocal';
 
-export const FILM_LAB_DATA_CHANGED = 'nuocleo-film-lab-data-changed';
-const ID_MAP_KEY = 'nuocleo_film_lab_id_map';
+export const FILM_LAB_DATA_CHANGED = 'hdtlabx-film-lab-data-changed';
+const ID_MAP_KEY = 'hdtlabx_film_lab_id_map';
 const TIMEOUT_MS = 1200;
 
 function readIdMap() {
@@ -95,7 +95,7 @@ function rewriteSyncQueueFilmIds(localId, serverId) {
     return { ...item, payload: p };
   });
   if (changed) {
-    localStorage.setItem('nuocleo_local_sync_queue', JSON.stringify(next));
+    localStorage.setItem('hdtlabx_local_sync_queue', JSON.stringify(next));
   }
 }
 

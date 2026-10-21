@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { apiErrorMessage } from '../../utils/apiError';
 import { REPAIR_STATUS_LABELS, formatRepairMoney } from '../../constants/customerRepair';
 import { LabeledInput, LabeledTextarea } from '../formFields';
+import RepairEvidenceViewer from './RepairEvidenceViewer';
 import {
   receiveRepairBridge,
   quoteRepairBridge,
@@ -66,14 +67,17 @@ export default function RepairTicketDetail({ ticket, onUpdated, onError, onSucce
         </p>
       </header>
 
+      <RepairEvidenceViewer key={ticket._id} ticket={ticket} />
+
       <section className="text-sm space-y-1 border-t border-[var(--color-separator)] pt-3">
+        {ticket.customer_submission ? <h3 className="text-sm font-semibold">Thông tin phiếu hiện tại</h3> : null}
         <p>
           <span className="text-[var(--color-label-secondary)]">Triệu chứng: </span>
           {ticket.symptom}
         </p>
         {ticket.condition_at_intake && (
           <p>
-            <span className="text-[var(--color-label-secondary)]">Tình trạng nhận: </span>
+            <span className="text-[var(--color-label-secondary)]">{ticket.customer_submission ? 'Mô tả tình trạng trên phiếu: ' : 'Tình trạng nhận: '}</span>
             {ticket.condition_at_intake}
           </p>
         )}

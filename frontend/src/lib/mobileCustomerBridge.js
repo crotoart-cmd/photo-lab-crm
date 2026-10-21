@@ -23,8 +23,8 @@ import {
   MSG_BACKUP_PENDING,
 } from './mobileServerLink';
 
-const CACHE_KEY = 'nuocleo_customers_enriched';
-const CARE_KEY = 'nuocleo_customers_care';
+const CACHE_KEY = 'hdtlabx_customers_enriched';
+const CARE_KEY = 'hdtlabx_customers_care';
 const TIMEOUT_MS = 1200;
 
 function readCache(key) {

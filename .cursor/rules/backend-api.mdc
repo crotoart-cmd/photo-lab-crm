@@ -1,0 +1,29 @@
+---
+description: Backend Express — routes, services, models
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend API
+
+## Cấu trúc
+- Entry: `backend/server.js`
+- Routes: `backend/routes/` → gọi `backend/services/`
+- Models: `backend/models/` (Mongoose)
+- Catalog/data: `backend/data/`, `backend/services/masterCatalogService.js`
+
+## Quy ước
+- Logic nghiệp vụ trong **service**, route mỏng.
+- Retail: `retail.js`, `retailIntakeService`, `retailSaleService`
+- Camera mã quầy: `cameraSerialService.js`, route `generate-camera-code`
+- Dashboard analytics: `dashboardAnalyticsService.js` + presets `period`, `custom` + `start`/`end`
+
+## Phản hồi
+- Message lỗi tiếng Việt, rõ cho UI toast.
+- Đồng bộ contract với `mobileRetailBridge` / `mobileRetailLocal` khi đụng intake & sale.
+
+## Chạy local
+```bash
+cd backend && npm start   # port 5001
+```
+API mặc định iOS build: `http://192.168.1.10:5001/api` (xem `ios-app` build script).

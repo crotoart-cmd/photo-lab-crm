@@ -1,7 +1,7 @@
 import { isMobileDataEnabled } from '../lib/mobileLocalDb';
 import { clearBackupJwt } from '../lib/mobileServerLink';
 
-const BACKUP_JWT_KEY = 'nuocleo_server_jwt';
+const BACKUP_JWT_KEY = 'hdtlabx_server_jwt';
 
 export function isOfflineToken(token) {
   return Boolean(token && String(token).startsWith('offline.'));

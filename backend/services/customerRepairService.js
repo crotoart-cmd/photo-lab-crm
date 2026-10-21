@@ -1,5 +1,6 @@
 const Customer = require('../models/Customer');
 const CustomerRepairTicket = require('../models/CustomerRepairTicket');
+const { publicMedia } = require('../lib/repairMedia');
 const { issueConfirmToken, hashConfirmToken, isPlausibleConfirmToken } = require('../lib/confirmToken');
 const {
   QUOTE_ALLOWED,
@@ -31,6 +32,7 @@ function mapTicket(ticket, { includeInternal = true } = {}) {
   const profitEstimate = num(safe.final_amount || safe.quote_amount) - internalTotal;
   const out = {
     ...safe,
+    intake_media: publicMedia(safe.intake_media),
     status_label: STATUS_LABELS[safe.status] || safe.status,
     amount_due: Math.max(0, num(safe.final_amount || safe.quote_amount) - num(safe.deposit_amount)),
   };
@@ -109,7 +111,7 @@ async function getTicketById(id) {
   return mapTicket(ticket);
 }
 
-async function createTicket(payload, userId) {
+async function createTicket(payload, userId, evidence = {}) {
   const customer = await resolveCustomerFields(payload);
   const model_name = String(payload.model_name || '').trim();
   const symptom = String(payload.symptom || '').trim();
@@ -136,6 +138,10 @@ async function createTicket(payload, userId) {
     symptom,
     intake_note: payload.intake_note || '',
     condition_at_intake: payload.condition_at_intake || '',
+    intake_media: evidence.media,
+    customer_submission: evidence.submission,
+    media_acknowledged_at: evidence.acknowledgedAt,
+    media_acknowledgment_version: evidence.acknowledgmentVersion,
     status,
     received_at: fromWeb ? undefined : new Date(),
     createdBy: userId || undefined,
@@ -147,7 +153,9 @@ async function createTicket(payload, userId) {
     fromWeb ? 'Khách gửi đơn trên web' : 'Tiếp nhận máy khách',
     userId
   );
+  evidence.onBeforePersist?.();
   await ticket.save();
+  evidence.onPersisted?.();
 
   const skipEmail = Boolean(payload.skipEmail);
   const emailResult = skipEmail

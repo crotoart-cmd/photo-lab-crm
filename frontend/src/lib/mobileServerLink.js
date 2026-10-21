@@ -5,7 +5,7 @@
 import api from '../api/client';
 import { isMobileDataEnabled } from './mobileLocalDb';
 
-const BACKUP_JWT_KEY = 'nuocleo_server_jwt';
+const BACKUP_JWT_KEY = 'hdtlabx_server_jwt';
 
 export const MSG_DEVICE_SAVED = 'Đã lưu trên máy';
 export const MSG_BACKUP_PENDING = 'Sẽ backup lên Mac khi kết nối được server';

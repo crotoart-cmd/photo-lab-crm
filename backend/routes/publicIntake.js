@@ -1,5 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
+const { rateLimit } = require('../middleware/rateLimit');
+const { repairMediaUpload, ACKNOWLEDGMENT_VERSION } = require('../lib/repairMedia');
 const Film = require('../models/Film');
 const { sendConfirmationEmail } = require('../services/emailService');
 const { generateTicketNumber, pushStatusHistory } = require('../utils/filmHelpers');
@@ -7,6 +9,8 @@ const { filmTypeFromDetail, normalizeIntakeChecklist } = require('../utils/intak
 const { createTicket } = require('../services/customerRepairService');
 const { listPublicShop } = require('../services/shopCatalog');
 const { createShopOrder } = require('../services/shopOrders');
+const { createPrintOrder } = require('../services/printOrderService');
+const { createScanOrder } = require('../services/scanOrderService');
 const {
   tooManyRequests,
   isHoneypot,
@@ -71,6 +75,50 @@ router.post('/shop/orders', async (req, res) => {
   }
 });
 
+router.post('/scan', async (req, res) => {
+  try {
+    if (tooManyRequests(req)) {
+      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
+    }
+    if (isHoneypot(req.body)) {
+      return res.status(201).json({ ok: true, code: 'SC-OK' });
+    }
+
+    const customer = await findOrCreateWebCustomer(req.body);
+    const order = await createScanOrder({ body: req.body, customer });
+
+    res.status(201).json({
+      ok: true,
+      code: order.code,
+      message: `Đã nhận yêu cầu scan ${order.code}. Lab gửi file qua email bạn ghi.`,
+    });
+  } catch (error) {
+    fail(res, error);
+  }
+});
+
+router.post('/print', async (req, res) => {
+  try {
+    if (tooManyRequests(req)) {
+      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
+    }
+    if (isHoneypot(req.body)) {
+      return res.status(201).json({ ok: true, code: 'IN-OK' });
+    }
+
+    const customer = await findOrCreateWebCustomer(req.body);
+    const order = await createPrintOrder({ body: req.body, customer });
+
+    res.status(201).json({
+      ok: true,
+      code: order.code,
+      message: `Đã nhận yêu cầu in ${order.code}. Lab liên hệ qua email bạn ghi để báo giá.`,
+    });
+  } catch (error) {
+    fail(res, error);
+  }
+});
+
 router.post('/film', async (req, res) => {
   try {
     if (tooManyRequests(req)) {
@@ -123,11 +171,8 @@ router.post('/film', async (req, res) => {
   }
 });
 
-router.post('/repair', async (req, res) => {
+router.post('/repair', rateLimit({ max: 8, windowMs: 60 * 60 * 1000, bucket: 'repair-intake' }), repairMediaUpload, async (req, res) => {
   try {
-    if (tooManyRequests(req)) {
-      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
-    }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, ticketNumber: 'SRV-OK' });
     }
@@ -143,6 +188,16 @@ router.post('/repair', async (req, res) => {
     });
 
     const extra = str(req.body.intake_note, 800);
+    const submittedAt = new Date();
+    const submission = {
+      submitted_at: submittedAt,
+      model_name: str(req.body.model_name, 120),
+      brand: str(req.body.brand, 80),
+      serial_number: str(req.body.serial_number, 80),
+      symptom: str(req.body.symptom, 800),
+      condition_at_intake: str(req.body.condition_at_intake, 800),
+    };
+    const media = req.repairMedia?.files || [];
     const { ticket, emailResult } = await createTicket(
       {
         customerId: customer._id,
@@ -157,18 +212,31 @@ router.post('/repair', async (req, res) => {
         intake_note: extra ? `Đơn web: ${extra}` : 'Đơn web khách gửi',
         source: 'web',
       },
-      null
+      null,
+      {
+        media: media.length ? media : undefined,
+        submission,
+        acknowledgedAt: media.length ? submittedAt : undefined,
+        acknowledgmentVersion: media.length ? ACKNOWLEDGMENT_VERSION : undefined,
+        onBeforePersist: () => { if (req.repairMedia) req.repairMedia.persistStarted = true; },
+        onPersisted: () => { if (req.repairMedia) req.repairMedia.committed = true; },
+      }
     );
 
     res.status(201).json({
       ok: true,
       ticketNumber: ticket.ticket_number,
+      mediaCount: media.length,
       message: emailResult?.sent
         ? `Đã nhận phiếu ${ticket.ticket_number}. Lab gửi email xác nhận.`
         : `Đã nhận phiếu ${ticket.ticket_number}. Lab liên hệ qua email bạn ghi.`,
     });
   } catch (error) {
+    // On an uncertain database write, retain the private batch for reconciliation.
+    if (req.repairMedia?.persistStarted && !error.status && error.name !== 'ValidationError') req.repairMedia.committed = true;
     fail(res, error);
+  } finally {
+    await req.repairMedia?.dispose();
   }
 });
 

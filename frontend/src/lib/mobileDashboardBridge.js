@@ -16,7 +16,7 @@ import {
   periodCacheKey,
 } from '../utils/periodRange';
 
-const CACHE_KEY = 'nuocleo_dashboard_cache';
+const CACHE_KEY = 'hdtlabx_dashboard_cache';
 const CACHE_VERSION = 2;
 const MOBILE_DASHBOARD_TIMEOUT_MS = 1200;
 const MOBILE_ANALYTICS_TIMEOUT_MS = 8000;

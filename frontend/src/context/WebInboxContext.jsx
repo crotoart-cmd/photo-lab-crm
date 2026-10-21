@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { fetchWebInbox, subscribeWebInboxRefresh } from '../lib/webInbox';
 import { useToast } from './ToastContext';
 
-const EMPTY = { filmCount: 0, repairCount: 0, shopCount: 0, total: 0, items: [] };
+const EMPTY = { filmCount: 0, repairCount: 0, shopCount: 0, printCount: 0, scanCount: 0, total: 0, items: [] };
 const WebInboxContext = createContext(null);
 
 export function WebInboxProvider({ children }) {

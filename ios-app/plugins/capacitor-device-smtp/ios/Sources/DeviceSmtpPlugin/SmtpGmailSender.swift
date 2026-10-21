@@ -21,13 +21,13 @@ enum SmtpError: LocalizedError {
 final class SmtpGmailSender: NSObject, GCDAsyncSocketDelegate {
     private var socket: GCDAsyncSocket!
     private var buffer = ""
-    private let queue = DispatchQueue(label: "com.nuocleo.smtp")
+    private let queue = DispatchQueue(label: "com.hdtlabx.smtp")
     private var done: CheckedContinuation<Void, Error>?
 
     private var user = ""
     private var pass = ""
     private var fromEmail = ""
-    private var fromName = "Nước Lèo"
+    private var fromName = "HDTLabx"
     private var toEmail = ""
     private var bccEmail = ""
     private var subject = ""
@@ -88,7 +88,7 @@ final class SmtpGmailSender: NSObject, GCDAsyncSocketDelegate {
         self.user = user
         self.pass = pass
         self.fromEmail = fromEmail
-        self.fromName = fromName.isEmpty ? "Nước Lèo" : fromName
+        self.fromName = fromName.isEmpty ? "HDTLabx" : fromName
         self.toEmail = to
         self.bccEmail = fromEmail.lowercased() != to.lowercased() ? fromEmail : ""
         self.subject = subject
@@ -149,7 +149,7 @@ final class SmtpGmailSender: NSObject, GCDAsyncSocketDelegate {
         case .waitGreeting:
             guard code == 220 else { fail(SmtpError.commandFailed(line)); return }
             phase = .waitEhlo
-            sendLine("EHLO nuocleo.local\r\n")
+            sendLine("EHLO hdtlabx.local\r\n")
 
         case .waitEhlo:
             guard code == 250 else { fail(SmtpError.commandFailed(line)); return }

@@ -500,7 +500,7 @@ const cameraKey = (r) => upper(r.serial_number);
 const skuKey = (r) => upper(r.sku_code);
 
 export function cacheServerRetailData({ summary, filmRows, batteryRows, cameraRows, filmSkus, batteries, cameras, sales, salesTotals }) {
-  if (summary) localStorage.setItem('nuocleo_local_summary_cache', JSON.stringify(summary));
+  if (summary) localStorage.setItem('hdtlabx_local_summary_cache', JSON.stringify(summary));
   if (filmRows) {
     saveFilmStock(mergeLocalStock(filmRows, loadFilmStock(), skuKey));
   }

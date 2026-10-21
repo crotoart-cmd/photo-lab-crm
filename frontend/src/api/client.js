@@ -34,7 +34,7 @@ api.interceptors.response.use(
           try {
             await saveOfflineCredentials(response.data.user.email, request.password, response.data.user);
           } catch (_error) {
-            localStorage.removeItem('nuocleo_offline_cred');
+            localStorage.removeItem('hdtlabx_offline_cred');
           }
         }
       }

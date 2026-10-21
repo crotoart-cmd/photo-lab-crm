@@ -1,0 +1,60 @@
+---
+description: Khung giả lập iPhone + safe-area preview — Dynamic Island, status bar, iframe
+globs: frontend/public/iphone.html, frontend/src/lib/iosDevice.js, frontend/src/styles/ios-iphone.css, frontend/src/styles/mobile-shell.css, frontend/src/components/Layout.jsx, ios-app/**/*
+alwaysApply: false
+---
+
+# Mobile iOS preview frame (giả lập iPhone)
+
+Mẫu chuẩn: `frontend/public/iphone.html` + `initIosShell()` + `ios-iphone.css`.
+
+## Nguyên tắc tách lớp
+
+| Lớp | Ai vẽ | Nội dung |
+|-----|--------|----------|
+| **Khung** (`iphone.html`) | HTML/CSS ngoài iframe | Bezel, Dynamic Island, status bar (9:41 · sóng · wifi · pin), home indicator |
+| **App** (trong iframe) | React + shell CSS | Header logo/actions, nội dung, tab bar — **không** vẽ island thứ hai |
+
+Iframe **không có** notch thật → `env(safe-area-inset-top)` = 0. Preview phải mock bằng CSS var.
+
+## Khung giả lập (`iphone.html`)
+
+- Kích thước màn: **430×932 pt** (iPhone 14/15 Pro Max), bezel **14px**.
+- Island: `top: 25px` (14 + ~11), **126×36px**, `border-radius: 20px`, chấm camera `::after` bên phải.
+- Status bar: **cùng hàng** island (`top: 25px`, `height: 36px`), giờ trái / icon phải, padding tránh island.
+- Home indicator: **trong màn hình** (`bottom: 22px`), không nằm trong bezel.
+- Island + status bar là **con trực tiếp** của `.device`, **không** nằm trong `.device__screen` (iframe).
+
+## App preview (`?ios=iphone14promax`)
+
+```javascript
+// iosDevice.js — khi forcePreview
+html.style.setProperty('--ios-preview', '1');
+if (window.self !== window.top) html.classList.add('ios-preview-embedded');
+```
+
+```css
+/* ios-iphone.css */
+html[style*='--ios-preview'] {
+  --ios-safe-top: 59px;
+  --ios-safe-bottom: 34px;
+}
+html.ios-preview-embedded body::before { display: none; } /* ẩn island app */
+html.mobile-app .ios-mobile-chrome {
+  padding-top: max(0px, calc(var(--ios-safe-top) - 10px));
+}
+```
+
+- **Không** dùng `body::before` island khi `ios-preview-embedded` — tránh chồng island khung + app.
+- Header app bắt đầu **dưới** vùng status bar (dùng `--ios-safe-top-used` / ResizeObserver `--ios-chrome-offset`).
+
+## Checklist trước khi báo xong UI mobile
+
+1. Mở `http://localhost:3000/iphone.html` — tab ẩn danh hoặc Empty Cache and Hard Reload (file tĩnh dễ cache).
+2. Chỉ **một** Dynamic Island, căn giữa, status bar hai bên.
+3. Logo/header không bị island che.
+4. Tự verify bằng screenshot — không chỉ bảo user reload.
+
+## Dự án mới có mobile
+
+Copy bộ: `iphone.html`, `initIosShell()`, block `--ios-preview` trong CSS shell. Giữ tách khung vs app; không nhân đôi island.

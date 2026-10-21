@@ -1,0 +1,43 @@
+---
+description: Desktop layout & UI verify — tránh lệch form, padding, breakpoint
+globs: frontend/src/**/*.{jsx,css}
+alwaysApply: false
+---
+
+# Desktop layout + verify UI
+
+## Phạm vi
+- User nói **website / máy tính / desktop only** → chỉ đổi CSS trong `@media (min-width: 768px)` (hoặc class `md:`), **không** đổi layout/spacing mobile (`max-width: 767px`, `html.mobile-app` stack dọc).
+- Mobile = nguồn chính cho data; desktop = layout/breakpoint, cùng primitive.
+
+## Form / grid (lỗi phổ biến)
+Khi xếp 2+ cột field (Hãng|Model, Mã|Sê-ri, giá…):
+
+```css
+/* ✅ ĐỦ — phải có display: grid */
+.intake-field-deal.retail-cart-deal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+/* ❌ SAI — chỉ set columns, desktop stack full-width */
+.intake-field-deal {
+  grid-template-columns: 1fr 1fr;
+}
+```
+
+- Card form: padding ngang đủ (≥12–16px) — không sát mép khung.
+- Màn rất rộng: cân `max-width` hoặc pad form zone; không kéo 1 ô input full viewport nếu nội dung ngắn.
+
+## Icon
+- Không dùng `leadingIcon="mail"` (Material Symbols CDN) nếu mobile/offline có thể mất font.
+- Ưu tiên SVG trong `frontend/src/components/icons/` + `leadingIconComponent`.
+
+## Verify trước khi báo xong (desktop UI)
+1. Browser MCP: mở URL thật (`localhost:3000`…), `browser_snapshot` + `browser_take_screenshot`.
+2. Viewport rộng (~1280+) — kiểm padding, grid 2 cột, không tràn.
+3. Nếu task cũng đụng mobile: thêm `?ios=iphone14promax` / hard reload `iphone.html` — nhưng **không** đổi mobile khi user nói desktop only.
+
+## Copy / banner
+- Không thêm copy kiểu “cần kết nối Mac / server để xem” trên UI mobile-first.

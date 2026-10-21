@@ -1,6 +1,8 @@
 import { FORM_COPY } from './publicI18nForm';
 import { EXTRA_COPY } from './publicI18nExtra';
 import { MOBILE_COPY } from './publicI18nMobile';
+import { PRINT_COPY } from './publicI18nPrint';
+import { SCAN_COPY } from './publicI18nScan';
 
 export const PUBLIC_LANGS = [
   { id: 'en', code: 'EN', html: 'en', native: 'English' },
@@ -46,6 +48,7 @@ const vi = {
   'cta.sendDev': 'Gửi đơn tráng →',
   'cta.viewSpeed': 'Xem tốc độ',
   'cta.sendRepair': 'Gửi phiếu sửa →',
+  'cta.sendPrint': 'Gửi yêu cầu in →',
   'cta.devFilm': 'Tráng film',
   'home.h1a': 'Tráng film',
   'home.h1b': 'và sửa máy',
@@ -235,6 +238,7 @@ const en = {
   'cta.sendDev': 'Send a develop order →',
   'cta.viewSpeed': 'See turnaround',
   'cta.sendRepair': 'Send a repair ticket →',
+  'cta.sendPrint': 'Send a print request →',
   'cta.devFilm': 'Develop film',
   'home.h1a': 'Film lab',
   'home.h1b': 'and camera repair',
@@ -786,10 +790,10 @@ const es = {
 };
 
 export const PUBLIC_COPY = {
-  en: { ...en, ...FORM_COPY.en, ...EXTRA_COPY.en, ...MOBILE_COPY.en },
-  vi: { ...vi, ...FORM_COPY.vi, ...EXTRA_COPY.vi, ...MOBILE_COPY.vi },
-  de: { ...de, ...FORM_COPY.de, ...EXTRA_COPY.de, ...MOBILE_COPY.de },
-  es: { ...es, ...FORM_COPY.es, ...EXTRA_COPY.es, ...MOBILE_COPY.es },
+  en: { ...en, ...FORM_COPY.en, ...EXTRA_COPY.en, ...MOBILE_COPY.en, ...PRINT_COPY.en, ...SCAN_COPY.en },
+  vi: { ...vi, ...FORM_COPY.vi, ...EXTRA_COPY.vi, ...MOBILE_COPY.vi, ...PRINT_COPY.vi, ...SCAN_COPY.vi },
+  de: { ...de, ...FORM_COPY.de, ...EXTRA_COPY.de, ...MOBILE_COPY.de, ...PRINT_COPY.de, ...SCAN_COPY.de },
+  es: { ...es, ...FORM_COPY.es, ...EXTRA_COPY.es, ...MOBILE_COPY.es, ...PRINT_COPY.es, ...SCAN_COPY.es },
 };
 
 export function publicT(lang, key) {

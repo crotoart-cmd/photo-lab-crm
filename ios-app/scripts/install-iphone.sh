@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build + cài Nước Lèo CRM lên iPhone (cắm USB, tin máy Mac trên iPhone)
+# Build + cài HDTLabx lên iPhone (cắm USB, tin máy Mac trên iPhone)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NODE="$ROOT/../.tools/node/bin"
@@ -8,15 +8,15 @@ export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 DEVICE_ID="${1:-}"
 TEAM_ID="${DEVELOPMENT_TEAM:-MG69LSYTGH}"
-DERIVED_DATA="$ROOT/ios/App/.derivedData-nuocleo"
+DERIVED_DATA="$ROOT/ios/App/.derivedData-hdtlabx"
 IOS_WORKSPACE="$ROOT/ios/App/App.xcworkspace"
 
 # Bundle ID mong đợi — đọc từ capacitor.config.json.
-# Cài com.nuocleo.crm KHÔNG gỡ app khác (vd. com.35daylight.app) — mỗi bundle ID là app riêng trên iPhone.
+# Cài com.hdtlabx.crm KHÔNG gỡ app khác (vd. com.35daylight.app) — mỗi bundle ID là app riêng trên iPhone.
 EXPECTED_BUNDLE_ID="$(
   node -e "
     const c = require('${ROOT}/capacitor.config.json');
-    process.stdout.write(c.appId || 'com.nuocleo.crm');
+    process.stdout.write(c.appId || 'com.hdtlabx.crm');
   "
 )"
 

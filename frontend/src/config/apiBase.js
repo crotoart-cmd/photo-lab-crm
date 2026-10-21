@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'nuocleo_api_base';
+const STORAGE_KEY = 'hdtlabx_api_base';
 
 function normalizeApiBase(url) {
   const trimmed = String(url || '').trim().replace(/\/$/, '');

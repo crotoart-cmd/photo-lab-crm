@@ -1,0 +1,43 @@
+---
+description: Design system mobile Apple — components, tokens, icons
+globs: frontend/src/**/*
+alwaysApply: false
+---
+
+# UI Design System (mobile-first)
+
+Đọc thêm: `docs/design-system/README.md` · `components.md` · `figma-map.md`
+
+## Tokens & layout
+- CSS vars: `apple-design.css`, `apple-typography.css`, `ios-iphone.css`
+- Shell: `IosPage`, `MobileNavBar`, `MobileTabBar`, class `html.mobile-app`
+- Card/section title (giống Dashboard): `0.9375rem`, `font-weight 600`, `letter-spacing -0.02em`, **không uppercase**
+
+## Primitives — dùng lại, không raw HTML
+| Nhu cầu | Component |
+|---------|-----------|
+| Input/textarea | `TextField`, `LabeledInput` (`formFields.jsx`) |
+| Select/dropdown | `AppleSelect` + `apple-menu.css` |
+| Menu/popover | `AppleMenu`, `AppleMenuItem` |
+| Segmented control | `AppleSegmentedControl` |
+| Search pill | `SearchField` |
+| Nút | `apple-btn-primary` / `apple-btn-secondary` (`buttons.css`) |
+| Footer 2 nút | `intake-form-actions` + `--dual` |
+
+## Icons
+- Artboard **32×32**; sizes: `frontend/src/components/icons/iconSizes.js`
+- Có sẵn: `IconRotate`, `IconScan`, `IconQR`, `tabBarIcons`, …
+- Field trailing: **không** `material-symbols` nếu đã có icon Figma tương ứng
+- Frame wrapper: `Icon32` + `icon-32.css`
+
+## Retail / Nhập · Bán
+- Panel: `SmartIntakePanel.jsx` / `SmartSalePanel.jsx`, styles `retail-ios.css`
+- Mặc định nhóm: **camera**; danh mục: `retail-group-btn`
+- Mã quầy: tự sinh khi chọn model, `readOnly`, in tem: `printCameraCounterLabel.js`
+- **Desktop (≥768px):** layout 2 cột — `retail-intake-layout` (Danh mục trái · quét+nội dung phải). Bán: checkout trong card giỏ (`retail-sale-desk-checkout`), ẩn bottom sheet.
+- Field cặp dùng `display: grid` — xem rule `desktop-layout.mdc`.
+- **Desktop only task:** không đụng CSS `max-width: 767px` / stack mobile.
+
+## Period / Dashboard
+- Kỳ: `PeriodRangeSelect` + `periodRange.js` — không segmented tab chồng tab
+- Widgets: `dashboard-widgets.css`, `dashboard-segment.css`

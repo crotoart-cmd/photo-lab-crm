@@ -31,6 +31,13 @@ function buildRepairIntakeEmailHtml(ticket, { phase = 'goods' } = {}) {
   const name = ticket.customer_name || '—';
   const phone = ticket.customer_phone || '—';
   const emailAddr = ticket.customer_email || '—';
+  const media = ticket.intake_media || [];
+  const mediaReceipt = media.length ? `
+    <div style="margin:16px 0;font-size:12px;color:#555;">
+      <strong>Ảnh/video khách gửi: ${media.length} file</strong>
+      <p>Tư liệu do khách cung cấp trước khi lab kiểm tra máy. Thời điểm bên dưới là lúc hệ thống nhận file, không phải thời điểm chụp.</p>
+      ${media.map((file) => `<p style="margin:10px 0;overflow-wrap:anywhere;word-break:break-all;">${escapeHtml(file.original_name)}<br/>${escapeHtml(fmtDate(file.uploaded_at))}<br/>SHA-256: ${escapeHtml(file.sha256)}</p>`).join('')}
+    </div>` : '';
 
   const summaryTable = `
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:8px;">
@@ -40,13 +47,13 @@ function buildRepairIntakeEmailHtml(ticket, { phase = 'goods' } = {}) {
       ${ticket.brand ? detailRow('Hãng', ticket.brand) : ''}
       ${ticket.serial_number ? detailRow('Sê-ri', ticket.serial_number) : ''}
       ${detailRow('Triệu chứng', ticket.symptom)}
-      ${ticket.condition_at_intake ? detailRow('Tình trạng lúc nhận', ticket.condition_at_intake) : ''}
+      ${ticket.condition_at_intake ? detailRow(isOrder || ticket.customer_submission ? 'Tình trạng khách khai' : 'Tình trạng lúc nhận', ticket.condition_at_intake) : ''}
     </table>
     ${
       ticket.intake_note
         ? `<p style="margin-top:12px;font-size:13px;color:#555;"><strong>Ghi chú:</strong> ${escapeHtml(ticket.intake_note)}</p>`
         : ''
-    }`;
+    }${mediaReceipt}`;
 
   return buildEmailLayout({
     eyebrow: isOrder ? 'ĐƠN SỬA MÁY TRÊN WEB' : 'PHIẾU TIẾP NHẬN SỬA MÁY',

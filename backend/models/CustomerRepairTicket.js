@@ -32,6 +32,26 @@ const workLogSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const intakeMediaSchema = new mongoose.Schema({
+  id: { type: String, required: true, immutable: true },
+  storage_key: { type: String, required: true, immutable: true },
+  original_name: { type: String, required: true, immutable: true },
+  mime_type: { type: String, required: true, immutable: true },
+  size: { type: Number, required: true, min: 1, immutable: true },
+  sha256: { type: String, required: true, immutable: true },
+  uploaded_at: { type: Date, required: true, immutable: true },
+  source: { type: String, enum: ['customer'], required: true, immutable: true },
+}, { _id: false });
+
+const customerSubmissionSchema = new mongoose.Schema({
+  submitted_at: { type: Date, required: true, immutable: true },
+  model_name: { type: String, immutable: true },
+  brand: { type: String, immutable: true },
+  serial_number: { type: String, immutable: true },
+  symptom: { type: String, immutable: true },
+  condition_at_intake: { type: String, immutable: true },
+}, { _id: false });
+
 const customerRepairTicketSchema = new mongoose.Schema({
   ticket_number: { type: String, required: true, unique: true, uppercase: true, index: true },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', index: true },
@@ -46,6 +66,11 @@ const customerRepairTicketSchema = new mongoose.Schema({
   symptom: { type: String, required: true, trim: true },
   intake_note: { type: String, trim: true },
   condition_at_intake: { type: String, trim: true },
+
+  intake_media: { type: [intakeMediaSchema], default: undefined, immutable: true },
+  customer_submission: { type: customerSubmissionSchema, immutable: true },
+  media_acknowledged_at: { type: Date, immutable: true },
+  media_acknowledgment_version: { type: String, immutable: true },
 
   status: {
     type: String,
@@ -89,6 +114,9 @@ const customerRepairTicketSchema = new mongoose.Schema({
 });
 
 customerRepairTicketSchema.pre('save', function touchUpdated(next) {
+  if (!this.isNew && ['intake_media', 'customer_submission', 'media_acknowledged_at', 'media_acknowledgment_version'].some((key) => this.isModified(key))) {
+    return next(Object.assign(new Error('Không được thay đổi tư liệu khách đã gửi'), { status: 400 }));
+  }
   this.updatedAt = Date.now();
   next();
 });

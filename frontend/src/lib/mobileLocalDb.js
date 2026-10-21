@@ -4,19 +4,19 @@
 import { isNativeApp } from '../config/apiBase';
 
 const KEYS = {
-  film: 'nuocleo_local_film_stock',
-  battery: 'nuocleo_local_battery_stock',
-  camera: 'nuocleo_local_camera_stock',
-  sales: 'nuocleo_local_sales',
-  syncQueue: 'nuocleo_local_sync_queue',
-  customerRepairs: 'nuocleo_local_customer_repairs',
-  labFilms: 'nuocleo_local_lab_films',
-  inventory: 'nuocleo_local_inventory',
-  inventoryLogs: 'nuocleo_local_inventory_logs',
-  dashboardCache: 'nuocleo_dashboard_cache',
-  storageSettings: 'nuocleo_storage_settings',
-  backupSettings: 'nuocleo_backup_settings',
-  backupMeta: 'nuocleo_backup_meta',
+  film: 'hdtlabx_local_film_stock',
+  battery: 'hdtlabx_local_battery_stock',
+  camera: 'hdtlabx_local_camera_stock',
+  sales: 'hdtlabx_local_sales',
+  syncQueue: 'hdtlabx_local_sync_queue',
+  customerRepairs: 'hdtlabx_local_customer_repairs',
+  labFilms: 'hdtlabx_local_lab_films',
+  inventory: 'hdtlabx_local_inventory',
+  inventoryLogs: 'hdtlabx_local_inventory_logs',
+  dashboardCache: 'hdtlabx_dashboard_cache',
+  storageSettings: 'hdtlabx_storage_settings',
+  backupSettings: 'hdtlabx_backup_settings',
+  backupMeta: 'hdtlabx_backup_meta',
 };
 
 const DEFAULT_RETENTION_MONTHS = 12;
@@ -25,7 +25,7 @@ export function isMobileDataEnabled() {
   if (typeof window === 'undefined') return false;
   if (isNativeApp()) return true;
   if (import.meta.env.VITE_MOBILE_APP === 'true') return true;
-  if (localStorage.getItem('nuocleo_offline_mode') === '1') return true;
+  if (localStorage.getItem('hdtlabx_offline_mode') === '1') return true;
   return new URLSearchParams(window.location.search).get('local') === '1';
 }
 
@@ -213,9 +213,9 @@ export function buildLocalBackupPayload() {
   let customers = [];
   let customerIdMap = {};
   try {
-    const raw = localStorage.getItem('nuocleo_customers_enriched');
+    const raw = localStorage.getItem('hdtlabx_customers_enriched');
     customers = raw ? JSON.parse(raw).data || [] : [];
-    customerIdMap = JSON.parse(localStorage.getItem('nuocleo_customer_id_map') || '{}');
+    customerIdMap = JSON.parse(localStorage.getItem('hdtlabx_customer_id_map') || '{}');
   } catch {
     /* ignore */
   }

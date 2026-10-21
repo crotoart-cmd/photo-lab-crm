@@ -190,7 +190,7 @@ export default function Dashboard() {
     if (!data?.date && !updatedAt) return;
     try {
       localStorage.setItem(
-        'nuocleo.dashboard.displayMeta',
+        'hdtlabx.dashboard.displayMeta',
         JSON.stringify({
           date: data?.date || new Date().toISOString().slice(0, 10),
           updatedAt: updatedAt?.toISOString?.() || null,

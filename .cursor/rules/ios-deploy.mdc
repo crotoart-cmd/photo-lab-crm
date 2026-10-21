@@ -1,0 +1,44 @@
+---
+description: Capacitor iOS/Android — build, sync, deploy
+globs: ios-app/**/*
+alwaysApply: false
+---
+
+# iOS / Android (Capacitor)
+
+## iOS deploy (chỉ khi user yêu cầu)
+```bash
+export PATH=".tools/node/bin:$PATH"
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+cd ios-app
+node scripts/build-frontend.js    # → www/
+npx cap copy ios
+npx cap run ios --target <device-udid>
+```
+`npm run sync` có thể lỗi Ruby encoding — dùng `cap copy` + `cap run` nếu `www/` đã build.
+
+## Android / Lenovo Y700 (chỉ khi user yêu cầu)
+Toolchain local: `.tools/jdk-17`, `.tools/android-sdk` (không cần Android Studio).
+```bash
+cd ios-app
+npm run install:y700   # build www → sync → APK → adb install
+```
+Yêu cầu: USB debugging bật, máy hiện `adb devices` = `device`.
+APK debug: `ios-app/android/app/build/outputs/apk/debug/app-debug.apk`
+
+Lần đầu máy mới (nếu thiếu JDK/SDK):
+```bash
+bash ios-app/scripts/bootstrap-android-tools.sh
+```
+
+## Device iOS
+- UDID từng dùng: `00008120-0016034A3AE3C01E` — xác nhận lại nếu đổi máy.
+
+## Web assets
+- Output: `ios-app/www/` (không sửa tay trong `ios/App/App/public` lâu dài)
+- Config: `ios-app/capacitor.config.json`
+
+## Plugin
+- `capacitor-device-smtp` — iOS native; Android stub (SMTP gửi qua Mac/server)
+
+Không chạy deploy mỗi task UI nhỏ trừ khi user muốn QA trên máy.

@@ -45,11 +45,6 @@ export default function PublicMobileHome({ extras }) {
       previous?.focus({ preventScroll: true });
     };
   }, [buying, closeShop]);
-  const services = [
-    { to: PATH.scan, title: t('nav.scan'), detail: t('mhome.card.scanSub'), image: LAB_PHOTO.scan },
-    { to: PATH.print, title: t('nav.print'), detail: t('mhome.cat.print'), image: LAB_PHOTO.print },
-  ];
-
   return (
     <div className="ps-mhome pm-home">
       <header className="ps-mpro-nav pm-home-nav">
@@ -83,12 +78,6 @@ export default function PublicMobileHome({ extras }) {
         <Link to={PATH.repair} className="pm-home-repair-link"><span>{t('rp.noEstimate')}</span><b>{t('rp.homeLink')}<PublicMobileIcon name="arrow_forward" /></b></Link>
       </section>
 
-      <Link to={PATH.speed} className="pm-lab-window">
-        <span><small>{t('mhome.metric.speed')}</small><b>{t('time.2w')}</b></span>
-        <span><small>{t('mhome.metric.batch')}</small><b>{t('mhome.metric.batchV')}</b></span>
-        <PublicMobileIcon name="arrow_outward" />
-      </Link>
-
       <section className="pm-home-blog" id="pm-home-blog" aria-labelledby="pm-blog-title">
         <div className="pm-section-heading"><h2 id="pm-blog-title">{t('nav.blog')}</h2><Link to={PATH.blog} className="pm-section-more">{t('mpage.viewAll')}<PublicMobileIcon name="arrow_forward" /></Link></div>
         {posts.map((post, index) => <Link key={post.id || post.slug} to={post.href} className={index === 0 ? 'pm-blog-feature' : 'pm-blog-row'}>
@@ -104,16 +93,6 @@ export default function PublicMobileHome({ extras }) {
           <PsPhoto src={product.image} className="pm-product-photo" alt="" />
           <span className="pm-product-copy">{product.brand ? <small>{product.brand}</small> : null}<b>{product.title}</b><span className={product.available ? '' : 'pm-product-sold'}>{product.available ? formatShopPublicPrice(product.price) : t('acc.sold')}</span></span>
         </button>)}</div> : <p className="pm-home-shop-empty">{t('mpage.emptyShop')}</p>}
-      </section>
-
-      <section className="pm-services" aria-labelledby="pm-services-title">
-        <div className="pm-section-heading"><h2 id="pm-services-title">{t('home.services')}</h2><span>HDT / LAB</span></div>
-        {services.map((service, index) => <Link to={service.to} className="pm-service-row" key={service.to}>
-          <span className="pm-service-no">0{index + 1}</span>
-          <span><b>{service.title}</b><small>{service.detail}</small></span>
-          <PsPhoto src={service.image} className="pm-service-photo" />
-          <PublicMobileIcon name="arrow_outward" />
-        </Link>)}
       </section>
 
       <Link to={PATH.contact} className="pm-home-contact"><span>{t('mhome.map')}<b>{t('nav.contact')}</b></span><PublicMobileIcon name="arrow_outward" /></Link>

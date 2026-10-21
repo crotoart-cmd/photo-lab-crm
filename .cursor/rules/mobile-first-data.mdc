@@ -1,0 +1,50 @@
+---
+description: Mobile là nguồn chính — Mac/server chỉ backup; merge không ghi đè
+alwaysApply: true
+---
+
+# Mobile-first data (HDTLabx)
+
+## Nguyên tắc
+- **iPhone / app mobile = nguồn dữ liệu chính**, hoạt động độc lập (offline-first).
+- **Mac (backend) = kho backup / đồng bộ**, không phải điều kiện để UI hiển thị.
+- Dashboard, POS, tồn kho, repair ops **phải render từ local trước**, không chờ server.
+
+## Đồng bộ Mac → mobile
+- Khi Mac online: **merge backup** từ server vào local.
+- **Không ghi đè** bản trên iPhone nếu local mới hơn (so `updatedAt` / timestamp).
+- Server fetch thất bại / timeout / 401 → **fallback local**, không ẩn panel, không spinner vô hạn.
+
+## Dashboard repair ops
+- **Customer Repair** + **In-house Repair** lấy từ `mobileRepairLocal.js` + `mobileLocalDb` (camera stock, customer repairs).
+- `fetchRepairOpsMarket()` trên mobile: **return `buildLocalRepairOpsMarket()`**; Mac chỉ merge phiếu vào local nền.
+- **Không** yêu cầu Wi‑Fi / JWT server để hiện 2 card repair.
+- **Không** hiện copy kiểu “cần kết nối Mac mới xem được repair”.
+
+## Code mẫu
+
+```javascript
+// ✅ ĐÚNG — mobile luôn có snapshot
+const repair = buildLocalRepairOpsMarket();
+setAnalytics((prev) => ({
+  ...prev,
+  market: { ...(prev?.market || {}), ...repair },
+}));
+
+// ❌ SAI — chỉ hiện khi API Mac trả về
+if (!analytics?.market) return null;
+```
+
+```javascript
+// ✅ Merge backup — giữ bản local mới hơn
+if (!existing || serverAt >= localAt) byId.set(id, merged);
+
+// ❌ SAI — replace toàn bộ local bằng server
+saveCustomerRepairs(serverTickets);
+```
+
+## File liên quan
+- `frontend/src/lib/mobileRepairLocal.js` — repair ops local
+- `frontend/src/lib/mobileDashboardBridge.js` — dashboard offline + sync nền
+- `frontend/src/lib/mobileLocalDb.js` — localStorage keys
+- `frontend/src/lib/mobileServerLink.js` — backup JWT, `backupApi`

@@ -27,8 +27,8 @@ import {
   MSG_BACKUP_PENDING,
 } from './mobileServerLink';
 
-export const INVENTORY_DATA_CHANGED = 'nuocleo-inventory-data-changed';
-const ID_MAP_KEY = 'nuocleo_inventory_id_map';
+export const INVENTORY_DATA_CHANGED = 'hdtlabx-inventory-data-changed';
+const ID_MAP_KEY = 'hdtlabx_inventory_id_map';
 const TIMEOUT_MS = 1200;
 
 function readIdMap() {
@@ -91,7 +91,7 @@ function rewriteSyncQueueInventoryIds(localId, serverId) {
     return { ...item, payload: p };
   });
   if (changed) {
-    localStorage.setItem('nuocleo_local_sync_queue', JSON.stringify(next));
+    localStorage.setItem('hdtlabx_local_sync_queue', JSON.stringify(next));
   }
 }
 

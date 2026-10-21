@@ -15,6 +15,9 @@ git clone https://github.com/crotoart-cmd/photo-lab-crm.git HDTLABX
 cd HDTLABX
 ```
 
+> Repo GitHub vẫn tên `photo-lab-crm`; thư mục / brand app là **HDTLabx**.  
+> Mongo mặc định: `hdtlabx-crm`. Nếu máy còn DB cũ `nuocleo-crm`, đổi tên trước khi start (hoặc sửa `MONGODB_URI`).
+
 ### Backend
 
 ```bash

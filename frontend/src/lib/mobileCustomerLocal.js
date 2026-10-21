@@ -8,8 +8,8 @@ import {
 } from './mobileLocalDb';
 import { buildSearchKey, fullName } from '../utils/customerNormalize';
 
-const CACHE_KEY = 'nuocleo_customers_enriched';
-const ID_MAP_KEY = 'nuocleo_customer_id_map';
+const CACHE_KEY = 'hdtlabx_customers_enriched';
+const ID_MAP_KEY = 'hdtlabx_customer_id_map';
 
 function readCacheRaw() {
   try {
@@ -170,7 +170,7 @@ export function rewriteSyncQueueCustomerIds(localId, serverId) {
   });
 
   if (changed) {
-    localStorage.setItem('nuocleo_local_sync_queue', JSON.stringify(next));
+    localStorage.setItem('hdtlabx_local_sync_queue', JSON.stringify(next));
   }
 }
 

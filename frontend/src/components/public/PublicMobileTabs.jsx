@@ -1,23 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PATH } from '../../config/publicPaths';
+import { MOBILE_MORE, MOBILE_TABS, mobileTabForPath } from '../../config/publicMobileNavigation';
 import PublicMobileIcon from './PublicMobileIcon';
 import { usePublicLocale } from './PublicLocale';
-
-const TABS = [
-  { to: '/', key: 'mpage.home', id: 'today', icon: 'home' },
-  { to: PATH.film, key: 'nav.film', labelKey: 'mtab.film', id: 'film', icon: 'movie' },
-  { to: PATH.repair, key: 'nav.repair', labelKey: 'mtab.repair', id: 'repair', icon: 'build' },
-  { to: PATH.shop, key: 'mtab.shop', id: 'shop', icon: 'storefront' },
-];
-const MORE = [
-  { to: PATH.scan, key: 'nav.scan', hint: 'mhome.card.scanSub' },
-  { to: PATH.print, key: 'nav.print', hint: 'svc.in-analog.caption' },
-  { to: PATH.speed, key: 'nav.speed', hint: 'mhome.quietSpec' },
-  { to: PATH.blog, key: 'nav.blog', hint: 'mhome.notes' },
-  { to: PATH.contact, key: 'nav.contact', hint: 'mhome.map' },
-  { to: PATH.faq, key: 'nav.faq' },
-];
 
 export default function PublicMobileTabs() {
   const { t } = usePublicLocale();
@@ -25,7 +10,8 @@ export default function PublicMobileTabs() {
   const [open, setOpen] = useState(false);
   const trigger = useRef(null);
   const dialog = useRef(null);
-  const moreActive = !TABS.some((tab) => tab.to === '/' ? pathname === '/' : pathname.startsWith(tab.to));
+  const currentTab = mobileTabForPath(pathname);
+  const moreActive = currentTab === 'more';
 
   useEffect(() => {
     setOpen(false);
@@ -70,11 +56,11 @@ export default function PublicMobileTabs() {
   return (
     <>
       <nav className="ps-mtabs" aria-label={t('mpage.navigation')}>
-        {TABS.map((tab) => {
-          const current = tab.to === '/' ? pathname === '/' : pathname === tab.to || pathname.startsWith(`${tab.to}/`);
+        {MOBILE_TABS.map((tab) => {
+          const current = currentTab === tab.id;
           const active = current && !open;
           return (
-            <Link key={tab.id} to={tab.to} className={active ? 'is-on' : ''} aria-current={current ? 'page' : undefined} aria-label={t(tab.key)} title={t(tab.key)}>
+            <Link key={tab.id} to={tab.to} className={active ? 'is-on' : ''} aria-current={current ? (pathname === tab.to ? 'page' : 'location') : undefined} aria-label={t(tab.key)} title={t(tab.key)}>
               <span className="ps-mtab-symbol" aria-hidden><PublicMobileIcon name={tab.icon} /></span>
               <span className="ps-mtab-label" aria-hidden="true">{t(tab.labelKey || tab.key)}</span>
             </Link>
@@ -103,7 +89,7 @@ export default function PublicMobileTabs() {
               <button type="button" className="ps-micon-button" aria-label={t('mpage.close')} title={t('mpage.close')} onClick={() => setOpen(false)}><PublicMobileIcon name="close" /></button>
             </header>
             <nav aria-label={t('mpage.more')}>
-              {MORE.map((item) => (
+              {MOBILE_MORE.map((item) => (
                 <Link key={item.to} to={item.to} className="ps-mpro-row" aria-current={pathname === item.to ? 'page' : undefined} onClick={() => setOpen(false)}>
                   <span><b>{t(item.key)}</b>{item.hint ? <i>{t(item.hint)}</i> : null}</span>
                   <PublicMobileIcon name="chevron_right" />

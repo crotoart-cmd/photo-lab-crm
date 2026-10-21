@@ -1,7 +1,7 @@
 services:
   mongodb:
     image: mongo:7
-    container_name: lab-start-mongo
+    container_name: hdtlabx-mongo
     restart: unless-stopped
     ports:
       - '27017:27017'
@@ -10,20 +10,20 @@ services:
 
   backend:
     build: ./backend
-    container_name: lab-start-api
+    container_name: hdtlabx-api
     restart: unless-stopped
     ports:
       - '5000:5000'
     environment:
       PORT: 5000
-      MONGODB_URI: mongodb://mongodb:27017/lab-start-crm
+      MONGODB_URI: mongodb://mongodb:27017/hdtlabx-crm
       JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET of at least 32 characters}
       JWT_EXPIRE: 7d
       EMAIL_HOST: smtp.gmail.com
       EMAIL_PORT: 587
       EMAIL_USER: ${EMAIL_USER:-}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
-      EMAIL_FROM: ${EMAIL_FROM:-noreply@labstartcrm.com}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@hdtlabx.com}
       FRONTEND_URL: http://localhost:3000
       NODE_ENV: production
       OWNER_PASSWORD: ${OWNER_PASSWORD:?Set a strong OWNER_PASSWORD of at least 12 characters}
@@ -32,7 +32,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: lab-start-web
+    container_name: hdtlabx-web
     restart: unless-stopped
     ports:
       - '3000:80'

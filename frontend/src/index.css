@@ -29,6 +29,7 @@
 @import './styles/public-mobile-experience.css';
 @import './styles/public-mobile-repair.css';
 @import './styles/public-mobile-home-content.css';
+@import './styles/repair-media.css';
 
 @tailwind base;
 @tailwind components;

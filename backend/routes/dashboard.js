@@ -8,6 +8,8 @@ const FilmStock = require('../models/FilmStock');
 const BatteryStock = require('../models/BatteryStock');
 const CustomerRepairTicket = require('../models/CustomerRepairTicket');
 const ShopOrder = require('../models/ShopOrder');
+const PrintOrder = require('../models/PrintOrder');
+const ScanOrder = require('../models/ScanOrder');
 const { expireStaleOrders } = require('../services/shopReservations');
 const { verifyToken } = require('./auth');
 const { authWithUser, requireOwner } = require('../middleware/authz');
@@ -32,10 +34,12 @@ const endOfDay = (date = new Date()) => {
 router.get('/web-inbox', verifyToken, async (req, res) => {
   try {
     await expireStaleOrders();
-    const [filmCount, repairCount, shopCount, films, repairs, shopOrders] = await Promise.all([
+    const [filmCount, repairCount, shopCount, printCount, scanCount, films, repairs, shopOrders, printOrders, scanOrders] = await Promise.all([
       Film.countDocuments({ status: 'web_order' }),
       CustomerRepairTicket.countDocuments({ status: 'don_web' }),
       ShopOrder.countDocuments({ status: 'pending' }),
+      PrintOrder.countDocuments({ status: 'pending' }),
+      ScanOrder.countDocuments({ status: 'pending' }),
       Film.find({ status: 'web_order' })
         .sort({ createdAt: -1 })
         .limit(12)
@@ -43,6 +47,8 @@ router.get('/web-inbox', verifyToken, async (req, res) => {
         .lean(),
       CustomerRepairTicket.find({ status: 'don_web' }).sort({ createdAt: -1 }).limit(12).lean(),
       ShopOrder.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(12).lean(),
+      PrintOrder.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(12).lean(),
+      ScanOrder.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(12).lean(),
     ]);
 
     const filmItems = films.map((film) => {
@@ -82,7 +88,27 @@ router.get('/web-inbox', verifyToken, async (req, res) => {
       href: `/retail?tab=orders&id=${order._id}`,
     }));
 
-    const items = [...filmItems, ...repairItems, ...shopItems]
+    const printItems = printOrders.map((order) => ({
+      kind: 'print',
+      id: String(order._id),
+      code: order.code,
+      title: order.method === 'optical' ? 'Rọi analog' : 'In giấy ảnh',
+      customer: order.customer_name || 'Khách web',
+      createdAt: order.createdAt,
+      href: `/customers?q=${encodeURIComponent(order.customer_email || order.customer_phone || '')}`,
+    }));
+
+    const scanItems = scanOrders.map((order) => ({
+      kind: 'scan',
+      id: String(order._id),
+      code: order.code,
+      title: order.method === 'hiend' ? 'Scan hi-end' : 'Scan hàng loạt',
+      customer: order.customer_name || 'Khách web',
+      createdAt: order.createdAt,
+      href: `/customers?q=${encodeURIComponent(order.customer_email || order.customer_phone || '')}`,
+    }));
+
+    const items = [...filmItems, ...repairItems, ...shopItems, ...printItems, ...scanItems]
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       .slice(0, 16);
 
@@ -90,7 +116,9 @@ router.get('/web-inbox', verifyToken, async (req, res) => {
       filmCount,
       repairCount,
       shopCount,
-      total: filmCount + repairCount + shopCount,
+      printCount,
+      scanCount,
+      total: filmCount + repairCount + shopCount + printCount + scanCount,
       items,
     });
   } catch (error) {

@@ -27,7 +27,7 @@ test('mobile password changes refresh the server token and offline password toge
     });
     await api.patch('/auth/profile', { password: 'new-test-password' });
     assert.equal(localStorage.getItem('token'), 'new-test-token');
-    assert.equal(localStorage.getItem('nuocleo_server_jwt'), 'new-test-token');
+    assert.equal(localStorage.getItem('hdtlabx_server_jwt'), 'new-test-token');
     assert.equal(await auth.verifyOfflineLogin(user.email, 'old-test-password'), null);
     assert.equal((await auth.verifyOfflineLogin(user.email, 'new-test-password')).user.role, 'staff');
   } finally {

@@ -28,7 +28,7 @@ export function NavCountBadge({ count }) {
 
 export default function AdminWebInbox({ variant = 'nav' }) {
   const navigate = useNavigate();
-  const { total, items, filmCount, repairCount, shopCount } = useWebInbox();
+  const { total, items, filmCount, repairCount, shopCount, printCount, scanCount } = useWebInbox();
   const [open, setOpen] = useState(false);
   const { anchorRef, menuStyle } = useAppleMenuPosition({
     open,
@@ -67,6 +67,8 @@ export default function AdminWebInbox({ variant = 'nav' }) {
             {[
               filmCount ? `${filmCount} film` : '',
               repairCount ? `${repairCount} sửa máy` : '',
+              printCount ? `${printCount} in / rọi` : '',
+              scanCount ? `${scanCount} scan` : '',
               shopCount ? `${shopCount} đơn mua` : '',
             ]
               .filter(Boolean)

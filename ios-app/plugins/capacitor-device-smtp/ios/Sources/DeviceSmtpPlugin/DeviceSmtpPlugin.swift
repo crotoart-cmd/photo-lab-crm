@@ -45,9 +45,9 @@ public class DeviceSmtpPlugin: CAPPlugin {
                     user: email,
                     pass: pass,
                     fromEmail: email,
-                    fromName: "Nước Lèo",
+                    fromName: "HDTLabx",
                     to: email,
-                    subject: "Kiểm tra gửi email — Nước Lèo CRM",
+                    subject: "Kiểm tra gửi email — HDTLabx",
                     html: "<p>SMTP Gmail trên iPhone hoạt động.</p>"
                 )
                 await MainActor.run {
@@ -74,7 +74,7 @@ public class DeviceSmtpPlugin: CAPPlugin {
             call.reject("Chưa cấu hình SMTP trên máy")
             return
         }
-        let fromName = call.getString("fromName") ?? "Nước Lèo"
+        let fromName = call.getString("fromName") ?? "HDTLabx"
         Task {
             do {
                 let sender = SmtpGmailSender()
