@@ -18,6 +18,7 @@ const NAV = [
   { to: PATH.repair, key: 'nav.repair' },
   { to: PATH.shop, key: 'nav.acc' },
   { to: '/blog', key: 'nav.blog' },
+  { to: PATH.about, key: 'nav.about' },
   { to: PATH.contact, key: 'nav.contact' },
   { to: '/faq', key: 'nav.faq' },
 ];
@@ -241,6 +242,9 @@ function PublicShellInner() {
             </li>
             <li>
               <Link to="/blog">{t('nav.blog')}</Link>
+            </li>
+            <li>
+              <Link to={PATH.about}>{t('nav.about')}</Link>
             </li>
             <li>
               <Link to={PATH.contact}>{t('nav.contact')}</Link>

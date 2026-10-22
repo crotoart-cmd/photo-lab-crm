@@ -7,6 +7,7 @@ export const PATH = {
   shop: '/shop',
   contact: '/contact',
   blog: '/blog',
+  about: '/about',
   faq: '/faq',
 };
 

@@ -15,6 +15,7 @@ export const MOBILE_TABS = [
 
 export const MOBILE_MORE = [
   { to: PATH.blog, key: 'nav.blog', hint: 'mhome.notes' },
+  { to: PATH.about, key: 'nav.about' },
   { to: PATH.contact, key: 'nav.contact', hint: 'mhome.map' },
   { to: PATH.faq, key: 'nav.faq' },
 ];

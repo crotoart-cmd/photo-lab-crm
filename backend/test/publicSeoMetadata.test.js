@@ -7,9 +7,9 @@ const copy = require('../lib/publicSeoData.json');
 
 const template = fs.readFileSync(path.join(__dirname, '../../frontend/index.html'), 'utf8');
 
-test('all ten public pages have four translated, service-specific descriptions', () => {
+test('all eleven public pages have four translated, page-specific descriptions', () => {
   for (const lang of ['en', 'vi', 'de', 'es']) {
-    assert.equal(Object.keys(copy[lang]).length, 10);
+    assert.equal(Object.keys(copy[lang]).length, 11);
     for (const pathname of Object.keys(copy.en)) {
       const meta = publicPageMetadata(pathname, lang);
       assert.equal(meta.lang, lang);

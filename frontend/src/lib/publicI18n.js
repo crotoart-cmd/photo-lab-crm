@@ -7,6 +7,7 @@ import { SCAN_COPY } from './publicI18nScan';
 export { PUBLIC_LANGS, PUBLIC_LANG_KEY, readPublicLang, writePublicLang } from './publicLanguage';
 
 const vi = {
+  'nav.about': 'Về lab',
   'lang.label': 'Ngôn ngữ',
   'nav.film': 'Tráng',
   'nav.speed': 'Tốc độ',
@@ -197,6 +198,7 @@ const vi = {
 };
 
 const en = {
+  'nav.about': 'About',
   'lang.label': 'Language',
   'nav.film': 'Develop',
   'nav.speed': 'Turnaround',
@@ -385,6 +387,7 @@ const en = {
 };
 
 const de = {
+  'nav.about': 'Über uns',
   'lang.label': 'Sprache',
   'nav.film': 'Entwicklung',
   'nav.speed': 'Laufzeit',
@@ -576,6 +579,7 @@ const de = {
 };
 
 const es = {
+  'nav.about': 'Nosotros',
   'lang.label': 'Idioma',
   'nav.film': 'Revelado',
   'nav.speed': 'Plazos',

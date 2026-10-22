@@ -22,6 +22,7 @@ const PUBLIC_PAGE_PATHS = [
   '/contact',
   '/blog',
   '/faq',
+  '/about',
 ];
 
 const PUBLIC_PATH_PREFIXES = [
@@ -34,6 +35,7 @@ const PUBLIC_PATH_PREFIXES = [
   '/blog',
   '/lien-he',
   '/faq',
+  '/about',
   '/delivery',
   '/repair',
   '/shop',

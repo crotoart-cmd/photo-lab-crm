@@ -23,6 +23,7 @@ import PublicAccessories from './pages/PublicAccessories';
 import PublicBlog from './pages/PublicBlog';
 import PublicBlogPost from './pages/PublicBlogPost';
 import PublicFaq from './pages/PublicFaq';
+import PublicAbout from './pages/PublicAbout';
 import SiteContent from './pages/SiteContent';
 import PublicShell from './components/public/PublicShell';
 import { adminAbsoluteUrl, isCrmHost } from './config/siteHosts';
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="/blog/:slug" element={<PublicBlogPost />} />
           <Route path={PATH.contact} element={<PublicContact />} />
           <Route path="/faq" element={<PublicFaq />} />
+          <Route path={PATH.about} element={<PublicAbout />} />
           {PATH_REDIRECTS.map((row) => (
             <Route key={row.from} path={row.from} element={<Navigate to={row.to} replace />} />
           ))}

@@ -54,6 +54,7 @@ describe('stayOnPublicHost', () => {
     assert.equal(stayOnPublicHost('/film'), true);
     assert.equal(stayOnPublicHost('/in-analog'), true);
     assert.equal(stayOnPublicHost('/scan'), true);
+    assert.equal(stayOnPublicHost('/about'), true);
     assert.equal(stayOnPublicHost('/robots.txt'), true);
     assert.equal(stayOnPublicHost('/sitemap.xml'), true);
     assert.equal(stayOnPublicHost('/favicon.svg'), true);
@@ -122,7 +123,8 @@ describe('robots and sitemap', () => {
         assert.equal(sitemap.status, 200);
         assert.match(sitemap.headers['content-type'], /^application\/xml/);
         assert.equal(sitemap.headers.location, undefined);
-        assert.equal(sitemap.body.match(/<url>/g).length, 10);
+        assert.equal(sitemap.body.match(/<url>/g).length, 11);
+        assert.match(sitemap.body, /https:\/\/hdtlabx\.com\/about/);
         assert.doesNotMatch(sitemap.body, /admin\.hdtlabx/);
       }
     });

@@ -57,8 +57,8 @@ test('route ownership respects path boundaries and preserves other tabs', () => 
   assert.equal(mobileTabForPath('/blog/post'), 'more');
 });
 
-test('More retains Blog, Contact and FAQ without any film subservice', () => {
-  assert.deepEqual(MOBILE_MORE.map((item) => item.to), [PATH.blog, PATH.contact, PATH.faq]);
+test('More retains Blog, About, Contact and FAQ without any film subservice', () => {
+  assert.deepEqual(MOBILE_MORE.map((item) => item.to), [PATH.blog, PATH.about, PATH.contact, PATH.faq]);
   assert.ok(MOBILE_MORE.every((item) => mobileTabForPath(item.to) === 'more'));
 });
 

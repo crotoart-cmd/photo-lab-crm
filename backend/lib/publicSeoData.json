@@ -1,5 +1,6 @@
 {
   "en": {
+    "/about": ["About HDTLabx | Heritage, Detail & Technology", "Meet Hoang Dao, Dang Tran Truong and Ti Story, the people behind HDTLabx. Our story connects film photography, careful camera repair and technology."],
     "/": ["HDTLabx | Film Lab, Scanning & Camera Repair", "Film developing, high-resolution scanning, analog printing and camera repair at HDTLabx. Explore the shop, read the journal and send a service request online."],
     "/film": ["Film Developing & Scanning | HDTLabx", "Develop your 35mm and medium-format film at HDTLabx. Explore C-41, black-and-white, ECN-2 and E-6 processing and send your rolls with an online request."],
     "/toc-do": ["Film Processing Turnaround | HDTLabx", "Plan your film drop-off with HDTLabx. Read about processing batches, scan delivery, negative storage and current turnaround times."],
@@ -12,6 +13,7 @@
     "/faq": ["Film Lab & Camera Repair FAQ | HDTLabx", "Find answers about sending film, scan delivery, negatives, analog prints and camera repair requests at HDTLabx."]
   },
   "vi": {
+    "/about": ["Về HDTLabx | Di sản, Tỉ mỉ & Công nghệ", "Gặp Hoang Dao, Dang Tran Truong và Ti Story, những người sáng lập HDTLabx. Câu chuyện về nhiếp ảnh film, sửa máy ảnh tận tâm và công nghệ kết nối."],
     "/": ["HDTLabx | Tráng film, Scan & Sửa chữa máy ảnh", "HDTLabx cung cấp dịch vụ tráng film, scan, in ảnh analog và sửa chữa máy ảnh. Xem sản phẩm, đọc blog và gửi yêu cầu dịch vụ trực tuyến."],
     "/film": ["Tráng film & Scan | HDTLabx", "Tráng film 35mm và medium format tại HDTLabx. Tìm hiểu quy trình C-41, đen trắng, ECN-2, E-6 và gửi yêu cầu tráng film trực tuyến."],
     "/toc-do": ["Thời gian tráng film & Trả ảnh | HDTLabx", "Tìm hiểu thời gian xử lý film tại HDTLabx, cách gom mẻ, trả file scan và lưu giữ negative để lên lịch gửi cuộn."],
@@ -24,6 +26,7 @@
     "/faq": ["Câu hỏi về tráng film & Sửa máy | HDTLabx", "Giải đáp về gửi film, nhận file scan, negative, in ảnh analog và yêu cầu sửa máy ảnh tại HDTLabx."]
   },
   "de": {
+    "/about": ["Über HDTLabx | Heritage, Detail & Technology", "Lernen Sie Hoang Dao, Dang Tran Truong und Ti Story kennen. Die Geschichte von HDTLabx verbindet Filmfotografie, sorgfältige Kamerareparatur und Technik."],
     "/": ["HDTLabx | Filmlabor, Scans & Kamerareparatur", "Filmentwicklung, hochauflösende Scans, analoge Abzüge und Kamerareparatur bei HDTLabx. Entdecken Sie den Shop, das Journal und unsere Online-Serviceanfragen."],
     "/film": ["Filmentwicklung & Scans | HDTLabx", "Entwickeln Sie Kleinbild- und Mittelformatfilme bei HDTLabx. Informationen zu C-41, Schwarzweiß, ECN-2 und E-6 sowie Online-Aufträge für Ihre Filme."],
     "/toc-do": ["Bearbeitungszeiten im Filmlabor | HDTLabx", "Planen Sie die Filmabgabe bei HDTLabx. Informationen zu Entwicklungschargen, Scans, Negativaufbewahrung und aktuellen Bearbeitungszeiten."],
@@ -36,6 +39,7 @@
     "/faq": ["Filmlabor & Kamerareparatur: FAQ | HDTLabx", "Antworten zu Filmabgabe, Scans, Negativen, analogen Abzügen und Reparaturanfragen bei HDTLabx."]
   },
   "es": {
+    "/about": ["Sobre HDTLabx | Heritage, Detail & Technology", "Conoce a Hoang Dao, Dang Tran Truong y Ti Story. La historia de HDTLabx une fotografía analógica, reparación cuidadosa de cámaras y tecnología."],
     "/": ["HDTLabx | Laboratorio de película, Escaneado y Reparación", "Revelado de película, escaneado de alta resolución, copias analógicas y reparación de cámaras en HDTLabx. Descubre la tienda, el blog y las solicitudes en línea."],
     "/film": ["Revelado y Escaneado de película | HDTLabx", "Revela película de 35mm y formato medio en HDTLabx. Consulta los procesos C-41, blanco y negro, ECN-2 y E-6 y envía una solicitud en línea."],
     "/toc-do": ["Plazos de Revelado de película | HDTLabx", "Planifica la entrega de película en HDTLabx. Consulta los lotes de revelado, la entrega de escaneos, la conservación de negativos y los plazos actuales."],
