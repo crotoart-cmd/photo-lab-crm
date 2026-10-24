@@ -1,6 +1,6 @@
 export const ABOUT_FOUNDERS = [
-  { id: 'hoang-dao', name: 'Hoang Dao', letter: 'H', image: '/media/about/hoang-dao.png', width: '225%', x: '-44.67%', y: '-36.63%' },
-  { id: 'dang-tran-truong', name: 'Dang Tran Truong', letter: 'D', image: '/media/about/dang-tran-truong.png', width: '215.58%', x: '-58.1%', y: '-35.1%' },
+  { id: 'hoang-dao', name: 'Hoang Dao', letter: 'H', image: '/media/about/hoang-dao-v2.png', width: '285%', x: '-45.3%', y: '-16.7%' },
+  { id: 'dang-tran-truong', name: 'Dang Tran Truong', letter: 'D', image: '/media/about/dang-tran-truong-v2.png', width: '250%', x: '-45.2%', y: '-30.5%' },
   { id: 'ti-story', name: 'Ti Story', letter: 'T', image: '/media/about/ti-story.png', width: '338.54%', x: '-40.49%', y: '-51.15%' },
 ];
 
