@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "build": "node scripts/build-hostinger.cjs",
     "build:web": "npm --prefix ../frontend install --include=dev && npm --prefix ../frontend run build && rm -rf public && cp -R ../frontend/dist public",
     "dev": "node --watch server.js",
     "seed": "node scripts/seed.js",
