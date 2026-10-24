@@ -76,6 +76,18 @@ test('portrait framing is circular, grayscale and keeps fixed responsive tracks'
   ast.walkDecls('letter-spacing', ({ value }) => assert.equal(value, '0'));
 });
 
+test('the About title matches the story heading size on desktop and mobile', async () => {
+  const ast = postcss.parse(await fs.readFile(new URL('../src/styles/public-about.css', import.meta.url), 'utf8'));
+  const fontSize = (scope, selector) => {
+    const rule = scope.nodes.find((node) => node.type === 'rule' && node.selectors.includes(selector));
+    return rule.nodes.find((node) => node.type === 'decl' && node.prop === 'font-size').value;
+  };
+  const mobile = ast.nodes.find((node) => node.type === 'atrule' && node.name === 'media' && node.params === '(max-width: 767px)');
+  for (const scope of [ast, mobile]) {
+    assert.equal(fontSize(scope, '.about-intro h1'), fontSize(scope, '.about-section h2'));
+  }
+});
+
 test('only portrait metadata is removed; compressed image pixels are preserved', async () => {
   const { withoutPngMetadata } = require('../../scripts/prepare-about-portraits.cjs');
   for (const founder of ABOUT_FOUNDERS) {

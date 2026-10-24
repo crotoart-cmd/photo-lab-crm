@@ -13,7 +13,7 @@
 .about-mobile-nav { display: none; }
 .about-eyebrow { font: 12px/1.5 var(--ps-mono, monospace); text-transform: uppercase; color: #767676; }
 .about-intro { padding-top: 40px; padding-bottom: 40px; text-align: center; }
-.about-intro h1 { margin-top: 16px; font-size: 68px; font-weight: 600; line-height: 1.05; }
+.about-intro h1 { margin-top: 16px; font-size: 36px; font-weight: 600; line-height: 1.05; }
 .about-tagline { margin-top: 12px !important; font-size: 21px; line-height: 1.4; }
 .about-lede { max-width: 650px; margin: 18px auto 0 !important; font-size: 17px; line-height: 1.7; color: #6d6d6d; }
 .about-people-caption { margin-top: 24px !important; font-size: 12px; color: #767676; }
@@ -75,7 +75,7 @@
   .about-mobile-nav .ps-mpro-mark { width: 158px; }
   .about-intro { padding-top: 24px; padding-bottom: 28px; }
   .about-eyebrow { font-size: 10px; }
-  .about-intro h1 { margin-top: 10px; font-size: 48px; }
+  .about-intro h1 { margin-top: 10px; font-size: 29px; }
   .about-tagline { font-size: 17px; margin-top: 8px !important; }
   .about-lede { margin-top: 14px !important; font-size: 14px; line-height: 1.7; }
   .about-people-caption { margin-top: 20px !important; font-size: 11px; }
