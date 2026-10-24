@@ -56,10 +56,10 @@ Hủy trước xác nhận không bật 2FA; QR chờ tự hết hạn sau 10 ph
 | --- | --- | --- |
 | P0 | Owner tự hoàn tất bật 2FA và lưu mã dự phòng | Đăng nhập mới luôn cần yếu tố thứ hai; mã dự phòng dùng một lần |
 | P0, đã vá | `body-parser` 1.20.9, `multer` 2.5.0, `nodemailer` 10.1.4 | Audit runtime: 0; 104 kiểm thử backend qua; không gửi email thật |
-| P1 | Rút ngắn phiên admin, có thời gian không hoạt động và danh sách phiên | Có thể thu hồi từng phiên; thiết bị cũ không truy cập tiếp |
-| P1 | CSRF cho toàn bộ API thay đổi dữ liệu, không chỉ MFA | Yêu cầu từ origin khác bị chặn; luồng hợp lệ vẫn hoạt động |
+| P1, đã làm | Phiên admin web: 30 phút không thao tác, tối đa 8 giờ, danh sách và thu hồi từng phiên | Có thể thu hồi từng phiên; thiết bị cũ không truy cập tiếp |
+| P1, đã làm | CSRF cho toàn bộ API thay đổi dữ liệu bằng cookie, kiểm tra Origin | Yêu cầu từ origin khác bị chặn; luồng hợp lệ vẫn hoạt động |
 | P1 | Chống dò mật khẩu theo tài khoản/IP dùng kho dùng chung | Khởi động lại hoặc nhiều worker không đặt lại giới hạn; tránh khóa owner vô hạn |
-| P1 | Nhật ký bảo mật và cảnh báo thay đổi nhạy cảm | Có sự kiện đăng nhập/2FA/đổi thông tin; không ghi mật khẩu, token, QR hay OTP |
+| P1, đã làm (chưa có cảnh báo) | Nhật ký bảo mật 90 ngày, chỉ owner xem; cảnh báo qua email làm sau | Có sự kiện đăng nhập/2FA/đổi thông tin; không ghi mật khẩu, token, QR hay OTP |
 | P1 | Sao lưu và diễn tập khôi phục MongoDB + media + khóa | Khôi phục thử trên môi trường riêng, xác nhận đăng nhập và dữ liệu đúng |
 | P2 | Đánh giá native/offline và nơi lưu token/dữ liệu | Phân tách offline với quyền server; không hardcode thông tin SMTP/owner |
 | P2 | Cân nhắc lớp truy cập bổ sung cho admin | Chỉ triển khai sau kiểm tra tương thích upload, API, webhook và chống khóa ngoài |
@@ -79,6 +79,8 @@ không phải chứng nhận toàn bộ ứng dụng không có lỗ hổng.
 - `nodemailer`: [GHSA-8c8m-p3m8-cjg8](https://github.com/advisories/GHSA-8c8m-p3m8-cjg8),
   [GHSA-m943-m63m-w62w](https://github.com/advisories/GHSA-m943-m63m-w62w),
   [GHSA-85x2-q946-cp5h](https://github.com/advisories/GHSA-85x2-q946-cp5h); đã nâng 10.1.0 lên 10.1.4.
+
+Đợt phiên/CSRF/nhật ký: backend 132/132, frontend 52/52, audit runtime 0. Khi triển khai, phiên web cũ phải đăng nhập lại một lần; app native giữ nguyên.
 
 Chi tiết kiểm thử và các đợt P1: [Báo cáo bản vá P0](SECURITY_PATCH_2026-10-24.md).
 

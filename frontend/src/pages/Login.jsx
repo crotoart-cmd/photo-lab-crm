@@ -17,7 +17,7 @@ export default function Login() {
   const { login, completeMfaLogin, loginOfflineOnly, isAuthenticated, continueOffline } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
+  const [info, setInfo] = useState(() => new URLSearchParams(window.location.search).get('reason') === 'expired' ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : '');
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState(null);
   const [code, setCode] = useState('');

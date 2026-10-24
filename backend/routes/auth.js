@@ -6,6 +6,12 @@ const { body, validationResult } = require('express-validator');
 const { isOwnerRole } = require('../config/users');
 const { authWithUser, requireOwner } = require('../middleware/authz');
 const mfa = require('../lib/mfa');
+const AdminSession = require('../models/AdminSession');
+const SecurityEvent = require('../models/SecurityEvent');
+const sessions = require('../lib/adminSessions');
+const { csrfToken } = require('../middleware/csrf');
+const { authAudit } = require('../middleware/authAudit');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
@@ -27,6 +33,7 @@ const {
 } = require('../lib/sessionCookie');
 
 router.use(noStore);
+router.use(authAudit);
 
 /** Đăng ký công khai đã tắt — tạo nhân viên qua POST /api/users (chủ hệ thống). */
 router.post('/register', (_req, res) => {
@@ -37,6 +44,38 @@ router.post('/register', (_req, res) => {
 
 router.get('/me', ...authWithUser, async (req, res) => {
   res.json({ user: publicUser(req.user) });
+});
+
+router.get('/csrf', verifyToken, (req, res) => res.json({ csrfToken: csrfToken(req) }));
+
+router.get('/sessions', ...authWithUser, requireOwner, async (req, res) => {
+  try {
+    const records = await AdminSession.find(sessions.activeFilter(req.userId, req.sessionVersion)).sort({ lastSeenAt: -1 }).limit(100);
+    res.json({ policy: { idleMinutes: sessions.IDLE_MS / 60000, maxHours: sessions.MAX_MS / 3600000 },
+      sessions: records.map((record) => ({ id: String(record._id), current: String(record._id) === String(req.adminSession?._id),
+        browser: record.browser, platform: record.platform, createdAt: record.createdAt, lastSeenAt: record.lastSeenAt, expiresAt: record.expiresAt })) });
+  } catch { res.status(503).json({ message: 'Không đọc được danh sách phiên.' }); }
+});
+
+router.delete('/sessions/:id', ...authWithUser, requireOwner, async (req, res) => {
+  try {
+    const others = req.params.id === 'others';
+    if (!others && !mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: 'Phiên không hợp lệ.' });
+    const filter = { userId: req.userId, revokedAt: null, ...(others
+      ? { ...(req.adminSession ? { _id: { $ne: req.adminSession._id } } : {}) }
+      : { _id: req.params.id }) };
+    const result = await AdminSession.updateMany(filter, { $set: { revokedAt: new Date() } });
+    const current = !others && String(req.adminSession?._id) === req.params.id;
+    if (current) clearSessionCookie(res);
+    res.json({ revoked: result.modifiedCount, current });
+  } catch { res.status(503).json({ message: 'Không thu hồi được phiên.' }); }
+});
+
+router.get('/security-events', ...authWithUser, requireOwner, async (_req, res) => {
+  try {
+    const events = await SecurityEvent.find({ expiresAt: { $gt: new Date() } }).sort({ createdAt: -1 }).limit(50).select('event outcome createdAt').lean();
+    res.json({ events });
+  } catch { res.status(503).json({ message: 'Không đọc được nhật ký bảo mật.' }); }
 });
 
 router.patch(
@@ -80,7 +119,7 @@ router.patch(
               ...(password ? { password: await bcrypt.hash(password, 10) } : {}) },
             $inc: { sessionVersion: 1 },
           });
-          return res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...issueSession(req, res, user) });
+          return res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...(await issueSession(req, res, user)) });
         } catch (err) {
           return res.status(err.status === 401 ? 400 : err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được thay đổi.' });
         }
@@ -92,7 +131,7 @@ router.patch(
       if (emailChanged) user.email = nextEmail;
 
       await user.save();
-      const refreshed = password ? issueSession(req, res, user) : {};
+      const refreshed = password ? await issueSession(req, res, user) : {};
       res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...refreshed });
     } catch (_error) {
       res.status(500).json({ message: 'Lỗi cập nhật hồ sơ' });
@@ -125,6 +164,7 @@ router.post(
       const email = String(req.body.email || '').trim().toLowerCase();
       const { password } = req.body;
       const user = await User.findOne({ email });
+      if (user) req.auditUserId = user._id;
 
       if (!user || user.status !== 'active') {
         return res.status(401).json({ message: LOGIN_FAIL });
@@ -136,8 +176,11 @@ router.post(
       }
 
       const role = isOwnerRole(user.role) ? 'owner' : 'staff';
-      if (user.mfaEnabled) return res.json(await mfa.beginLogin(req, user));
-      const session = issueSession(req, res, user);
+      if (user.mfaEnabled) {
+        req.mfaChallengeIssued = true;
+        return res.json(await mfa.beginLogin(req, user));
+      }
+      const session = await issueSession(req, res, user);
       const payload = {
         message: 'Login successful',
         user: publicUser(user),
@@ -155,8 +198,9 @@ router.post(
 router.post('/mfa/login', rateLimit({ max: 20, windowMs: 15 * 60000, bucket: 'mfa-login' }), async (req, res) => {
   try {
     const verified = await mfa.finishLogin(req.body.challengeToken, req.body.code);
+    req.auditUserId = verified.user._id;
     req.body.client = verified.mobile ? 'mobile' : 'web';
-    const session = issueSession(req, res, verified.user, { mfaVerified: true });
+    const session = await issueSession(req, res, verified.user, { mfaVerified: true });
     res.json({ user: publicUser(verified.user), isOwner: isOwnerRole(verified.user.role), cookieSession: true, ...session });
   } catch (err) {
     res.status(err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được mã. Vui lòng thử lại.' });
@@ -192,7 +236,7 @@ management.post('/setup', mfaAction(async (req, res, user) => {
 }));
 management.post('/enable', mfaAction(async (req, res, user) => {
   const enabled = await mfa.enableMfa(user, req.body.code);
-  const session = issueSession(req, res, enabled.user, { mfaVerified: true });
+  const session = await issueSession(req, res, enabled.user, { mfaVerified: true });
   res.json({ user: publicUser(enabled.user), recoveryCodes: enabled.recoveryCodes, ...session });
 }));
 management.post('/recovery-codes', mfaAction(async (req, res, user) => {
@@ -200,7 +244,7 @@ management.post('/recovery-codes', mfaAction(async (req, res, user) => {
   await mfa.checkPassword(user, req.body.currentPassword);
   const recovery = mfa.recoveryCodes(user._id);
   const updated = await mfa.consumeFactor(user, req.body.code, { $set: { mfaRecoveryCodeHashes: recovery.hashes }, $inc: { sessionVersion: 1 } });
-  const session = issueSession(req, res, updated, { mfaVerified: true });
+  const session = await issueSession(req, res, updated, { mfaVerified: true });
   res.json({ user: publicUser(updated), recoveryCodes: recovery.codes, ...session });
 }));
 management.post('/disable', mfaAction(async (req, res, user) => {
@@ -210,14 +254,15 @@ management.post('/disable', mfaAction(async (req, res, user) => {
     $set: { mfaEnabled: false, mfaRecoveryCodeHashes: [] }, $inc: { sessionVersion: 1 },
     $unset: { mfaSecretEncrypted: '', mfaPendingSecretEncrypted: '', mfaPendingExpiresAt: '' },
   });
-  const session = issueSession(req, res, updated, { mfaVerified: false });
+  const session = await issueSession(req, res, updated, { mfaVerified: false });
   res.json({ user: publicUser(updated), ...session });
 }));
 router.use('/mfa', management);
 
 router.post('/logout', verifyToken, async (req, res) => {
   try {
-    await User.updateOne({ _id: req.userId }, { $inc: { sessionVersion: 1 } });
+    if (req.adminSession) await AdminSession.updateOne({ _id: req.adminSession._id, userId: req.userId }, { $set: { revokedAt: new Date() } });
+    else await User.updateOne({ _id: req.userId }, { $inc: { sessionVersion: 1 } });
     clearSessionCookie(res);
     res.json({ ok: true });
   } catch (_error) {

@@ -15,6 +15,7 @@ const {
 } = require('./middleware/security');
 const { IMAGE_TYPES, uploadResponseHeaders } = require('./lib/uploads');
 const { rateLimit } = require('./middleware/rateLimit');
+const { csrfProtection } = require('./middleware/csrf');
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '4mb' }));
 app.use(express.urlencoded({ extended: false, limit: '32kb' }));
 app.use('/api', sanitizeApiErrors);
 app.use('/api', rateLimit({ max: 300, windowMs: 5 * 60 * 1000, bucket: 'api', message: 'Quá nhiều yêu cầu. Thử lại sau.' }));
+app.use('/api', csrfProtection);
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

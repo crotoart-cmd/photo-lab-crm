@@ -11,6 +11,7 @@ import {
 import { rememberServerJwt, clearBackupJwt } from '../lib/mobileServerLink';
 import { clearStaleServerAuth, getServerAuthToken } from '../utils/authToken';
 import { isCrmHost } from '../config/siteHosts';
+import { hasRecentAdminActivity, trackAdminActivity, SESSION_DEADLINE_EVENT } from '../lib/adminSessionActivity';
 
 const AuthContext = createContext(null);
 const MOBILE_LOGIN_TIMEOUT_MS = 2000;
@@ -56,7 +57,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = isMobileDataEnabled() ? localStorage.getItem('token') : null;
+    if (!isMobileDataEnabled()) localStorage.removeItem('token');
     if (!isCrmHost()) {
       setLoading(false);
       return;
@@ -133,6 +135,35 @@ export const AuthProvider = ({ children }) => {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user?.id || isMobileDataEnabled() || !isCrmHost() || offlineSession) return;
+    let stopped = false, pending = false, lastPulse = 0, expiryTimer;
+    const expire = () => {
+      localStorage.removeItem('user'); localStorage.removeItem('token');
+      setUser(null); setOfflineSession(false);
+      window.location.href = '/login?reason=expired';
+    };
+    const deadline = (event) => {
+      const at = Math.min(event.detail.expiresAt, event.detail.idleExpiresAt);
+      if (!Number.isFinite(at)) return;
+      clearTimeout(expiryTimer);
+      expiryTimer = setTimeout(expire, Math.max(0, at - Date.now()));
+    };
+    const pulse = () => {
+      if (stopped || pending || !hasRecentAdminActivity() || Date.now() - lastPulse < 60000) return;
+      lastPulse = Date.now(); pending = true;
+      api.get('/auth/me').catch(() => {}).finally(() => { pending = false; });
+    };
+    window.addEventListener(SESSION_DEADLINE_EVENT, deadline);
+    const stopTracking = trackAdminActivity(pulse);
+    const heartbeat = setInterval(pulse, 60000);
+    pulse();
+    return () => {
+      stopped = true; stopTracking(); clearInterval(heartbeat); clearTimeout(expiryTimer);
+      window.removeEventListener(SESSION_DEADLINE_EVENT, deadline);
+    };
+  }, [user?.id, offlineSession]);
 
   const tryUpgradeServerSession = (normalizedEmail, password) => {
     api

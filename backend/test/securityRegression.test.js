@@ -1,4 +1,4 @@
-const { describe, it, beforeEach, after } = require('node:test');
+const { describe, it, before, beforeEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -9,6 +9,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const User = require('../models/User');
+const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const AdminSession = require('../models/AdminSession');
 const { verifyToken } = require('../middleware/verifyToken');
 const { resetRateLimitForTests } = require('../middleware/rateLimit');
 const {
@@ -25,6 +28,12 @@ const originalUpdateOne = User.updateOne;
 const passwordHook = User.schema.s.hooks._pres.get('save').find((hook) => hook.fn.toString().includes('bcrypt.hash')).fn;
 let account;
 let accessory;
+let mongo;
+
+before(async () => {
+  mongo = await MongoMemoryServer.create();
+  await mongoose.connect(mongo.getUri());
+});
 
 function runPasswordHook(user) {
   return new Promise((resolve, reject) => passwordHook.call(user, (err) => err ? reject(err) : resolve()));
@@ -95,6 +104,7 @@ function multipart(filename, mime, content) {
 }
 
 beforeEach(async () => {
+  await AdminSession.deleteMany({});
   process.env.NODE_ENV = 'production';
   process.env.JWT_SECRET = 'test-only-random-looking-key-for-security-regressions';
   process.env.OWNER_PASSWORD = 'test-only-owner-password';
@@ -118,11 +128,14 @@ beforeEach(async () => {
     toObject() { return { ...this }; }, async save() {} };
 });
 
-after(() => {
+after(async () => {
   User.findById = originalFindById;
   User.findOne = originalFindOne;
   User.updateOne = originalUpdateOne;
   fs.rmSync(uploads, { recursive: true, force: true });
+  await require('../middleware/authAudit').flushAudit();
+  await mongoose.disconnect();
+  await mongo?.stop();
 });
 
 describe('session revocation', () => {

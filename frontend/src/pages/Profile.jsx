@@ -7,6 +7,7 @@ import { IosPage } from '../components/mobile';
 import FeedbackBanner from '../components/FeedbackBanner';
 import MfaSettings from '../components/security/MfaSettings';
 import MfaCodeField from '../components/security/MfaCodeField';
+import SessionSettings from '../components/security/SessionSettings';
 import {
   getBackupSettings,
   buildLocalBackupPayload,
@@ -375,6 +376,7 @@ export default function Profile() {
       {success && <FeedbackBanner variant="success" className="mb-3">{success}</FeedbackBanner>}
 
       {isOwner && <MfaSettings />}
+      {isOwner && !mobileStorageEnabled && <SessionSettings />}
 
       {mobileStorageEnabled && (
         <section className="apple-card p-5 mb-6">

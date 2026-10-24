@@ -17,3 +17,13 @@
 .mfa-backup-codes li { padding: 8px; border: 1px solid var(--color-separator, #ddd); border-radius: 4px; font-size: 11px; overflow-wrap: anywhere; }
 .mfa-saved { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.6; }
 .mfa-saved input { margin-top: 4px; flex: 0 0 auto; }
+.session-refresh { margin-left: auto; padding: 8px; min-width: 36px; min-height: 36px; }
+.session-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+.session-tabs .apple-segment { min-width: 0; min-height: 44px; padding: 8px; font-size: 13px; }
+.session-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.session-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--color-separator, #ddd); }
+.session-list li:last-child { border-bottom: 0; }
+.session-list li > div { min-width: 0; overflow-wrap: anywhere; }
+.session-list strong { font-size: 13px; font-weight: 600; }
+.session-current { display: inline-block; margin-left: 8px; font-size: 11px; color: #22613e; }
+.session-revoke { flex-shrink: 0; width: 40px; height: 40px; display: grid; place-items: center; color: var(--color-label-secondary); }

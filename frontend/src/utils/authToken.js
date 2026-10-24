@@ -9,6 +9,7 @@ export function isOfflineToken(token) {
 
 /** JWT server — trên mobile dùng backup JWT khi phiên chính là offline. */
 export function getServerAuthToken() {
+  if (!isMobileDataEnabled()) return null;
   const token = localStorage.getItem('token');
   if (token && !isOfflineToken(token)) return token;
   if (isMobileDataEnabled()) {

@@ -49,8 +49,8 @@ function cookieOptions() {
   };
 }
 
-function setSessionCookie(res, token) {
-  res.cookie(SESSION_COOKIE, token, cookieOptions());
+function setSessionCookie(res, token, options = {}) {
+  res.cookie(SESSION_COOKIE, token, { ...cookieOptions(), ...options });
 }
 
 function clearSessionCookie(res) {

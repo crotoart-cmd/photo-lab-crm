@@ -76,6 +76,7 @@ beforeEach(async () => {
 });
 after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
+  await require('../middleware/authAudit').flushAudit();
   await mongoose.disconnect();
   await mongo?.stop();
 });
