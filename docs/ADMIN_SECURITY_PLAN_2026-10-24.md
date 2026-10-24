@@ -21,7 +21,7 @@ Bật/tắt 2FA, tạo lại mã dự phòng, đổi mật khẩu/email khi đã
 Đổi thông tin đăng nhập, tắt 2FA và tạo lại mã dự phòng yêu cầu mật khẩu hiện tại và yếu tố thứ hai.
 Không thể dùng màn hình sửa staff để sửa tài khoản owner nhằm bỏ qua kiểm tra này.
 
-**Chưa kích hoạt 2FA cho owner thật. Chủ tài khoản phải tự thực hiện:**
+**Chủ tài khoản phải tự kích hoạt 2FA; triển khai code không tự liên kết điện thoại:**
 
 1. Mở `https://admin.hdtlabx.com/profile`, đăng nhập bằng mật khẩu hiện tại.
 2. Tại Google Authenticator, chọn bật và tự nhập lại mật khẩu.
@@ -55,7 +55,7 @@ Hủy trước xác nhận không bật 2FA; QR chờ tự hết hạn sau 10 ph
 | Ưu tiên | Công việc | Tiêu chí hoàn tất |
 | --- | --- | --- |
 | P0 | Owner tự hoàn tất bật 2FA và lưu mã dự phòng | Đăng nhập mới luôn cần yếu tố thứ hai; mã dự phòng dùng một lần |
-| P0 | Vá cảnh báo thư viện đang có | Audit runtime không còn high; kiểm thử upload, nén request và email không gửi thật |
+| P0, đã vá | `body-parser` 1.20.9, `multer` 2.5.0, `nodemailer` 10.1.4 | Audit runtime: 0; 104 kiểm thử backend qua; không gửi email thật |
 | P1 | Rút ngắn phiên admin, có thời gian không hoạt động và danh sách phiên | Có thể thu hồi từng phiên; thiết bị cũ không truy cập tiếp |
 | P1 | CSRF cho toàn bộ API thay đổi dữ liệu, không chỉ MFA | Yêu cầu từ origin khác bị chặn; luồng hợp lệ vẫn hoạt động |
 | P1 | Chống dò mật khẩu theo tài khoản/IP dùng kho dùng chung | Khởi động lại hoặc nhiều worker không đặt lại giới hạn; tránh khóa owner vô hạn |
@@ -67,20 +67,25 @@ Hủy trước xác nhận không bật 2FA; QR chờ tự hết hạn sau 10 ph
 Không cần SSO hay tài khoản staff cho các bước trên. TOTP không chống được mọi hình thức phishing;
 passkey/WebAuthn là hướng bổ sung sau khi đã ổn định vận hành và khôi phục.
 
-## 4. Cảnh báo thư viện còn tồn tại
+## 4. Cảnh báo thư viện đã xử lý
 
-Audit runtime ngày 24/10 ghi nhận 2 package high và 1 package moderate, đã có trong bản nền,
-không do OTPAuth/QRCode mới đưa vào. Đợt tích hợp MFA này chưa thay chúng:
+Audit trước bản vá ngày 24/10 ghi nhận 2 package high và 1 package moderate.
+Đợt P0 nâng đúng ba thư viện trong cùng nhánh tương thích, giữ nguyên Express 4 và toàn bộ UI.
+Audit sau vá ghi nhận 0 lỗ hổng runtime. Đây là kết quả kiểm tra thư viện tại thời điểm chạy,
+không phải chứng nhận toàn bộ ứng dụng không có lỗ hổng.
 
-- `body-parser`: [GHSA-27r3-jxmh-p828](https://github.com/advisories/GHSA-27r3-jxmh-p828), cần bản vá phù hợp của nhánh Express đang dùng.
-- `multer`: [GHSA-q7qp-rjg7-q26m](https://github.com/advisories/GHSA-q7qp-rjg7-q26m), audit chỉ ra bản vá từ 2.5.0.
+- `body-parser`: [GHSA-27r3-jxmh-p828](https://github.com/advisories/GHSA-27r3-jxmh-p828), đã nâng 1.20.8 lên 1.20.9 theo dependency của Express 4.
+- `multer`: [GHSA-q7qp-rjg7-q26m](https://github.com/advisories/GHSA-q7qp-rjg7-q26m), đã nâng 2.4.0 lên 2.5.0.
 - `nodemailer`: [GHSA-8c8m-p3m8-cjg8](https://github.com/advisories/GHSA-8c8m-p3m8-cjg8),
   [GHSA-m943-m63m-w62w](https://github.com/advisories/GHSA-m943-m63m-w62w),
-  [GHSA-85x2-q946-cp5h](https://github.com/advisories/GHSA-85x2-q946-cp5h); audit chỉ ra bản vá từ 10.1.4.
+  [GHSA-85x2-q946-cp5h](https://github.com/advisories/GHSA-85x2-q946-cp5h); đã nâng 10.1.0 lên 10.1.4.
+
+Chi tiết kiểm thử và các đợt P1: [Báo cáo bản vá P0](SECURITY_PATCH_2026-10-24.md).
 
 ## 5. Kiểm chứng
 
-- Backend: 97/97 kiểm thử qua, gồm 19 kiểm thử MFA trên MongoDB tạm, không dùng database thật.
+- Backend: 104/104 kiểm thử qua, gồm 19 kiểm thử MFA và 7 kiểm thử thư viện mới.
+  MongoDB thử tạm, parser chỉ chạy loopback trong tiến trình con, email chỉ dựng trong bộ nhớ.
 - Frontend: 50/51 kiểm thử qua, gồm kiểm thử MFA riêng; một lỗi kỳ vọng CTA Scan/Print/Speed
   có sẵn từ trước, không liên quan MFA và không sửa UI để che lỗi này.
 - Production build đã qua; kiểm tra giao diện form và QR ở desktop/mobile bằng bản thử loopback.

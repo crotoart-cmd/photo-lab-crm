@@ -16,7 +16,8 @@
     "test:send-mail": "node test_send_mail.js",
     "preview:receipt": "node scripts/preview-receipt-email.js",
     "test:drive": "node scripts/test-drive.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "audit:runtime": "npm audit --omit=dev --audit-level=moderate"
   },
   "keywords": [
     "crm",
@@ -38,8 +39,8 @@
     "jsonwebtoken": "^9.0.0",
     "mongodb-memory-server": "^10.1.4",
     "mongoose": "^7.0.0",
-    "multer": "^2.4.0",
-    "nodemailer": "^10.1.0",
+    "multer": "2.5.0",
+    "nodemailer": "10.1.4",
     "otpauth": "9.5.2",
     "qrcode": "1.5.4"
   }
