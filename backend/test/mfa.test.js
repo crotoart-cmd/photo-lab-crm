@@ -281,3 +281,32 @@ test('staff cannot enroll and missing encryption configuration does not lock out
   assert.equal(res.status, 200);
   assert.equal((await status(cookie(res))).available, false);
 });
+
+test('enabling MFA and an MFA sign-in from a new device each send an alert without codes', async () => {
+  const emailService = require('../services/emailService');
+  const { flushAlerts } = require('../lib/securityAlerts');
+  const original = emailService.sendMail;
+  const sent = [];
+  emailService.sendMail = async (mail) => { sent.push(mail); return { sent: true }; };
+  try {
+    const enrolled = await enroll();
+    await flushAlerts();
+    assert.ok(sent.some((mail) => /Đã bật Google Authenticator/.test(mail.subject)));
+    sent.length = 0;
+    const token = await challenge();
+    await flushAlerts();
+    assert.equal(sent.length, 0, 'the password step alone must not alert');
+    const code = mfa.totp(enrolled.secret).generate({ timestamp: Date.now() + 30000 });
+    const res = await fetch(base + '/api/auth/mfa/login', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (iPhone) Safari/17' },
+      body: JSON.stringify({ challengeToken: token, code }) });
+    assert.equal(res.status, 200);
+    await flushAlerts();
+    assert.equal(sent.length, 1);
+    assert.match(sent[0].subject, /thiết bị mới/);
+    const serialized = JSON.stringify(sent);
+    for (const secret of [code, enrolled.secret, ...enrolled.codes, PASSWORD]) assert.ok(!serialized.includes(secret));
+  } finally {
+    emailService.sendMail = original;
+  }
+});

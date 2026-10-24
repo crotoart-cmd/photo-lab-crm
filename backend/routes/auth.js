@@ -28,6 +28,7 @@ const publicUser = (user) => ({
 const { verifyToken } = require('../middleware/verifyToken');
 const { rateLimit } = require('../middleware/rateLimit');
 const loginThrottle = require('../lib/loginThrottle');
+const alerts = require('../lib/securityAlerts');
 const { noStore } = require('../middleware/security');
 const {
   clearSessionCookie,
@@ -99,6 +100,11 @@ router.patch(
       if (!user) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
 
       const owner = isOwnerRole(user.role);
+      const previousEmail = user.email;
+      const alertChanges = () => {
+        if (password) alerts.notify('password', [user.email], req);
+        if (emailChanged) alerts.notify('email', [previousEmail, nextEmail], req);
+      };
       const nextEmail = email?.toLowerCase();
       const emailChanged = nextEmail && nextEmail !== user.email;
       if (emailChanged) {
@@ -120,6 +126,7 @@ router.patch(
               ...(password ? { password: await bcrypt.hash(password, 10) } : {}) },
             $inc: { sessionVersion: 1 },
           });
+          alertChanges();
           return res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...(await issueSession(req, res, user)) });
         } catch (err) {
           return res.status(err.status === 401 ? 400 : err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được thay đổi.' });
@@ -132,6 +139,7 @@ router.patch(
       if (emailChanged) user.email = nextEmail;
 
       await user.save();
+      alertChanges();
       const refreshed = password ? await issueSession(req, res, user) : {};
       res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...refreshed });
     } catch (_error) {
@@ -187,7 +195,9 @@ router.post(
         req.mfaChallengeIssued = true;
         return res.json(await mfa.beginLogin(req, user));
       }
+      const newDevice = await alerts.isNewDevice(user._id, req.auditDevice = alerts.deviceHash(req));
       const session = await issueSession(req, res, user);
+      if (newDevice) alerts.notify('new_device', [user.email], req);
       const payload = {
         message: 'Login successful',
         user: publicUser(user),
@@ -207,7 +217,9 @@ router.post('/mfa/login', rateLimit({ max: 20, windowMs: 15 * 60000, bucket: 'mf
     const verified = await mfa.finishLogin(req.body.challengeToken, req.body.code);
     req.auditUserId = verified.user._id;
     req.body.client = verified.mobile ? 'mobile' : 'web';
+    const newDevice = await alerts.isNewDevice(verified.user._id, req.auditDevice = alerts.deviceHash(req));
     const session = await issueSession(req, res, verified.user, { mfaVerified: true });
+    if (newDevice) alerts.notify('new_device', [verified.user.email], req);
     res.json({ user: publicUser(verified.user), isOwner: isOwnerRole(verified.user.role), cookieSession: true, ...session });
   } catch (err) {
     res.status(err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được mã. Vui lòng thử lại.' });
@@ -244,6 +256,7 @@ management.post('/setup', mfaAction(async (req, res, user) => {
 management.post('/enable', mfaAction(async (req, res, user) => {
   const enabled = await mfa.enableMfa(user, req.body.code);
   const session = await issueSession(req, res, enabled.user, { mfaVerified: true });
+  alerts.notify('mfa_enable', [enabled.user.email], req);
   res.json({ user: publicUser(enabled.user), recoveryCodes: enabled.recoveryCodes, ...session });
 }));
 management.post('/recovery-codes', mfaAction(async (req, res, user) => {
@@ -252,6 +265,7 @@ management.post('/recovery-codes', mfaAction(async (req, res, user) => {
   const recovery = mfa.recoveryCodes(user._id);
   const updated = await mfa.consumeFactor(user, req.body.code, { $set: { mfaRecoveryCodeHashes: recovery.hashes }, $inc: { sessionVersion: 1 } });
   const session = await issueSession(req, res, updated, { mfaVerified: true });
+  alerts.notify('mfa_recovery', [updated.email], req);
   res.json({ user: publicUser(updated), recoveryCodes: recovery.codes, ...session });
 }));
 management.post('/disable', mfaAction(async (req, res, user) => {
@@ -262,6 +276,7 @@ management.post('/disable', mfaAction(async (req, res, user) => {
     $unset: { mfaSecretEncrypted: '', mfaPendingSecretEncrypted: '', mfaPendingExpiresAt: '' },
   });
   const session = await issueSession(req, res, updated, { mfaVerified: false });
+  alerts.notify('mfa_disable', [updated.email], req);
   res.json({ user: publicUser(updated), ...session });
 }));
 router.use('/mfa', management);

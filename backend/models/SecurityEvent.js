@@ -5,6 +5,7 @@ const schema = new mongoose.Schema({
   outcome: { type: String, required: true, enum: ['success', 'failure', 'challenge'] },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
   ipHash: { type: String, select: false },
+  deviceHash: { type: String, select: false },
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, required: true, expires: 0 },
 });

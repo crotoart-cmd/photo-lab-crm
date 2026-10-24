@@ -15,7 +15,7 @@ function authAudit(req, res, next) {
     if (!process.env.JWT_SECRET) return;
     const ipHash = crypto.createHmac('sha256', process.env.JWT_SECRET).update(`audit-ip:${req.ip || req.socket?.remoteAddress || 'unknown'}`).digest('hex');
     const write = SecurityEvent.create({ event, outcome: res.statusCode >= 400 ? 'failure' : req.mfaChallengeIssued ? 'challenge' : 'success',
-      userId: req.auditUserId || req.userId || null, ipHash, expiresAt: new Date(Date.now() + 90 * 86400000) })
+      userId: req.auditUserId || req.userId || null, ipHash, deviceHash: req.auditDevice, expiresAt: new Date(Date.now() + 90 * 86400000) })
       .catch(() => console.warn('Security event could not be recorded')).finally(() => pending.delete(write));
     pending.add(write);
   });

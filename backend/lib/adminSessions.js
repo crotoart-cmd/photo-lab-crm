@@ -41,4 +41,4 @@ function deadlines(res, record) {
   res.setHeader('X-Session-Idle-Expires-At', new Date(Math.min(record.expiresAt.getTime(), record.lastSeenAt.getTime() + IDLE_MS)).toISOString());
 }
 
-module.exports = { IDLE_MS, MAX_MS, create, verify, activeFilter, deadlines };
+module.exports = { IDLE_MS, MAX_MS, device, create, verify, activeFilter, deadlines };
