@@ -58,6 +58,8 @@ describe('stayOnPublicHost', () => {
     assert.equal(stayOnPublicHost('/robots.txt'), true);
     assert.equal(stayOnPublicHost('/sitemap.xml'), true);
     assert.equal(stayOnPublicHost('/favicon.svg'), true);
+    assert.equal(stayOnPublicHost('/favicon-32x32.png'), true);
+    assert.equal(stayOnPublicHost('/apple-touch-icon.png'), true);
     assert.equal(stayOnPublicHost('/googleabc123def456.html'), true);
     assert.equal(stayOnPublicHost('/assets/index.js'), true);
     assert.equal(stayOnPublicHost('/media/lab/home-hero.jpg'), true);

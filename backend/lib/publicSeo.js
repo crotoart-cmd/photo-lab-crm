@@ -52,6 +52,8 @@ const PUBLIC_EXACT_FILES = new Set([
   '/sitemap.xml',
   '/favicon.ico',
   '/favicon.svg',
+  '/favicon-32x32.png',
+  '/favicon-96x96.png',
   '/apple-touch-icon.png',
   '/iphone.html',
   '/hdt-labx-logo.svg',
