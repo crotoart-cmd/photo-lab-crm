@@ -87,7 +87,7 @@ router.patch(
     try {
       const user = await User.findById(req.params.id);
       if (!user) return res.status(404).json({ message: 'Không tìm thấy' });
-      if (user.email === OWNER_EMAIL) {
+      if (isOwnerRole(user.role) || user.email === OWNER_EMAIL) {
         return res.status(403).json({ message: 'Không sửa chủ hệ thống tại đây — dùng Hồ sơ của bạn' });
       }
 

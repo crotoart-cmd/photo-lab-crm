@@ -11,13 +11,17 @@ import IconMail from '../components/icons/IconMail';
 import IconLock from '../components/icons/IconLock';
 import { needsServerUrlSetup } from '../config/apiBase';
 import ServerUrlField from '../components/ServerUrlField';
+import MfaCodeField from '../components/security/MfaCodeField';
 
 export default function Login() {
-  const { login, loginOfflineOnly, isAuthenticated, continueOffline } = useAuth();
+  const { login, completeMfaLogin, loginOfflineOnly, isAuthenticated, continueOffline } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [challenge, setChallenge] = useState(null);
+  const [code, setCode] = useState('');
+  const [recovery, setRecovery] = useState(false);
   const canOffline =
     isMobileDataEnabled() &&
     Boolean(localStorage.getItem('token')) &&
@@ -42,7 +46,15 @@ export default function Login() {
     setInfo('');
     setLoading(true);
     try {
-      const result = await login(form.email, form.password);
+      const result = challenge
+        ? await completeMfaLogin(challenge, code.trim())
+        : await login(form.email, form.password);
+      if (result?.requiresMfa) {
+        setChallenge(result.challengeToken);
+        setForm((previous) => ({ ...previous, password: '' }));
+        setCode('');
+        return;
+      }
       if (result?.offlineBootstrap) {
         setInfo('Đã lưu trên máy — dùng độc lập. Đồng bộ Mac khi bạn muốn (tuỳ chọn).');
       }
@@ -86,6 +98,13 @@ export default function Login() {
           <LoadingIndicator label="Đang đăng nhập..." />
         ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {challenge ? (
+            <>
+              <h1 className="text-lg font-semibold">Xác thực hai bước</h1>
+              <MfaCodeField value={code} onChange={setCode} recovery={recovery} onRecoveryChange={setRecovery} autoFocus />
+            </>
+          ) : (
+          <>
           <TextField
             label="Email"
             type="email"
@@ -109,12 +128,19 @@ export default function Login() {
             leadingIconComponent={<IconLock />}
             autoComplete="current-password"
           />
+          </>
+          )}
           {error && <div className="apple-alert-error">{error}</div>}
           {info && <div className="text-[13px] text-[var(--color-green)]">{info}</div>}
           <button type="submit" className="btn-pill btn-pill--lv1 btn-pill--48 btn-pill--block mt-2">
-            Đăng nhập
+            {challenge ? 'Xác nhận' : 'Đăng nhập'}
           </button>
-          {isMobileDataEnabled() && (
+          {challenge && (
+            <button type="button" className="action-btn action-btn--block" onClick={() => { setChallenge(null); setCode(''); setError(''); setRecovery(false); }}>
+              Quay lại đăng nhập
+            </button>
+          )}
+          {!challenge && isMobileDataEnabled() && (
             <button
               type="button"
               className="action-btn action-btn--block mt-2"
@@ -143,7 +169,7 @@ export default function Login() {
               {hasOfflineCreds ? 'Vào app offline' : 'Thiết lập offline (không cần Mac)'}
             </button>
           )}
-          {canOffline && (
+          {!challenge && canOffline && (
             <button
               type="button"
               className="action-btn action-btn--block mt-2"

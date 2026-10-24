@@ -1,0 +1,19 @@
+.mfa-settings { min-width: 0; }
+.mfa-settings-header { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.mfa-settings h2, .mfa-settings h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 0; }
+.mfa-status { margin-left: auto; padding: 4px 8px; border-radius: 4px; background: #f0f0f0; color: #666; font-size: 12px; }
+.mfa-status.is-enabled { background: #e7f5ed; color: #22613e; }
+.mfa-muted { margin: 0; font-size: 13px; line-height: 1.6; color: var(--color-label-secondary); }
+.mfa-form, .mfa-backup-panel, .mfa-settings-actions { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+.mfa-qr { display: block; width: 240px; max-width: 100%; aspect-ratio: 1; height: auto; align-self: center; background: #fff; border-radius: 4px; }
+.mfa-manual { font-size: 13px; }
+.mfa-manual summary { cursor: pointer; }
+.mfa-manual code { display: block; padding-top: 10px; overflow-wrap: anywhere; user-select: all; }
+.mfa-form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.mfa-form-actions > button { flex: 1 1 120px; min-height: 44px; }
+.mfa-command { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; }
+.mfa-disable { align-self: flex-start; padding: 8px 0; color: var(--color-red, #c93636); font-size: 13px; }
+.mfa-backup-codes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 252px), 1fr)); gap: 8px; list-style: none; margin: 0; padding: 0; }
+.mfa-backup-codes li { padding: 8px; border: 1px solid var(--color-separator, #ddd); border-radius: 4px; font-size: 11px; overflow-wrap: anywhere; }
+.mfa-saved { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.6; }
+.mfa-saved input { margin-top: 4px; flex: 0 0 auto; }

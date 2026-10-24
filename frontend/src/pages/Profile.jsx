@@ -5,6 +5,8 @@ import { inputClass, labelClass, LabeledInput } from '../components/formFields';
 import { useAuth } from '../context/AuthContext';
 import { IosPage } from '../components/mobile';
 import FeedbackBanner from '../components/FeedbackBanner';
+import MfaSettings from '../components/security/MfaSettings';
+import MfaCodeField from '../components/security/MfaCodeField';
 import {
   getBackupSettings,
   buildLocalBackupPayload,
@@ -89,6 +91,8 @@ export default function Profile() {
   const { user, isOwner, refreshUser, setUser } = useAuth();
   const [dashboardMeta] = useState(readDashboardDisplayMeta);
   const [profileForm, setProfileForm] = useState({ name: '', email: '', password: '' });
+  const [mfaProof, setMfaProof] = useState({ currentPassword: '', code: '', recovery: false });
+  const needsMfaProof = Boolean(user?.mfaEnabled && (profileForm.password || (isOwner && profileForm.email.trim().toLowerCase() !== user.email?.toLowerCase())));
   const [staffList, setStaffList] = useState([]);
   const [staffSlotAvailable, setStaffSlotAvailable] = useState(false);
   const [showStaffForm, setShowStaffForm] = useState(false);
@@ -199,11 +203,19 @@ export default function Profile() {
       }
       if (profileForm.password) payload.password = profileForm.password;
 
-      const { data } = await api.patch('/auth/profile', payload);
+      let headers = {};
+      if (needsMfaProof) {
+        const { data: security } = await api.get('/auth/mfa');
+        headers = { 'X-MFA-CSRF': security.csrfToken };
+        payload.currentPassword = mfaProof.currentPassword;
+        payload.code = mfaProof.code.trim();
+      }
+      const { data } = await api.patch('/auth/profile', payload, { headers });
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
       await refreshUser?.();
       setProfileForm((f) => ({ ...f, password: '' }));
+      setMfaProof({ currentPassword: '', code: '', recovery: false });
       setSuccess('Đã lưu hồ sơ');
     } catch (err) {
       setError(apiErrorMessage(err, 'Lưu hồ sơ thất bại'));
@@ -362,6 +374,8 @@ export default function Profile() {
       {error && <FeedbackBanner variant="error" className="mb-3">{error}</FeedbackBanner>}
       {success && <FeedbackBanner variant="success" className="mb-3">{success}</FeedbackBanner>}
 
+      {isOwner && <MfaSettings />}
+
       {mobileStorageEnabled && (
         <section className="apple-card p-5 mb-6">
           <h2 className="font-semibold text-[var(--color-label)] mb-1">Dữ liệu test</h2>
@@ -416,6 +430,15 @@ export default function Profile() {
             onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
             minLength={6}
           />
+          {needsMfaProof && (
+            <>
+              <LabeledInput label="Mật khẩu hiện tại" type="password" value={mfaProof.currentPassword} autoComplete="current-password" required
+                onChange={(event) => setMfaProof((previous) => ({ ...previous, currentPassword: event.target.value }))} />
+              <MfaCodeField value={mfaProof.code} recovery={mfaProof.recovery}
+                onChange={(code) => setMfaProof((previous) => ({ ...previous, code }))}
+                onRecoveryChange={(recovery) => setMfaProof((previous) => ({ ...previous, recovery }))} />
+            </>
+          )}
           <button
             type="submit"
             disabled={loading}

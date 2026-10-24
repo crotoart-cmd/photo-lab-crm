@@ -24,6 +24,7 @@ const DEFAULT_RETENTION_MONTHS = 12;
 export function isMobileDataEnabled() {
   if (typeof window === 'undefined') return false;
   if (isNativeApp()) return true;
+  if (['admin.hdtlabx.com', 'hdtlabx.com', 'www.hdtlabx.com'].includes(window.location.hostname)) return false;
   if (import.meta.env.VITE_MOBILE_APP === 'true') return true;
   if (localStorage.getItem('hdtlabx_offline_mode') === '1') return true;
   return new URLSearchParams(window.location.search).get('local') === '1';

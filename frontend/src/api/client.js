@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   async (response) => {
-    if (isMobileDataEnabled() && response.data?.token && /\/auth\/(login|profile)$/.test(response.config.url || '')) {
+    if (isMobileDataEnabled() && response.data?.token && /\/auth\/(login|profile|mfa\/(login|enable|disable|recovery-codes))$/.test(response.config.url || '')) {
       localStorage.setItem('token', response.data.token);
       rememberServerJwt(response.data.token);
       if (/\/auth\/profile$/.test(response.config.url || '')) {

@@ -16,13 +16,14 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
-    const user = await User.findById(decoded.userId).select('role status sessionVersion');
-    if (!user || user.status !== 'active' || !Number.isInteger(decoded.sv) || decoded.sv !== (user.sessionVersion || 0)) {
+    const user = await User.findById(decoded.userId).select('role status sessionVersion mfaEnabled');
+    if (!user || user.status !== 'active' || !Number.isInteger(decoded.sv) || decoded.sv !== (user.sessionVersion || 0) || (user.mfaEnabled && decoded.mfa !== true)) {
       return res.status(401).json({ message: 'Cần đăng nhập' });
     }
     req.userId = String(user._id);
     req.userRole = user.role;
     req.sessionVersion = user.sessionVersion || 0;
+    req.mfaVerified = decoded.mfa === true;
     const header = String(req.headers.authorization || '');
     if (header.startsWith('Bearer ')) {
       setSessionCookie(res, token);

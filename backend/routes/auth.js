@@ -1,9 +1,11 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { issueSession } = require('../lib/authSession');
 const User = require('../models/User');
 const { body, validationResult } = require('express-validator');
 const { isOwnerRole } = require('../config/users');
-const { authWithUser } = require('../middleware/authz');
+const { authWithUser, requireOwner } = require('../middleware/authz');
+const mfa = require('../lib/mfa');
 
 const router = express.Router();
 
@@ -14,6 +16,7 @@ const publicUser = (user) => ({
   role: isOwnerRole(user.role) ? 'owner' : 'staff',
   phone: user.phone || '',
   status: user.status,
+  mfaEnabled: Boolean(user.mfaEnabled),
 });
 
 const { verifyToken } = require('../middleware/verifyToken');
@@ -52,24 +55,41 @@ router.patch(
       }
 
       const { name, email, password } = req.body;
-      const user = await User.findById(req.userId);
+      let user = await User.findById(req.userId).select(mfa.MFA_FIELDS);
       if (!user) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
 
       const owner = isOwnerRole(user.role);
+      const nextEmail = email?.toLowerCase();
+      const emailChanged = nextEmail && nextEmail !== user.email;
+      if (emailChanged) {
+        if (!owner) return res.status(403).json({ message: 'Chỉ chủ hệ thống được đổi email đăng nhập' });
+        const taken = await User.findOne({ email: nextEmail });
+        if (taken && String(taken._id) !== String(user._id)) return res.status(400).json({ message: 'Email đã được dùng' });
+      }
+
+      if (user.mfaEnabled && (password || emailChanged)) {
+        let allowed = false;
+        mfa.guardMfaRequest(req, res, () => { allowed = true; });
+        if (!allowed) return;
+        try {
+          await mfa.checkPassword(user, req.body.currentPassword);
+          // Change credentials and revoke sessions in the same conditional update
+          // that consumes the factor, so concurrent changes cannot restore an old version.
+          user = await mfa.consumeFactor(user, req.body.code, {
+            $set: { ...(name ? { name: name.trim() } : {}), ...(emailChanged ? { email: nextEmail } : {}),
+              ...(password ? { password: await bcrypt.hash(password, 10) } : {}) },
+            $inc: { sessionVersion: 1 },
+          });
+          return res.json({ message: 'Đã cập nhật hồ sơ', user: publicUser(user), ...issueSession(req, res, user) });
+        } catch (err) {
+          return res.status(err.status === 401 ? 400 : err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được thay đổi.' });
+        }
+      }
 
       if (name) user.name = name.trim();
       if (password) user.password = password;
 
-      if (email && email.toLowerCase() !== user.email) {
-        if (!owner) {
-          return res.status(403).json({ message: 'Chỉ chủ hệ thống được đổi email đăng nhập' });
-        }
-        const taken = await User.findOne({ email: email.toLowerCase() });
-        if (taken && String(taken._id) !== String(user._id)) {
-          return res.status(400).json({ message: 'Email đã được dùng' });
-        }
-        user.email = email.toLowerCase();
-      }
+      if (emailChanged) user.email = nextEmail;
 
       await user.save();
       const refreshed = password ? issueSession(req, res, user) : {};
@@ -116,6 +136,7 @@ router.post(
       }
 
       const role = isOwnerRole(user.role) ? 'owner' : 'staff';
+      if (user.mfaEnabled) return res.json(await mfa.beginLogin(req, user));
       const session = issueSession(req, res, user);
       const payload = {
         message: 'Login successful',
@@ -130,6 +151,69 @@ router.post(
     }
   }
 );
+
+router.post('/mfa/login', rateLimit({ max: 20, windowMs: 15 * 60000, bucket: 'mfa-login' }), async (req, res) => {
+  try {
+    const verified = await mfa.finishLogin(req.body.challengeToken, req.body.code);
+    req.body.client = verified.mobile ? 'mobile' : 'web';
+    const session = issueSession(req, res, verified.user, { mfaVerified: true });
+    res.json({ user: publicUser(verified.user), isOwner: isOwnerRole(verified.user.role), cookieSession: true, ...session });
+  } catch (err) {
+    res.status(err.status || 503).json({ message: err.status ? err.message : 'Không xác thực được mã. Vui lòng thử lại.' });
+  }
+});
+
+const management = express.Router();
+management.use(...authWithUser, requireOwner, mfa.guardMfaRequest);
+management.get('/', async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select(mfa.MFA_FIELDS);
+    res.json({ enabled: Boolean(user.mfaEnabled), available: mfa.available(),
+      recoveryCodesRemaining: user.mfaRecoveryCodeHashes?.length || 0,
+      csrfToken: mfa.available() ? mfa.csrfToken(req) : '' });
+  } catch (_err) {
+    res.status(503).json({ message: 'Không đọc được trạng thái bảo mật.' });
+  }
+});
+management.use(rateLimit({ max: 15, windowMs: 15 * 60000, bucket: 'mfa-settings' }));
+function mfaAction(handler) {
+  return async (req, res) => {
+    try {
+      const user = await User.findById(req.userId).select(mfa.MFA_FIELDS);
+      await handler(req, res, user);
+    } catch (err) {
+      res.status(err.status === 401 ? 400 : err.status || 503).json({ message: err.status ? err.message : 'Không cập nhật được Google Authenticator.' });
+    }
+  };
+}
+management.post('/setup', mfaAction(async (req, res, user) => {
+  await mfa.checkPassword(user, req.body.currentPassword);
+  res.json(await mfa.beginSetup(user));
+}));
+management.post('/enable', mfaAction(async (req, res, user) => {
+  const enabled = await mfa.enableMfa(user, req.body.code);
+  const session = issueSession(req, res, enabled.user, { mfaVerified: true });
+  res.json({ user: publicUser(enabled.user), recoveryCodes: enabled.recoveryCodes, ...session });
+}));
+management.post('/recovery-codes', mfaAction(async (req, res, user) => {
+  if (!user.mfaEnabled) return res.status(409).json({ message: 'Tài khoản chưa bật Google Authenticator.' });
+  await mfa.checkPassword(user, req.body.currentPassword);
+  const recovery = mfa.recoveryCodes(user._id);
+  const updated = await mfa.consumeFactor(user, req.body.code, { $set: { mfaRecoveryCodeHashes: recovery.hashes }, $inc: { sessionVersion: 1 } });
+  const session = issueSession(req, res, updated, { mfaVerified: true });
+  res.json({ user: publicUser(updated), recoveryCodes: recovery.codes, ...session });
+}));
+management.post('/disable', mfaAction(async (req, res, user) => {
+  if (!user.mfaEnabled) return res.status(409).json({ message: 'Tài khoản chưa bật Google Authenticator.' });
+  await mfa.checkPassword(user, req.body.currentPassword);
+  const updated = await mfa.consumeFactor(user, req.body.code, {
+    $set: { mfaEnabled: false, mfaRecoveryCodeHashes: [] }, $inc: { sessionVersion: 1 },
+    $unset: { mfaSecretEncrypted: '', mfaPendingSecretEncrypted: '', mfaPendingExpiresAt: '' },
+  });
+  const session = issueSession(req, res, updated, { mfaVerified: false });
+  res.json({ user: publicUser(updated), ...session });
+}));
+router.use('/mfa', management);
 
 router.post('/logout', verifyToken, async (req, res) => {
   try {

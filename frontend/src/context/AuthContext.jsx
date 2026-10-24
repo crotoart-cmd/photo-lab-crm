@@ -64,10 +64,8 @@ export const AuthProvider = ({ children }) => {
     if (!token && !isMobileDataEnabled()) {
       refreshUser()
         .catch((err) => {
-          if (err.response?.status === 401) {
-            localStorage.removeItem('user');
-            setUser(null);
-          }
+          localStorage.removeItem('user');
+          setUser(null);
         })
         .finally(() => setLoading(false));
       return;
@@ -144,6 +142,7 @@ export const AuthProvider = ({ children }) => {
         { timeout: MOBILE_LOGIN_TIMEOUT_MS }
       )
       .then(async ({ data }) => {
+        if (data.requiresMfa) return;
         persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
@@ -184,6 +183,7 @@ export const AuthProvider = ({ children }) => {
           { email: normalizedEmail, password, client: 'mobile' },
           { timeout: MOBILE_LOGIN_TIMEOUT_MS }
         );
+        if (data.requiresMfa) return data;
         persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
@@ -196,6 +196,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const { data } = await api.post('/auth/login', { email: normalizedEmail, password });
+    if (data.requiresMfa) return data;
     persistServerUser(data.user, data.token);
     setUser(data.user);
     setOfflineSession(false);
@@ -203,6 +204,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginOfflineOnly = async (email, password) => {
+    if (!isMobileDataEnabled()) throw new Error('Admin web cần xác thực với máy chủ.');
     const normalizedEmail = String(email).trim().toLowerCase();
 
     const offline = await verifyOfflineLogin(normalizedEmail, password);
@@ -232,6 +234,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const continueOffline = () => {
+    if (!isMobileDataEnabled()) return false;
     const saved = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     if (!saved || !token) return false;
@@ -252,11 +255,20 @@ export const AuthProvider = ({ children }) => {
     setOfflineSession(false);
   };
 
+  const completeMfaLogin = async (challengeToken, code) => {
+    const { data } = await api.post('/auth/mfa/login', { challengeToken, code });
+    persistServerUser(data.user, data.token);
+    setUser(data.user);
+    setOfflineSession(false);
+    return data;
+  };
+
   const isOwner = user?.role === 'owner';
 
   return (
     <AuthContext.Provider
       value={{
+        completeMfaLogin,
         user,
         setUser,
         loading,
