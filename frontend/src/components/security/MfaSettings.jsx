@@ -6,6 +6,7 @@ import { apiErrorMessage } from '../../utils/apiError';
 import TextField from '../TextField';
 import FeedbackBanner from '../FeedbackBanner';
 import MfaCodeField from './MfaCodeField';
+import { mfaKeyMessage } from './mfaKeyMessage';
 import '../../styles/mfa.css';
 
 export default function MfaSettings() {
@@ -85,7 +86,7 @@ export default function MfaSettings() {
       {error && <FeedbackBanner variant="error" className="mt-3">{error}</FeedbackBanner>}
       {notice && <FeedbackBanner variant="success" className="mt-3">{notice}</FeedbackBanner>}
       {!status && !error && <p className="mfa-muted mt-3" role="status">Đang tải...</p>}
-      {status && !status.available && <p className="mfa-muted mt-3">Máy chủ chưa cấu hình khóa mã hóa 2FA.</p>}
+      {status && !status.available && <p className="mfa-muted mt-3" role="alert">{mfaKeyMessage(status)}</p>}
 
       {backupCodes.length > 0 ? (
         <div className="mfa-backup-panel">

@@ -310,3 +310,80 @@ test('enabling MFA and an MFA sign-in from a new device each send an alert witho
     emailService.sendMail = original;
   }
 });
+
+const GOOD_KEY = 'ab'.repeat(32);
+function withKeyEnv(values, run) {
+  const saved = { ...process.env };
+  for (const name of Object.keys(process.env)) if (/mfa|encryption/i.test(name)) delete process.env[name];
+  Object.assign(process.env, values);
+  try { return run(); } finally {
+    for (const name of Object.keys(process.env)) if (/mfa|encryption/i.test(name)) delete process.env[name];
+    Object.assign(process.env, Object.fromEntries(Object.entries(saved).filter(([name]) => /mfa|encryption/i.test(name))));
+  }
+}
+
+test('a missing key variable is reported as missing, with similarly named variables listed by name only', () => {
+  withKeyEnv({}, () => assert.deepEqual(mfa.keyReport(), { problem: 'missing', similarNames: [] }));
+  withKeyEnv({ 'MFA_ENCRYPTION_KEY ': GOOD_KEY, mfa_encryption_key: GOOD_KEY }, () => {
+    const report = mfa.keyReport();
+    assert.equal(report.problem, 'missing');
+    assert.deepEqual(report.similarNames.sort(), ['MFA_ENCRYPTION_KEY ', 'mfa_encryption_key']);
+    assert.equal(mfa.available(), false);
+    assert.ok(!JSON.stringify(report).includes(GOOD_KEY), 'a misnamed variable must not leak its value');
+  });
+  withKeyEnv({ MFA_ENCRYPTION_KEY: '   \n' }, () => assert.equal(mfa.keyReport().problem, 'missing'));
+});
+
+test('wrong characters and wrong length are told apart without returning the value', () => {
+  const short = GOOD_KEY.slice(0, 63), long = GOOD_KEY + 'a', notHex = 'g'.repeat(64);
+  withKeyEnv({ MFA_ENCRYPTION_KEY: short }, () => assert.deepEqual(mfa.keyReport(), { problem: 'length', length: 63 }));
+  withKeyEnv({ MFA_ENCRYPTION_KEY: long }, () => assert.deepEqual(mfa.keyReport(), { problem: 'length', length: 65 }));
+  withKeyEnv({ MFA_ENCRYPTION_KEY: notHex }, () => assert.deepEqual(mfa.keyReport(), { problem: 'not_hex', length: 64 }));
+  withKeyEnv({ MFA_ENCRYPTION_KEY: Buffer.from(GOOD_KEY, 'hex').toString('base64') }, () => assert.equal(mfa.keyReport().problem, 'not_hex'));
+  for (const value of [short, long, notHex]) withKeyEnv({ MFA_ENCRYPTION_KEY: value }, () => assert.ok(!JSON.stringify(mfa.keyReport()).includes(value)));
+});
+
+test('stray whitespace, a newline or a pair of quotes around a pasted key are ignored', () => {
+  const secret = 'JBSWY3DPEHPK3PXP';
+  const encrypted = withKeyEnv({ MFA_ENCRYPTION_KEY: GOOD_KEY }, () => mfa.encryptSecret(secret, 'user-1'));
+  for (const wrapped of [` ${GOOD_KEY}`, `${GOOD_KEY}\n`, `"${GOOD_KEY}"`, `'${GOOD_KEY}'`, ` "${GOOD_KEY}" \r\n`]) {
+    withKeyEnv({ MFA_ENCRYPTION_KEY: wrapped }, () => {
+      assert.equal(mfa.available(), true, JSON.stringify(wrapped.length));
+      assert.equal(mfa.decryptSecret(encrypted, 'user-1'), secret, 'the same key bytes must decrypt existing data');
+    });
+  }
+  withKeyEnv({ MFA_ENCRYPTION_KEY: `"${GOOD_KEY}` }, () => assert.equal(mfa.available(), false));
+  withKeyEnv({ MFA_ENCRYPTION_KEY: `${GOOD_KEY.slice(0, 32)} ${GOOD_KEY.slice(32)}` }, () => assert.equal(mfa.available(), false));
+});
+
+test('the owner status endpoint explains an unusable key and still hides its value', async () => {
+  const session = cookie(await login());
+  for (const [value, expected] of [[undefined, { keyProblem: 'missing', keyNames: [] }],
+    [GOOD_KEY.slice(0, 40), { keyProblem: 'length', keyLength: 40 }], ['z'.repeat(64), { keyProblem: 'not_hex', keyLength: 64 }]]) {
+    if (value === undefined) delete process.env.MFA_ENCRYPTION_KEY; else process.env.MFA_ENCRYPTION_KEY = value;
+    const res = await request('/mfa', undefined, session);
+    assert.equal(res.status, 200);
+    const text = await res.text();
+    const body = JSON.parse(text);
+    assert.equal(body.available, false);
+    assert.equal(body.csrfToken, '');
+    for (const [field, expectedValue] of Object.entries(expected)) assert.deepEqual(body[field], expectedValue);
+    if (value) assert.ok(!text.includes(value));
+  }
+  process.env.MFA_ENCRYPTION_KEY = '01'.repeat(32);
+  const ok = await (await request('/mfa', undefined, session)).json();
+  assert.equal(ok.available, true);
+  assert.equal(ok.keyProblem, undefined);
+  assert.ok(ok.csrfToken);
+});
+
+test('the startup warning names the problem category and never the value', () => {
+  const lines = [];
+  withKeyEnv({ MFA_ENCRYPTION_KEY: GOOD_KEY.slice(0, 10) }, () => mfa.warnIfKeyUnusable((line) => lines.push(line)));
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /MFA_ENCRYPTION_KEY không dùng được \(length\)/);
+  assert.ok(!lines[0].includes(GOOD_KEY.slice(0, 10)));
+  lines.length = 0;
+  withKeyEnv({ MFA_ENCRYPTION_KEY: GOOD_KEY }, () => mfa.warnIfKeyUnusable((line) => lines.push(line)));
+  assert.equal(lines.length, 0);
+});

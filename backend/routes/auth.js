@@ -231,9 +231,11 @@ management.use(...authWithUser, requireOwner, mfa.guardMfaRequest);
 management.get('/', async (req, res) => {
   try {
     const user = await User.findById(req.userId).select(mfa.MFA_FIELDS);
-    res.json({ enabled: Boolean(user.mfaEnabled), available: mfa.available(),
+    const keyReport = mfa.keyReport();
+    res.json({ enabled: Boolean(user.mfaEnabled), available: keyReport.problem === null,
+      ...(keyReport.problem ? { keyProblem: keyReport.problem, keyLength: keyReport.length, keyNames: keyReport.similarNames } : {}),
       recoveryCodesRemaining: user.mfaRecoveryCodeHashes?.length || 0,
-      csrfToken: mfa.available() ? mfa.csrfToken(req) : '' });
+      csrfToken: keyReport.problem === null ? mfa.csrfToken(req) : '' });
   } catch (_err) {
     res.status(503).json({ message: 'Không đọc được trạng thái bảo mật.' });
   }

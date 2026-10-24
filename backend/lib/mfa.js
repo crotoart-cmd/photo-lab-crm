@@ -10,13 +10,40 @@ const HASH = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const error = (message, status = 400) => Object.assign(new Error(message), { status });
 const sessionVersionMatch = (user) => (user.sessionVersion || 0) === 0 ? { $in: [0, null] } : user.sessionVersion;
 
+const KEY_NAME = 'MFA_ENCRYPTION_KEY';
+
+// Hosting dashboards and .env files often leave stray spaces, a newline or a pair of quotes
+// around a pasted value; none of them change the key bytes, so they are ignored.
+function configuredKey() {
+  return String(process.env[KEY_NAME] ?? '').trim().replace(/^(["'])([\s\S]*)\1$/, '$2').trim();
+}
+
+// Says why the key is unusable without ever returning its value, so an owner can fix the
+// hosting setting. Only the problem category, a length and variable *names* leave this module.
+function keyReport() {
+  const value = configuredKey();
+  if (!value) {
+    const similarNames = Object.keys(process.env)
+      .filter((name) => name !== KEY_NAME && /mfa|encryption/i.test(name)).slice(0, 5).map((name) => name.slice(0, 80));
+    return { problem: 'missing', similarNames };
+  }
+  if (!/^[a-f0-9]+$/i.test(value)) return { problem: 'not_hex', length: value.length };
+  if (value.length !== 64) return { problem: 'length', length: value.length };
+  return { problem: null };
+}
+
 function available() {
-  return /^[a-f0-9]{64}$/i.test(process.env.MFA_ENCRYPTION_KEY || '');
+  return keyReport().problem === null;
+}
+
+function warnIfKeyUnusable(log = console.warn) {
+  const { problem } = keyReport();
+  if (problem) log(`⚠️  ${KEY_NAME} không dùng được (${problem}) — Google Authenticator tắt cho đến khi sửa biến này.`);
 }
 
 function key() {
   if (!available()) throw error('Chưa có khóa bảo mật 2FA trên máy chủ.', 503);
-  return Buffer.from(process.env.MFA_ENCRYPTION_KEY, 'hex');
+  return Buffer.from(configuredKey(), 'hex');
 }
 
 function encryptSecret(secret, userId) {
@@ -175,5 +202,5 @@ async function finishLogin(token, code) {
   return { user: verified, mobile: challenge.mobile };
 }
 
-module.exports = { MFA_FIELDS, available, encryptSecret, decryptSecret, totp, verifiedStep, recoveryCodes, reserveAttempt,
+module.exports = { MFA_FIELDS, available, keyReport, warnIfKeyUnusable, encryptSecret, decryptSecret, totp, verifiedStep, recoveryCodes, reserveAttempt,
   consumeFactor, checkPassword, csrfToken, guardMfaRequest, beginSetup, enableMfa, beginLogin, finishLogin };

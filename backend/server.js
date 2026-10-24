@@ -24,6 +24,7 @@ app.disable('x-powered-by');
 app.set('trust proxy', trustedProxySetting());
 
 assertSecurityEnv();
+require('./lib/mfa').warnIfKeyUnusable();
 
 app.use(applySecurityHeaders);
 app.use(
