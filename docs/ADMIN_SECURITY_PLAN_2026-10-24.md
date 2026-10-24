@@ -80,7 +80,7 @@ không do OTPAuth/QRCode mới đưa vào. Đợt tích hợp MFA này chưa tha
 
 ## 5. Kiểm chứng
 
-- Backend: 96/96 kiểm thử qua, gồm 18 kiểm thử MFA trên MongoDB tạm, không dùng database thật.
+- Backend: 97/97 kiểm thử qua, gồm 19 kiểm thử MFA trên MongoDB tạm, không dùng database thật.
 - Frontend: 50/51 kiểm thử qua, gồm kiểm thử MFA riêng; một lỗi kỳ vọng CTA Scan/Print/Speed
   có sẵn từ trước, không liên quan MFA và không sửa UI để che lỗi này.
 - Production build đã qua; kiểm tra giao diện form và QR ở desktop/mobile bằng bản thử loopback.

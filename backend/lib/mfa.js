@@ -8,6 +8,7 @@ const { readSessionToken, wantsBearerToken } = require('./sessionCookie');
 const MFA_FIELDS = '+mfaSecretEncrypted +mfaPendingSecretEncrypted +mfaPendingExpiresAt +mfaLastUsedStep +mfaRecoveryCodeHashes';
 const HASH = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const error = (message, status = 400) => Object.assign(new Error(message), { status });
+const sessionVersionMatch = (user) => (user.sessionVersion || 0) === 0 ? { $in: [0, null] } : user.sessionVersion;
 
 function available() {
   return /^[a-f0-9]{64}$/i.test(process.env.MFA_ENCRYPTION_KEY || '');
@@ -58,7 +59,7 @@ function recoveryCodes(userId) {
 
 async function reserveAttempt(user) {
   const now = new Date();
-  const filter = { _id: user._id, sessionVersion: user.sessionVersion || 0, status: 'active' };
+  const filter = { _id: user._id, sessionVersion: sessionVersionMatch(user), status: 'active' };
   await User.updateOne({ ...filter, $or: [{ mfaAttemptExpiresAt: { $lte: now } }, { mfaAttemptExpiresAt: null }] }, {
     $set: { mfaAttempts: 0, mfaAttemptExpiresAt: new Date(now.getTime() + 15 * 60000) },
   });
@@ -71,7 +72,7 @@ async function reserveAttempt(user) {
 async function consumeFactor(user, code, update = {}) {
   key();
   await reserveAttempt(user);
-  const filter = { _id: user._id, status: 'active', sessionVersion: user.sessionVersion || 0, mfaEnabled: true, mfaSecretEncrypted: user.mfaSecretEncrypted };
+  const filter = { _id: user._id, status: 'active', sessionVersion: sessionVersionMatch(user), mfaEnabled: true, mfaSecretEncrypted: user.mfaSecretEncrypted };
   const changes = { ...update, $set: { ...update.$set, mfaAttempts: 0 } };
   if (typeof code === 'string' && /^\d{6}$/.test(code)) {
     const step = verifiedStep(decryptSecret(user.mfaSecretEncrypted, user._id), code);
@@ -128,7 +129,7 @@ async function beginSetup(user) {
   const secret = new OTPAuth.Secret({ size: 20 }).base32;
   const encrypted = encryptSecret(secret, user._id);
   const expiresAt = new Date(Date.now() + 10 * 60000);
-  const saved = await User.updateOne({ _id: user._id, sessionVersion: user.sessionVersion || 0, mfaEnabled: { $ne: true } }, {
+  const saved = await User.updateOne({ _id: user._id, sessionVersion: sessionVersionMatch(user), mfaEnabled: { $ne: true } }, {
     $set: { mfaPendingSecretEncrypted: encrypted, mfaPendingExpiresAt: expiresAt },
   });
   if (saved.modifiedCount !== 1) throw error('Phiên đã thay đổi. Đăng nhập lại.', 401);
@@ -145,7 +146,7 @@ async function enableMfa(user, code) {
   const step = verifiedStep(secret, code);
   if (step === null) throw error('Mã xác thực không đúng hoặc đã hết hạn.', 401);
   const recovery = recoveryCodes(user._id);
-  const saved = await User.findOneAndUpdate({ _id: user._id, status: 'active', sessionVersion: user.sessionVersion || 0,
+  const saved = await User.findOneAndUpdate({ _id: user._id, status: 'active', sessionVersion: sessionVersionMatch(user),
     mfaEnabled: { $ne: true }, mfaPendingSecretEncrypted: user.mfaPendingSecretEncrypted, mfaPendingExpiresAt: { $gt: new Date() } }, {
     $set: { mfaEnabled: true, mfaSecretEncrypted: user.mfaPendingSecretEncrypted, mfaLastUsedStep: step, mfaRecoveryCodeHashes: recovery.hashes, mfaAttempts: 0 },
     $unset: { mfaPendingSecretEncrypted: '', mfaPendingExpiresAt: '' }, $inc: { sessionVersion: 1 },

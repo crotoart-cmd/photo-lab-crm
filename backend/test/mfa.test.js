@@ -97,6 +97,13 @@ test('existing owner remains able to log in until they confirm enrollment', asyn
   assert.equal((await login()).status, 200);
 });
 
+test('an existing account without a stored session version can enroll without a data migration', async () => {
+  await User.updateOne({ _id: owner._id }, { $unset: { sessionVersion: '' } });
+  const enrolled = await enroll();
+  assert.equal((await status(enrolled.session)).enabled, true);
+  assert.equal((await User.findById(owner._id)).sessionVersion, 1);
+});
+
 test('settings require the current password, a session-bound CSRF token and a trusted origin', async () => {
   const session = cookie(await login());
   const state = await status(session);
