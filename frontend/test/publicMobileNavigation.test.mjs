@@ -102,11 +102,14 @@ test('Film offers the three subservices together after the complete Film and sca
   assert.ok(html.includes(publicT('vi', 'mpage.next')));
 });
 
-test('Scan, Print and Speed return to their Film parent and keep their existing intake CTA', () => {
-  for (const [Page, path] of [[PublicMobileScan, PATH.scan], [PublicMobilePrint, PATH.print], [PublicMobileSpeed, PATH.speed]]) {
+test('Scan, Print and Speed return to their Film parent and keep their intake entry point', () => {
+  // Scan and Print embed their own order wizard; Speed still links to the film intake.
+  for (const [Page, path, intake] of [[PublicMobileScan, PATH.scan, /id="mobile-scan-intake"/],
+    [PublicMobilePrint, PATH.print, /id="mobile-print-intake"/],
+    [PublicMobileSpeed, PATH.speed, /<a[^>]*class="ps-mcta ps-mcta--fill"[^>]*href="\/film"/]]) {
     const html = render(Page, path);
     assert.match(html, /<a[^>]*class="ps-mback"[^>]*href="\/film"/);
-    assert.match(html, /<a[^>]*class="ps-mcta ps-mcta--fill"[^>]*href="\/film"/);
+    assert.match(html, intake);
   }
 });
 
