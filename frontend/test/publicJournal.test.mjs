@@ -22,6 +22,7 @@ test('all three editorial categories have distinct stable URLs and EN/VI draft c
     assert.equal(items.length, 9); assert.equal(new Set(items.map((item) => item.slug)).size, 9);
     for (const category of ['photography', 'stories', 'repair']) assert.equal(items.filter((item) => item.category === category).length, 3);
     assert.ok(items.every((item) => item.draft && item.language === lang && item.blocks.length > 3 && item.minutes > 0));
+    assert.ok(journalPreviewPosts(lang, { draft: false }).every((item) => item.draft === false));
     assert.ok(items.every((item) => journalHref(item, lang).endsWith(`?lang=${lang}`)));
   }
   assert.notEqual(posts('en')[0].title, posts('vi')[0].title);
@@ -103,9 +104,11 @@ test('journal styles are scoped, reserve image ratios and honor reduced motion',
   assert.match(css, /prefers-reduced-motion/); assert.match(css, /aspect-ratio/);
 });
 
-test('demo content is behind an explicit dev-only flag, never a production API seed', async () => {
+test('demo journal stories ship with the public site and never write to the CMS API', async () => {
   const hook = await fs.readFile(new URL('../src/hooks/useJournalPosts.js', import.meta.url), 'utf8');
+  assert.match(hook, /journalPreviewPosts/);
   assert.match(hook, /import\.meta\.env\.DEV && import\.meta\.env\.VITE_JOURNAL_PREVIEW === 'true'/);
+  assert.match(hook, /previewPosts\(lang, false\)/);
   assert.doesNotMatch(hook, /publicApi\.(post|patch|delete)/);
   const page = await fs.readFile(new URL('../src/pages/PublicBlogPost.jsx', import.meta.url), 'utf8');
   assert.doesNotMatch(page, /dangerouslySetInnerHTML/);

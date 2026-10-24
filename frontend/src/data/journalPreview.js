@@ -1,4 +1,5 @@
-// Editorial fixtures for the explicit development preview only; never published to the API.
+// Editorial fixtures for the public Journal. Local preview can mark them as drafts;
+// production renders the same stories without writing them into the CMS API.
 const lab = (name) => `/media/lab/${name}.jpg`;
 const p = (en, vi) => ({ en, vi });
 const paragraph = (en, vi) => ({ type: 'paragraph', copy: p(en, vi) });
@@ -70,13 +71,13 @@ for (const [slug, category, en, vi, excerptEn, excerptVi, photo] of additional) 
   title: p(en, vi), excerpt: p(excerptEn, excerptVi), image: lab(photo), tags: [category === 'repair' ? 'Care' : 'Film'],
   blocks: [paragraph(excerptEn, excerptVi), ...stories[category === 'repair' ? 3 : category === 'stories' ? 0 : 2].blocks.slice(1)] });
 
-export function journalPreviewPosts(lang) {
+export function journalPreviewPosts(lang, { draft = true } = {}) {
   const locale = lang === 'vi' ? 'vi' : 'en';
   const local = (copy) => copy?.[locale] || copy?.en || '';
   const block = (item) => ({ ...item, text: local(item.copy), caption: local(item.captionCopy), alt: local(item.altCopy),
     credit: item.src?.includes('/about/') ? '' : local(credits), images: item.images?.map(block) });
   return stories.map((story, index) => ({ ...story, id: `journal-preview-${index + 1}`, title: local(story.title),
-    excerpt: local(story.excerpt), blocks: story.blocks.map(block), language: locale, draft: true,
+    excerpt: local(story.excerpt), blocks: story.blocks.map(block), language: locale, draft,
     author: 'HDTLabx Journal', date: new Date(Date.UTC(2026, 9, 24 - index)).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
     imageCaption: story.image.includes('/about/') ? local(p('Dang Tran Truong / HDTLABX', 'Dang Tran Truong / HDTLABX')) : local(credits) }));
 }
