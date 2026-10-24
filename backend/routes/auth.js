@@ -27,6 +27,7 @@ const publicUser = (user) => ({
 
 const { verifyToken } = require('../middleware/verifyToken');
 const { rateLimit } = require('../middleware/rateLimit');
+const loginThrottle = require('../lib/loginThrottle');
 const { noStore } = require('../middleware/security');
 const {
   clearSessionCookie,
@@ -163,6 +164,11 @@ router.post(
 
       const email = String(req.body.email || '').trim().toLowerCase();
       const { password } = req.body;
+      const budget = await loginThrottle.reserveLogin(req, email);
+      if (!budget.allowed) {
+        res.setHeader('Retry-After', String(loginThrottle.WINDOW_MS / 1000));
+        return res.status(429).json({ message: 'Thử đăng nhập quá nhiều. Đợi 15 phút rồi thử lại.' });
+      }
       const user = await User.findOne({ email });
       if (user) req.auditUserId = user._id;
 
@@ -174,6 +180,7 @@ router.post(
       if (!isPasswordValid) {
         return res.status(401).json({ message: LOGIN_FAIL });
       }
+      await loginThrottle.clearAccount(budget.account);
 
       const role = isOwnerRole(user.role) ? 'owner' : 'staff';
       if (user.mfaEnabled) {

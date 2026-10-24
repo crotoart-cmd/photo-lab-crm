@@ -58,7 +58,7 @@ Hủy trước xác nhận không bật 2FA; QR chờ tự hết hạn sau 10 ph
 | P0, đã vá | `body-parser` 1.20.9, `multer` 2.5.0, `nodemailer` 10.1.4 | Audit runtime: 0; 104 kiểm thử backend qua; không gửi email thật |
 | P1, đã làm | Phiên admin web: 30 phút không thao tác, tối đa 8 giờ, danh sách và thu hồi từng phiên | Có thể thu hồi từng phiên; thiết bị cũ không truy cập tiếp |
 | P1, đã làm | CSRF cho toàn bộ API thay đổi dữ liệu bằng cookie, kiểm tra Origin | Yêu cầu từ origin khác bị chặn; luồng hợp lệ vẫn hoạt động |
-| P1 | Chống dò mật khẩu theo tài khoản/IP dùng kho dùng chung | Khởi động lại hoặc nhiều worker không đặt lại giới hạn; tránh khóa owner vô hạn |
+| P1, đã làm | Chống dò mật khẩu lưu trong MongoDB: 10 lần/tài khoản, 30 lần/IP mỗi 15 phút | Khởi động lại hoặc nhiều worker không đặt lại giới hạn; tránh khóa owner vô hạn |
 | P1, đã làm (chưa có cảnh báo) | Nhật ký bảo mật 90 ngày, chỉ owner xem; cảnh báo qua email làm sau | Có sự kiện đăng nhập/2FA/đổi thông tin; không ghi mật khẩu, token, QR hay OTP |
 | P1 | Sao lưu và diễn tập khôi phục MongoDB + media + khóa | Khôi phục thử trên môi trường riêng, xác nhận đăng nhập và dữ liệu đúng |
 | P2 | Đánh giá native/offline và nơi lưu token/dữ liệu | Phân tách offline với quyền server; không hardcode thông tin SMTP/owner |
