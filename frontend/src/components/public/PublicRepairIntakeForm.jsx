@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import PublicCaptcha, { captchaFields } from './PublicCaptcha';
 import publicApi from '../../api/publicClient';
 import { getApiBaseUrl, needsServerUrlSetup } from '../../config/apiBase';
 import { buildRepairSubmission, repairMediaIssue, repairUploadProgress } from '../../lib/repairMedia';
@@ -33,6 +34,7 @@ export default function PublicRepairIntakeForm({ compact = false }) {
   const [acknowledged, setAcknowledged] = useState(false);
   const [progress, setProgress] = useState(null);
   const submitting = useRef(false);
+  const captchaRef = useRef(null);
   const uploadController = useRef(null);
 
   useEffect(() => () => uploadController.current?.abort(), []);
@@ -70,7 +72,7 @@ export default function PublicRepairIntakeForm({ compact = false }) {
     const controller = new AbortController();
     uploadController.current = controller;
     try {
-      const body = buildRepairSubmission({ ...payload, website }, files, acknowledged);
+      const body = buildRepairSubmission({ ...payload, website, ...captchaFields(captchaRef) }, files, acknowledged);
       const { data } = await publicApi.post('/public/repair', body, {
         signal: controller.signal,
         timeout: files.length ? 180000 : 30000,
@@ -83,6 +85,7 @@ export default function PublicRepairIntakeForm({ compact = false }) {
       setFiles([]);
       setAcknowledged(false);
     } catch (err) {
+      captchaRef.current?.reload();
       setError(err.code === 'ERR_CANCELED' ? repairMediaT(lang, 'canceled')
         : ['ECONNABORTED', 'ETIMEDOUT'].includes(err.code) ? repairMediaT(lang, 'timeout')
           : err.response?.data?.message || (files.length && !err.response ? repairMediaT(lang, 'connected') : t('form.err.repair')));
@@ -94,7 +97,7 @@ export default function PublicRepairIntakeForm({ compact = false }) {
   };
 
   if (compact) {
-    return <PublicMobileRepairIntake form={form} setForm={setForm} website={website} setWebsite={setWebsite} saving={saving} error={error} done={done} onSubmit={handleSubmit} clearError={() => setError('')} onReset={reset}
+    return <PublicMobileRepairIntake form={form} setForm={setForm} website={website} setWebsite={setWebsite} saving={saving} error={error} done={done} onSubmit={handleSubmit} clearError={() => setError('')} onReset={reset} captchaRef={captchaRef}
       mediaFiles={files} onMediaChange={changeFiles} mediaAcknowledged={acknowledged} onMediaAcknowledged={setAcknowledged} uploadProgress={progress} onCancelUpload={() => uploadController.current?.abort()} />;
   }
 
@@ -182,6 +185,7 @@ export default function PublicRepairIntakeForm({ compact = false }) {
         </fieldset>
         <RepairUploadStatus saving={saving} hasMedia={files.length > 0} progress={progress} lang={lang} onCancel={() => uploadController.current?.abort()} />
 
+        <PublicCaptcha ref={captchaRef} />
         <button type="submit" className="ps-cta ps-cta--on-dark" disabled={saving}>
           {saving ? t('form.sending') : t('form.repair.submit')}
         </button>

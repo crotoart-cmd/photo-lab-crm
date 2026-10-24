@@ -9,11 +9,11 @@
   },
   "android": {
     "backgroundColor": "#ffffff",
-    "allowMixedContent": true
+    "allowMixedContent": false
   },
   "server": {
     "androidScheme": "https",
     "iosScheme": "capacitor",
-    "cleartext": true
+    "cleartext": false
   }
 }

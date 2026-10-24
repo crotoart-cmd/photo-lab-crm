@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import publicApi from '../../api/publicClient';
 import { usePublicLocale } from './PublicLocale';
 import { Field } from './PublicIntakeFields';
+import PublicCaptcha, { captchaFields } from './PublicCaptcha';
 import { pingWebInbox } from '../../lib/webInboxPing';
 import PublicMobileIcon from './PublicMobileIcon';
 
@@ -33,6 +34,7 @@ export default function PublicShopOrderSheet({ item, priceLabel, onClose, onOrde
   const [error, setError] = useState('');
   const [code, setCode] = useState('');
   const [photo, setPhoto] = useState(0);
+  const captchaRef = useRef(null);
   const gallery = galleryOf(item);
 
   useEffect(() => {
@@ -64,11 +66,13 @@ export default function PublicShopOrderSheet({ item, priceLabel, onClose, onOrde
         quantity: qty,
         website,
         items: [{ source: item.source, id: item.id, quantity: qty }],
+        ...captchaFields(captchaRef),
       });
       pingWebInbox();
       setCode(data.code || '');
       onOrdered?.();
     } catch (err) {
+      captchaRef.current?.reload();
       setError(err.response?.data?.message || t('acc.err'));
     } finally {
       setSaving(false);
@@ -216,6 +220,7 @@ export default function PublicShopOrderSheet({ item, priceLabel, onClose, onOrde
                 <Field label={t('acc.note')}>
                   <textarea rows={2} value={form.note} onChange={set('note')} />
                 </Field>
+                <PublicCaptcha ref={captchaRef} />
 
                 <button type="submit" className="ps-cta ps-cta--fill" disabled={saving}>
                   {saving ? t('form.sending') : t('acc.submit')}

@@ -23,6 +23,17 @@ function isLoopback(req) {
   );
 }
 
+/** Peer is the hosting proxy, not a visitor. A small cap on this address locks every customer together. */
+function isSharedProxyPeer(ip) {
+  const raw = String(ip || '').toLowerCase();
+  const v4 = raw.startsWith('::ffff:') ? raw.slice(7) : raw;
+  if (v4 === '127.0.0.1' || v4 === '::1' || v4 === 'localhost' || v4 === '0.0.0.0' || v4 === '::') return true;
+  if (/^10\./.test(v4) || /^192\.168\./.test(v4) || /^169\.254\./.test(v4)) return true;
+  const lan = /^172\.(\d+)\./.exec(v4);
+  if (lan && Number(lan[1]) >= 16 && Number(lan[1]) <= 31) return true;
+  return raw.startsWith('fc') || raw.startsWith('fd') || raw.startsWith('fe80:');
+}
+
 function tooManyRequests(req, max = 8, windowMs = 60 * 60 * 1000, bucket = 'public') {
   if (process.env.NODE_ENV !== 'production' && isLoopback(req)) return false;
   const ip = clientIp(req);
@@ -59,6 +70,7 @@ function resetRateLimitForTests() {
 
 module.exports = {
   clientIp,
+  isSharedProxyPeer,
   tooManyRequests,
   rateLimit,
   resetRateLimitForTests,

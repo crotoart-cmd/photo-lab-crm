@@ -12,6 +12,7 @@ const jwt = require('jsonwebtoken');
 const Ticket = require('../models/CustomerRepairTicket');
 const media = require('../lib/repairMedia');
 const { resetRateLimitForTests } = require('../middleware/rateLimit');
+const { issueCaptcha } = require('../lib/publicCaptcha');
 
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'hdt-repair-media-test-'));
 const oldRoot = process.env.REPAIR_MEDIA_DIR;
@@ -44,6 +45,10 @@ const limits = { ...media.LIMITS, imageBytes: 1024, videoBytes: 2048, totalBytes
 const ticketId = '507f1f77bcf86cd799439011';
 const otherTicketId = '507f1f77bcf86cd799439012';
 const fields = { firstName: 'Test', lastName: 'Customer', email: 'test@example.com', phone: '0912345678', model_name: 'Camera', symptom: 'Shutter stuck', condition_at_intake: 'Customer scratch report' };
+function withCaptcha(data) {
+  const issued = issueCaptcha();
+  return { ...data, captchaToken: issued.token, captchaAnswer: issued.answer };
+}
 
 function loadModule(relative, stubs) {
   const filename = path.resolve(__dirname, '..', relative);
@@ -286,7 +291,7 @@ it('cleans an interrupted streaming upload and releases its concurrency slot', a
 
 it('public intake persists trusted evidence and invokes the committed callback', async (t) => {
   const h = await harness(t);
-  const response = await h.send('/public/repair', form([image()], { ...fields, media_acknowledged: 'true', source: 'staff', sha256: 'forged' }));
+  const response = await h.send('/public/repair', form([image()], withCaptcha({ ...fields, media_acknowledged: 'true', source: 'staff', sha256: 'forged' })));
   assert.equal(response.status, 201, await response.clone().text());
   assert.equal((await response.json()).mediaCount, 1);
   const doc = h.state.saved[0];
@@ -314,7 +319,7 @@ it('cleans files after validation failure and honeypot submission', async (t) =>
 it('cleans files when customer lookup fails before ticket persistence begins', async (t) => {
   const h = await harness(t);
   h.state.customerError = new Error('customer lookup unavailable');
-  assert.equal((await h.send('/public/repair', form([image()], { ...fields, media_acknowledged: 'true' }))).status, 500);
+  assert.equal((await h.send('/public/repair', form([image()], withCaptcha({ ...fields, media_acknowledged: 'true' })))).status, 500);
   assert.equal(h.state.saves, 0);
   await h.empty();
 });
@@ -322,7 +327,7 @@ it('cleans files when customer lookup fails before ticket persistence begins', a
 it('retains persisted evidence when email fails after onPersisted', async (t) => {
   const h = await harness(t);
   h.state.emailError = Object.assign(new Error('email unavailable'), { status: 503 });
-  assert.equal((await h.send('/public/repair', form([image()], { ...fields, media_acknowledged: 'true' }))).status, 503);
+  assert.equal((await h.send('/public/repair', form([image()], withCaptcha({ ...fields, media_acknowledged: 'true' })))).status, 503);
   assert.equal(h.state.saved.length, 1);
   assert.equal(h.state.contexts[0].committed, true);
   assert.ok(fs.existsSync(media.mediaPath(h.state.saved[0].intake_media[0].storage_key, h.root)));
@@ -331,7 +336,7 @@ it('retains persisted evidence when email fails after onPersisted', async (t) =>
 it('preserves JSON intake and ignores forged evidence in public and authenticated payloads', async (t) => {
   const h = await harness(t);
   const forged = { intake_media: [{ id: 'a'.repeat(32), storage_key: '../secret', sha256: 'forged' }], customer_submission: { model_name: 'forged' }, media_acknowledged_at: '2000-01-01', media_acknowledgment_version: 'forged' };
-  assert.equal((await h.send('/public/repair', JSON.stringify({ ...fields, ...forged }), { 'Content-Type': 'application/json' })).status, 201);
+  assert.equal((await h.send('/public/repair', JSON.stringify(withCaptcha({ ...fields, ...forged })), { 'Content-Type': 'application/json' })).status, 201);
   const first = h.state.saved[0];
   assert.equal(first.intake_media, undefined);
   assert.equal(first.customer_submission.model_name, fields.model_name);

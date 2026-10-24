@@ -1,5 +1,7 @@
+const crypto = require('crypto');
 const Customer = require('../models/Customer');
-const { validateCustomerInput } = require('./customerNormalize');
+const { validateCustomerInput, normalizeEmail } = require('./customerNormalize');
+const { clientIp, isSharedProxyPeer, tooManyRequests } = require('../middleware/rateLimit');
 const {
   FILM_FORMATS,
   FILM_TYPE_DETAILS,
@@ -16,7 +18,21 @@ const {
   ORIGINAL_RETURN,
 } = require('../data/intakeOptions');
 
-const { tooManyRequests } = require('../middleware/rateLimit');
+const HOUR = 60 * 60 * 1000;
+
+function publicIntakeIpBlocked(req, bucket) {
+  if (process.env.NODE_ENV !== 'production' && isSharedProxyPeer(clientIp(req))) return false;
+  const shared = isSharedProxyPeer(clientIp(req));
+  return tooManyRequests(req, shared ? 80 : 8, HOUR, shared ? `public-proxy:${bucket}` : `public-ip:${bucket}`);
+}
+
+function publicIntakeEmailBlocked(email, bucket) {
+  if (process.env.NODE_ENV !== 'production') return false;
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
+  const id = crypto.createHash('sha256').update(normalized).digest('hex').slice(0, 24);
+  return tooManyRequests({ ip: id }, 5, HOUR, `public-mail:${bucket}`);
+}
 
 function isHoneypot(body) {
   return Boolean(String(body?.website || '').trim());
@@ -50,10 +66,9 @@ async function findOrCreateWebCustomer(body) {
     throw err;
   }
 
+  // Email is the only public identity. Matching by phone attached a stranger's order,
+  // and the confirmation email, to another customer's record.
   let customer = await Customer.findOne({ email: normalized.email });
-  if (!customer) {
-    customer = await Customer.findOne({ phone: normalized.phone });
-  }
   if (customer) return customer;
 
   customer = new Customer({
@@ -112,6 +127,8 @@ function clampQuantity(value) {
 
 module.exports = {
   tooManyRequests,
+  publicIntakeIpBlocked,
+  publicIntakeEmailBlocked,
   isHoneypot,
   findOrCreateWebCustomer,
   pickPublicChecklist,

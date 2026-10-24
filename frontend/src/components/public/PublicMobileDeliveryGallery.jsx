@@ -62,7 +62,7 @@ export default function PublicMobileDeliveryGallery({ data, error, onRetry }) {
             ))}
           </div>
           {!images.length || (filter === 'favorites' && !favorites.size) ? <div className="pm-gallery-empty"><PublicMobileIcon name={images.length ? 'favorite' : 'photo_library'} /><h2>{images.length ? t('exp.emptyFavorites') : t('exp.albumEmpty')}</h2>{filter === 'favorites' ? <button type="button" className="pm-secondary" onClick={() => setFilter('all')}>{t('exp.allFrames')}</button> : null}</div> : null}
-          {attachments.length ? <section className="pm-gallery-files"><h2>{t('exp.originalFiles')}</h2>{attachments.map((file) => <a key={file.filename} href={file.url} target="_blank" rel="noreferrer"><PublicMobileIcon name="description" /><span>{file.name || file.filename}</span><PublicMobileIcon name="download" /></a>)}</section> : null}
+          {attachments.length ? <section className="pm-gallery-files"><h2>{t('exp.originalFiles')}</h2>{attachments.map((file) => <a key={file.filename} href={file.url} target="_blank" rel="noopener noreferrer"><PublicMobileIcon name="description" /><span>{file.name || file.filename}</span><PublicMobileIcon name="download" /></a>)}</section> : null}
         </>
       )}
       {viewer.ready ? <Suspense fallback={<div className="pm-viewer-loading" role="status">{t('exp.loading')}</div>}><PhotoViewer open={viewer.open} index={viewer.index} slides={slides} onClose={closeViewer} onView={(index) => setViewer((state) => state.index === index ? state : { ...state, index })} download actions={[

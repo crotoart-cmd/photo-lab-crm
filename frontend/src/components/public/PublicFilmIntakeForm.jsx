@@ -18,6 +18,7 @@ import {
 } from '../../utils/intakeOptions';
 import { usePublicLocale } from './PublicLocale';
 import { Field, Honeypot, SelectOptions } from './PublicIntakeFields';
+import PublicCaptcha, { captchaFields } from './PublicCaptcha';
 import { PublicMobileChips } from './PublicMobilePage';
 import { pingWebInbox } from '../../lib/webInboxPing';
 import PublicMobileIcon from './PublicMobileIcon';
@@ -46,6 +47,7 @@ export default function PublicFilmIntakeForm({ compact = false }) {
   const [done, setDone] = useState('');
   const [step, setStep] = useState(1);
   const mobileForm = useRef(null);
+  const captchaRef = useRef(null);
   const mobileStepTitle = useRef(null);
   const mobileStatus = useRef(null);
   const previousStep = useRef(step);
@@ -86,6 +88,7 @@ export default function PublicFilmIntakeForm({ compact = false }) {
         quantity,
         receptionNotes,
         ...checklist,
+        ...captchaFields(captchaRef),
       });
       pingWebInbox();
       setDone(data.message || `${t('form.ok.film')} ${data.ticketNumber || ''}`.trim());
@@ -95,6 +98,7 @@ export default function PublicFilmIntakeForm({ compact = false }) {
       setReceptionNotes('');
       setStep(1);
     } catch (err) {
+      captchaRef.current?.reload();
       setError(err.response?.data?.message || t('form.err.film'));
     } finally {
       setSaving(false);
@@ -332,6 +336,7 @@ export default function PublicFilmIntakeForm({ compact = false }) {
               </div>
             </>
           ) : null}
+          {step === 3 ? <PublicCaptcha ref={captchaRef} /> : null}
           <div className="ps-mform-nav">
             {step > 1 ? (
               <button
@@ -641,6 +646,7 @@ export default function PublicFilmIntakeForm({ compact = false }) {
           />
         </Field>
 
+        <PublicCaptcha ref={captchaRef} />
         <button type="submit" className="ps-cta ps-cta--on-dark" disabled={saving}>
           {saving ? t('form.sending') : t('form.film.submit')}
         </button>

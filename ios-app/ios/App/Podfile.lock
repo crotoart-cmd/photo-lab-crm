@@ -38,7 +38,7 @@ SPEC CHECKSUMS:
   Capacitor: 1e0d0e7330dea9f983b50da737d8918abcf273f8
   CapacitorApp: 22c94146dfaae1159ab7059cbd51e76d9f2d45ec
   CapacitorCordova: 8d93e14982f440181be7304aa9559ca631d77fff
-  CapacitorDeviceSmtp: 0dc721447df2f108743849085a9fa516552fe1cd
+  CapacitorDeviceSmtp: 1f0d0ec0652524bb280912e72da98383f6774f40
   CapacitorStatusBar: 38665f1a18c55677098367a29f6b42126b72dc65
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
 

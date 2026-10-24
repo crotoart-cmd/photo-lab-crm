@@ -1,6 +1,5 @@
 const express = require('express');
 const crypto = require('crypto');
-const { rateLimit } = require('../middleware/rateLimit');
 const { repairMediaUpload, ACKNOWLEDGMENT_VERSION } = require('../lib/repairMedia');
 const Film = require('../models/Film');
 const { sendConfirmationEmail } = require('../services/emailService');
@@ -11,8 +10,11 @@ const { listPublicShop } = require('../services/shopCatalog');
 const { createShopOrder } = require('../services/shopOrders');
 const { createPrintOrder } = require('../services/printOrderService');
 const { createScanOrder } = require('../services/scanOrderService');
+const { tooManyRequests } = require('../middleware/rateLimit');
+const { issueCaptcha, assertPublicCaptcha } = require('../lib/publicCaptcha');
 const {
-  tooManyRequests,
+  publicIntakeIpBlocked,
+  publicIntakeEmailBlocked,
   isHoneypot,
   findOrCreateWebCustomer,
   pickPublicChecklist,
@@ -25,12 +27,26 @@ const router = express.Router();
 const generateFilmCode = () => `FM-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 const generateConfirmationCode = () => crypto.randomBytes(6).toString('hex').toUpperCase();
 
+function limited(res, message) {
+  res.setHeader('Retry-After', '3600');
+  return res.status(429).json({ message });
+}
+
 function fail(res, err) {
   const status = err.status || (err.name === 'ValidationError' ? 400 : 500);
   return res.status(status).json({
     message: err.status === 400 || err.name === 'ValidationError' ? err.message : 'Không gửi được đơn',
   });
 }
+
+router.get('/captcha', (req, res) => {
+  if (tooManyRequests(req, 40, 60 * 60 * 1000, 'captcha-get')) {
+    return limited(res, 'Quá nhiều yêu cầu. Thử lại sau.');
+  }
+  const issued = issueCaptcha();
+  res.setHeader('Cache-Control', 'no-store');
+  return res.json({ token: issued.token, image: issued.image });
+});
 
 router.get('/shop', async (_req, res) => {
   try {
@@ -43,12 +59,13 @@ router.get('/shop', async (_req, res) => {
 
 router.post('/shop/orders', async (req, res) => {
   try {
-    if (tooManyRequests(req)) {
-      return res.status(429).json({ message: 'Bạn đặt quá nhiều đơn. Thử lại sau.' });
+    if (publicIntakeIpBlocked(req, 'shop') || publicIntakeEmailBlocked(req.body?.email, 'shop')) {
+      return limited(res, 'Bạn đặt quá nhiều đơn. Thử lại sau.');
     }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, code: 'WEB-OK' });
     }
+    assertPublicCaptcha(req.body);
     const customer = await findOrCreateWebCustomer({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
@@ -77,12 +94,13 @@ router.post('/shop/orders', async (req, res) => {
 
 router.post('/scan', async (req, res) => {
   try {
-    if (tooManyRequests(req)) {
-      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
+    if (publicIntakeIpBlocked(req, 'scan') || publicIntakeEmailBlocked(req.body?.email, 'scan')) {
+      return limited(res, 'Bạn gửi quá nhiều đơn. Thử lại sau.');
     }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, code: 'SC-OK' });
     }
+    assertPublicCaptcha(req.body);
 
     const customer = await findOrCreateWebCustomer(req.body);
     const order = await createScanOrder({ body: req.body, customer });
@@ -99,12 +117,13 @@ router.post('/scan', async (req, res) => {
 
 router.post('/print', async (req, res) => {
   try {
-    if (tooManyRequests(req)) {
-      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
+    if (publicIntakeIpBlocked(req, 'print') || publicIntakeEmailBlocked(req.body?.email, 'print')) {
+      return limited(res, 'Bạn gửi quá nhiều đơn. Thử lại sau.');
     }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, code: 'IN-OK' });
     }
+    assertPublicCaptcha(req.body);
 
     const customer = await findOrCreateWebCustomer(req.body);
     const order = await createPrintOrder({ body: req.body, customer });
@@ -121,12 +140,13 @@ router.post('/print', async (req, res) => {
 
 router.post('/film', async (req, res) => {
   try {
-    if (tooManyRequests(req)) {
-      return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn. Thử lại sau.' });
+    if (publicIntakeIpBlocked(req, 'film') || publicIntakeEmailBlocked(req.body?.email, 'film')) {
+      return limited(res, 'Bạn gửi quá nhiều đơn. Thử lại sau.');
     }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, ticketNumber: 'PH-OK' });
     }
+    assertPublicCaptcha(req.body);
 
     const customer = await findOrCreateWebCustomer(req.body);
     const quantity = clampQuantity(req.body.quantity);
@@ -171,11 +191,20 @@ router.post('/film', async (req, res) => {
   }
 });
 
-router.post('/repair', rateLimit({ max: 8, windowMs: 60 * 60 * 1000, bucket: 'repair-intake' }), repairMediaUpload, async (req, res) => {
+router.post('/repair', (req, res, next) => {
+  if (publicIntakeIpBlocked(req, 'repair')) {
+    return limited(res, 'Quá nhiều yêu cầu. Thử lại sau.');
+  }
+  return next();
+}, repairMediaUpload, async (req, res) => {
   try {
+    if (publicIntakeEmailBlocked(req.body?.email || req.body?.customer_email, 'repair')) {
+      return limited(res, 'Quá nhiều yêu cầu. Thử lại sau.');
+    }
     if (isHoneypot(req.body)) {
       return res.status(201).json({ ok: true, ticketNumber: 'SRV-OK' });
     }
+    assertPublicCaptcha(req.body);
 
     const customer = await findOrCreateWebCustomer({
       firstName: req.body.firstName,

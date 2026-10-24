@@ -17,7 +17,14 @@ export default function Login() {
   const { login, completeMfaLogin, loginOfflineOnly, isAuthenticated, continueOffline } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const [info, setInfo] = useState(() => new URLSearchParams(window.location.search).get('reason') === 'expired' ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : '');
+  const [info, setInfo] = useState(() => {
+    const notice = sessionStorage.getItem('hdtlabx_login_notice');
+    if (notice) {
+      sessionStorage.removeItem('hdtlabx_login_notice');
+      return notice;
+    }
+    return new URLSearchParams(window.location.search).get('reason') === 'expired' ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : '';
+  });
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState(null);
   const [code, setCode] = useState('');
@@ -62,6 +69,8 @@ export default function Login() {
     } catch (err) {
       if (err.code === 'OFFLINE_WRONG_PASSWORD') {
         setError('Mật khẩu không đúng (offline trên máy này)');
+      } else if (err.code === 'OFFLINE_MFA_REQUIRED') {
+        setError('Tài khoản bật 2FA. Cần mạng để xác thực.');
       } else if (
         isMobileDataEnabled() &&
         canOffline &&

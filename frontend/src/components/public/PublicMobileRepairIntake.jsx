@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import masterCameraCatalog from '../../data/masterCameraCatalog.json';
 import { composeRepairSymptom, REPAIR_SYMPTOMS, repairStepIssue, toggleRepairSymptom, updateRepairModel } from '../../lib/publicRepairIntake';
 import { Field, Honeypot } from './PublicIntakeFields';
+import PublicCaptcha from './PublicCaptcha';
 import { usePublicLocale } from './PublicLocale';
 import PublicMobileIcon from './PublicMobileIcon';
 import RepairMediaPicker, { RepairMediaAcknowledgment, RepairUploadStatus } from './RepairMediaPicker';
 
-export default function PublicMobileRepairIntake({ form, setForm, website, setWebsite, saving, error, done, onSubmit, onReset, clearError,
+export default function PublicMobileRepairIntake({ form, setForm, website, setWebsite, saving, error, done, onSubmit, onReset, clearError, captchaRef,
   mediaFiles, onMediaChange, mediaAcknowledged, onMediaAcknowledged, uploadProgress, onCancelUpload }) {
   const { t, lang } = usePublicLocale();
   const [step, setStep] = useState(1);
@@ -115,6 +116,7 @@ export default function PublicMobileRepairIntake({ form, setForm, website, setWe
             <Field label={t('form.repair.note')}><textarea name="intake_note" maxLength={800} rows={3} value={form.intake_note} onChange={set('intake_note')} /></Field>
             <RepairMediaAcknowledgment files={mediaFiles} acknowledged={mediaAcknowledged} onChange={onMediaAcknowledged} lang={lang} disabled={saving} />
             <div className="pm-repair-consent"><PublicMobileIcon name="mark_email_read" /><p>{t('rp.beforeSend')}</p></div>
+            <PublicCaptcha ref={captchaRef} />
           </>}
         </fieldset>
         <RepairUploadStatus saving={saving} hasMedia={mediaFiles.length > 0} progress={uploadProgress} lang={lang} onCancel={onCancelUpload} />

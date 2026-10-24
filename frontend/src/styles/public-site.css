@@ -1817,6 +1817,14 @@ html.public-web body::-webkit-scrollbar {
   overflow: hidden;
 }
 
+.ps-captcha img {
+  display: block;
+  width: 164px;
+  height: 52px;
+  margin: 6px 0;
+  border-radius: 8px;
+}
+
 .ps-band {
   scroll-margin-top: calc(var(--ps-header-h) + 16px);
 }

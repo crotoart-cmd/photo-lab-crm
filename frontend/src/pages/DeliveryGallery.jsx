@@ -5,6 +5,7 @@ import { BRAND_NAME } from '../config/brand';
 import BrandLogo from '../components/BrandLogo';
 import PublicMobileDeliveryGallery from '../components/public/PublicMobileDeliveryGallery';
 import { PublicLocaleProvider } from '../components/public/PublicLocale';
+import { safeDeliveryFileUrl } from '../lib/publicDeliveryLink';
 
 const publicApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -73,23 +74,27 @@ export default function DeliveryGallery() {
               <p className="text-slate-400 text-center py-12">Lab đang tải ảnh lên — vui lòng quay lại sau.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {data.files.map((file) => (
+                {data.files.map((file) => {
+                  const url = safeDeliveryFileUrl(file.url);
+                  if (!url) return null;
+                  return (
                   <a
                     key={file.filename}
-                    href={file.url}
+                    href={url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="block rounded-lg overflow-hidden border border-slate-200 hover:shadow-md transition-shadow"
                   >
-                    {file.url && /\.(jpe?g|png|gif|webp)$/i.test(file.name || file.filename) ? (
-                      <img src={file.url} alt={file.name} className="w-full aspect-square object-cover" />
+                    {/\.(jpe?g|png|gif|webp)$/i.test(file.name || file.filename) ? (
+                      <img src={url} alt={file.name} className="w-full aspect-square object-cover" />
                     ) : (
                       <div className="aspect-square flex items-center justify-center bg-slate-100 text-xs p-2 text-center">
                         {file.name}
                       </div>
                     )}
                   </a>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

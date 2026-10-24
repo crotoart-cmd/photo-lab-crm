@@ -3,6 +3,7 @@
  * hoặc thiết lập lần đầu khi không tới được Mac (4G).
  */
 import { isMobileDataEnabled } from './mobileLocalDb';
+import { offlineMfaBlock } from './offlineMfa';
 
 const CRED_KEY = 'hdtlabx_offline_cred';
 const PBKDF2_ITERATIONS = 120000;
@@ -53,6 +54,7 @@ export async function saveOfflineCredentials(email, password, user) {
     salt: toBase64(salt),
     hash,
     iterations: PBKDF2_ITERATIONS,
+    mfaEnabled: user?.mfaEnabled === true,
     user,
     updatedAt: new Date().toISOString(),
   };
@@ -86,12 +88,15 @@ function makeLocalUser(email, existingUser) {
   };
 }
 
+export { offlineMfaBlock } from './offlineMfa';
+
 export function restoreOfflineSessionFromSavedUser() {
   const saved = localStorage.getItem('user');
   const creds = readOfflineCredentials();
   if (!saved || !creds) return null;
   try {
     const user = JSON.parse(saved);
+    if (offlineMfaBlock(creds) || user?.mfaEnabled === true) return null;
     return { user, token: makeOfflineToken(creds.email) };
   } catch {
     return null;
@@ -103,6 +108,11 @@ export async function verifyOfflineLogin(email, password) {
   if (!isMobileDataEnabled()) return null;
   const stored = await verifyStoredPassword(email, password);
   if (!stored) return null;
+  if (offlineMfaBlock(stored)) {
+    const blocked = new Error('Tài khoản bật 2FA. Cần mạng để xác thực.');
+    blocked.code = 'OFFLINE_MFA_REQUIRED';
+    throw blocked;
+  }
   const user = makeLocalUser(stored.email, stored.user);
   return { user, token: makeOfflineToken(stored.email) };
 }
@@ -118,6 +128,11 @@ export async function bootstrapOfflineLogin(email, password) {
 
   const existing = readOfflineCredentials();
   if (existing && existing.email !== normalized) return null;
+  if (offlineMfaBlock(existing)) {
+    const blocked = new Error('Tài khoản bật 2FA. Cần mạng để xác thực.');
+    blocked.code = 'OFFLINE_MFA_REQUIRED';
+    throw blocked;
+  }
 
   const user = makeLocalUser(normalized, existing?.user);
   await saveOfflineCredentials(normalized, password, user);

@@ -130,9 +130,13 @@ function assertSecurityEnv() {
 
 function trustedProxySetting() {
   const value = String(process.env.TRUST_PROXY || '').trim();
-  if (!value || value === 'false') return false;
+  if (value === 'false') return false;
   if (value === 'true' || /^\d+$/.test(value)) {
     throw new Error('TRUST_PROXY cần địa chỉ hoặc subnet proxy tin cậy');
+  }
+  if (!value) {
+    const { isSharedProxyPeer } = require('./rateLimit');
+    return (ip) => isSharedProxyPeer(ip);
   }
   return value.split(',').map((part) => part.trim()).filter(Boolean);
 }

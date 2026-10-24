@@ -38,6 +38,8 @@ router.get('/:token/file/:filename', async (req, res) => {
     if (!uploadResponseHeaders(res, filePath, DELIVERY_TYPES)) return res.status(404).end();
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    res.setHeader('Referrer-Policy', 'no-referrer');
     return res.sendFile(filePath);
   } catch (_error) {
     return res.status(404).end();

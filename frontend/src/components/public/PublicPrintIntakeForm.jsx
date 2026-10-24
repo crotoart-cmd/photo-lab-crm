@@ -12,6 +12,7 @@ import {
 } from '../../data/printOrderOptions';
 import { pingWebInbox } from '../../lib/webInboxPing';
 import { Field, Honeypot } from './PublicIntakeFields';
+import PublicCaptcha, { captchaFields } from './PublicCaptcha';
 import PublicMobileIcon from './PublicMobileIcon';
 import { PublicMobileChips } from './PublicMobilePage';
 import { usePublicLocale } from './PublicLocale';
@@ -46,6 +47,7 @@ export default function PublicPrintIntakeForm({ compact = false }) {
   const [done, setDone] = useState('');
   const [step, setStep] = useState(1);
   const mobileForm = useRef(null);
+  const captchaRef = useRef(null);
   const mobileStepTitle = useRef(null);
   const mobileStatus = useRef(null);
   const previousStep = useRef(step);
@@ -78,6 +80,7 @@ export default function PublicPrintIntakeForm({ compact = false }) {
         ...customer,
         website,
         ...order,
+        ...captchaFields(captchaRef),
       });
       pingWebInbox();
       setDone(data.message || `${t('form.ok.print')} ${data.code || ''}`.trim());
@@ -85,6 +88,7 @@ export default function PublicPrintIntakeForm({ compact = false }) {
       setOrder(emptyPrintOrder);
       setStep(1);
     } catch (err) {
+      captchaRef.current?.reload();
       setError(err.response?.data?.message || t('form.err.print'));
     } finally {
       setSaving(false);
@@ -314,6 +318,7 @@ export default function PublicPrintIntakeForm({ compact = false }) {
               </div>
             </>
           ) : null}
+          {step === 3 ? <PublicCaptcha ref={captchaRef} /> : null}
           <div className="ps-mform-nav">
             {step > 1 ? (
               <button
@@ -464,6 +469,7 @@ export default function PublicPrintIntakeForm({ compact = false }) {
           <textarea rows={3} placeholder={t('form.ph.printNote')} value={order.note} onChange={(e) => setOrderField('note', e.target.value)} />
         </Field>
 
+        <PublicCaptcha ref={captchaRef} />
         <button type="submit" className="ps-cta ps-cta--on-dark" disabled={saving}>
           {saving ? t('form.sending') : t('form.print.submit')}
         </button>

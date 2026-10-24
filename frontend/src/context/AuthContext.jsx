@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import api from '../api/client';
 import { isMobileDataEnabled } from '../lib/mobileLocalDb';
 import {
@@ -8,6 +8,7 @@ import {
   readOfflineCredentials,
   restoreOfflineSessionFromSavedUser,
 } from '../lib/mobileOfflineAuth';
+import { offlineMfaBlock } from '../lib/offlineMfa';
 import { rememberServerJwt, clearBackupJwt } from '../lib/mobileServerLink';
 import { clearStaleServerAuth, getServerAuthToken } from '../utils/authToken';
 import { isCrmHost } from '../config/siteHosts';
@@ -47,6 +48,7 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
   const [offlineSession, setOfflineSession] = useState(false);
+  const pendingPassword = useRef('');
 
   const refreshUser = async () => {
     const { data } = await api.get('/auth/me');
@@ -81,7 +83,25 @@ export const AuthProvider = ({ children }) => {
 
     // Mobile: vào app ngay bằng phiên local, không chờ server (4G không tới Mac).
     if (isMobileDataEnabled() && saved) {
-      setUser(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      const blocked = offlineMfaBlock(readOfflineCredentials()) || (parsed?.mfaEnabled === true ? 'mfa' : null);
+      if (blocked && token.startsWith('offline.')) {
+        localStorage.removeItem('token');
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      if (blocked === 'mfa') {
+        refreshUser()
+          .catch(() => {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            setUser(null);
+          })
+          .finally(() => setLoading(false));
+        return;
+      }
+      setUser(parsed);
       setOfflineSession(token.startsWith('offline.') || true);
       setLoading(false);
 
@@ -173,7 +193,15 @@ export const AuthProvider = ({ children }) => {
         { timeout: MOBILE_LOGIN_TIMEOUT_MS }
       )
       .then(async ({ data }) => {
-        if (data.requiresMfa) return;
+        if (data.requiresMfa) {
+          const creds = readOfflineCredentials();
+          if (creds) await saveOfflineCredentials(normalizedEmail, password, { ...(creds.user || {}), mfaEnabled: true });
+          localStorage.removeItem('token');
+          setUser(null);
+          setOfflineSession(false);
+          sessionStorage.setItem('hdtlabx_login_notice', 'Tài khoản bật 2FA. Đăng nhập lại khi có mạng.');
+          return;
+        }
         persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
@@ -188,23 +216,31 @@ export const AuthProvider = ({ children }) => {
     // Tablet / iPhone = nguồn chính: vào app bằng phiên local trước, Mac chỉ sync nền.
     if (isMobileDataEnabled()) {
       const creds = readOfflineCredentials();
+      let mfaBlocked = false;
       if (creds?.email === normalizedEmail) {
-        const offline = await verifyOfflineLogin(normalizedEmail, password);
-        if (offline) {
-          applyOfflineSession(setUser, setOfflineSession, offline.user, offline.token);
-          tryUpgradeServerSession(normalizedEmail, password);
-          return { ...offline, offlineBootstrap: false };
+        try {
+          const offline = await verifyOfflineLogin(normalizedEmail, password);
+          if (offline) {
+            applyOfflineSession(setUser, setOfflineSession, offline.user, offline.token);
+            tryUpgradeServerSession(normalizedEmail, password);
+            return { ...offline, offlineBootstrap: false };
+          }
+          const wrong = new Error('Mật khẩu không đúng');
+          wrong.code = 'OFFLINE_WRONG_PASSWORD';
+          throw wrong;
+        } catch (offlineErr) {
+          if (offlineErr?.code !== 'OFFLINE_MFA_REQUIRED') throw offlineErr;
+          mfaBlocked = true;
         }
-        const wrong = new Error('Mật khẩu không đúng');
-        wrong.code = 'OFFLINE_WRONG_PASSWORD';
-        throw wrong;
       }
 
-      try {
-        return await loginOfflineOnly(normalizedEmail, password);
-      } catch (offlineErr) {
-        if (offlineErr?.code === 'OFFLINE_WRONG_PASSWORD' || offlineErr?.code === 'OFFLINE_SETUP_FAILED') {
-          throw offlineErr;
+      if (!mfaBlocked) {
+        try {
+          return await loginOfflineOnly(normalizedEmail, password);
+        } catch (offlineErr) {
+          if (offlineErr?.code === 'OFFLINE_WRONG_PASSWORD' || offlineErr?.code === 'OFFLINE_SETUP_FAILED' || offlineErr?.code === 'OFFLINE_MFA_REQUIRED') {
+            throw offlineErr;
+          }
         }
       }
 
@@ -214,13 +250,21 @@ export const AuthProvider = ({ children }) => {
           { email: normalizedEmail, password, client: 'mobile' },
           { timeout: MOBILE_LOGIN_TIMEOUT_MS }
         );
-        if (data.requiresMfa) return data;
+        if (data.requiresMfa) {
+          pendingPassword.current = password;
+          return data;
+        }
         persistServerUser(data.user, data.token);
         setUser(data.user);
         setOfflineSession(false);
         await saveOfflineCredentials(normalizedEmail, password, data.user);
         return data;
       } catch (err) {
+        if (mfaBlocked) {
+          const blocked = new Error('Tài khoản bật 2FA. Cần mạng để xác thực.');
+          blocked.code = 'OFFLINE_MFA_REQUIRED';
+          throw blocked;
+        }
         if (!isOfflineAuthError(err)) throw err;
         return loginOfflineOnly(normalizedEmail, password);
       }
@@ -266,10 +310,13 @@ export const AuthProvider = ({ children }) => {
 
   const continueOffline = () => {
     if (!isMobileDataEnabled()) return false;
+    if (offlineMfaBlock(readOfflineCredentials())) return false;
     const saved = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     if (!saved || !token) return false;
-    setUser(JSON.parse(saved));
+    const parsed = JSON.parse(saved);
+    if (parsed?.mfaEnabled === true) return false;
+    setUser(parsed);
     setOfflineSession(true);
     return true;
   };
@@ -291,6 +338,10 @@ export const AuthProvider = ({ children }) => {
     persistServerUser(data.user, data.token);
     setUser(data.user);
     setOfflineSession(false);
+    if (pendingPassword.current && data.user?.email) {
+      await saveOfflineCredentials(data.user.email, pendingPassword.current, data.user);
+      pendingPassword.current = '';
+    }
     return data;
   };
 

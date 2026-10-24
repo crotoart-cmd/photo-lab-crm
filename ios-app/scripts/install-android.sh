@@ -44,11 +44,18 @@ mkdir -p "$(dirname "$NET_SEC")"
 cat > "$NET_SEC" <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-  <base-config cleartextTrafficPermitted="true">
+  <base-config cleartextTrafficPermitted="false">
     <trust-anchors>
       <certificates src="system" />
     </trust-anchors>
   </base-config>
+  <!-- HTTP chỉ cho máy lab trong mạng nội bộ. Internet bắt buộc HTTPS. -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">localhost</domain>
+    <domain includeSubdomains="false">127.0.0.1</domain>
+    <domain includeSubdomains="false">10.0.2.2</domain>
+    <domain includeSubdomains="false">192.168.1.10</domain>
+  </domain-config>
 </network-security-config>
 XML
 

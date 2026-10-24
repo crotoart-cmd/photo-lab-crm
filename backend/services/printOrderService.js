@@ -25,13 +25,20 @@ function clampPrintQty(value) {
   return Math.min(40, Math.round(n));
 }
 
-function isHttpUrl(value) {
+function isPublicFileLink(value) {
+  let url;
   try {
-    const url = new URL(String(value || '').trim());
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    url = new URL(String(value || '').trim());
   } catch {
     return false;
   }
+  if (url.protocol !== 'https:' || url.username || url.password) return false;
+  const host = url.hostname.toLowerCase();
+  if (!host || host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) return false;
+  if (/^\d+$/.test(host) || host.includes(':') || /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host)) return false;
+  const { isSharedProxyPeer } = require('../middleware/rateLimit');
+  if (isSharedProxyPeer(host) || host === 'metadata.google.internal') return false;
+  return true;
 }
 
 function generatePrintCode() {
@@ -75,7 +82,7 @@ async function createPrintOrder({ body, customer }) {
   if (source === 'files') {
     fileHandoff = pickEnum(PRINT_FILE_HANDOFF, body.fileHandoff, 'link');
     fileLink = str(body.fileLink, 500);
-    if (fileHandoff === 'link' && !isHttpUrl(fileLink)) {
+    if (fileHandoff === 'link' && !isPublicFileLink(fileLink)) {
       const err = new Error('Dán link Drive, Dropbox hoặc WeTransfer');
       err.status = 400;
       throw err;
@@ -112,4 +119,4 @@ async function createPrintOrder({ body, customer }) {
   return order;
 }
 
-module.exports = { createPrintOrder };
+module.exports = { createPrintOrder, isPublicFileLink };

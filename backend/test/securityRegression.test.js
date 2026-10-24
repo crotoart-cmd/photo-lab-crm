@@ -281,10 +281,27 @@ describe('upload and content permissions', () => {
 });
 
 describe('deployment configuration and errors', () => {
-  it('ignores spoofed forwarded IPs when no trusted proxy is configured', async () => withServer(async (base) => {
-    assert.equal(trustedProxySetting(), false);
-    const response = await fetch(`${base}/ip`, { headers: { 'X-Forwarded-For': '203.0.113.20' } });
-    assert.equal((await response.json()).ip, '127.0.0.1');
+  it('trusts a local proxy hop and ignores a client-supplied address ahead of it', async () => withServer(async (base) => {
+    const trust = trustedProxySetting();
+    assert.equal(typeof trust, 'function');
+    assert.equal(trust('127.0.0.1'), true);
+    assert.equal(trust('10.1.2.3'), true);
+    assert.equal(trust('203.0.113.20'), false);
+    const proxy = express();
+    proxy.set('trust proxy', trust);
+    proxy.get('/ip', (req, res) => res.json({ ip: req.ip }));
+    const server = proxy.listen(0, '127.0.0.1');
+    await new Promise((resolve, reject) => { server.once('listening', resolve); server.once('error', reject); });
+    try {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/ip`, {
+        headers: { 'X-Forwarded-For': '8.8.8.8, 203.0.113.50' },
+      });
+      assert.equal((await response.json()).ip, '203.0.113.50');
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+    const direct = await fetch(`${base}/ip`, { headers: { 'X-Forwarded-For': '203.0.113.20' } });
+    assert.equal((await direct.json()).ip, '127.0.0.1');
   }));
 
   it('accepts explicit proxy addresses and rejects hop-count trust', () => {
